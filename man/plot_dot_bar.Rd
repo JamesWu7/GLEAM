@@ -4,7 +4,14 @@
 \alias{plot_dot_bar}
 \title{Dot + bar summary plot for pathway groups}
 \usage{
-plot_dot_bar(score, by, threshold = 0, pathway = NULL)
+plot_dot_bar(
+  score,
+  by,
+  threshold = 0,
+  pathway = NULL,
+  color_palette = "gleam_continuous",
+  theme_params = list()
+)
 }
 \arguments{
 \item{score}{\code{gleam_score} object.}
@@ -14,6 +21,10 @@ plot_dot_bar(score, by, threshold = 0, pathway = NULL)
 \item{threshold}{Threshold for active fraction.}
 
 \item{pathway}{Optional pathway filter.}
+
+\item{color_palette}{Continuous palette for mean score.}
+
+\item{theme_params}{Optional list passed to \code{\link[=gleam_theme]{gleam_theme()}}.}
 }
 \value{
 A \code{ggplot} object.

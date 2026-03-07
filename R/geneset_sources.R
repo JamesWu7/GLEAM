@@ -6,6 +6,8 @@ list_geneset_sources <- function() {
   data.frame(
     source = c("builtin", "list", "gmt", "data.frame", "msigdb", "go", "kegg", "reactome"),
     requires_package = c(NA, NA, NA, NA, "msigdbr", "msigdbr", "msigdbr", "msigdbr"),
+    supported_builtin_species = c("human,mouse", "any(custom)", "any(custom)", "any(custom)", "human,mouse", "human,mouse", "human,mouse", "human,mouse"),
+    built_in_available = c(TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE),
     internet_required = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE),
     stringsAsFactors = FALSE
   )

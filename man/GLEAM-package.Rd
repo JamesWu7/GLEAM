@@ -8,7 +8,7 @@
 \description{
 Matrix-native pathway and cell-state analysis toolkit for single-cell and
 spatial transcriptomics, with optional Seurat v4/v5, trajectory, and
-ecosystem integrations.
+ecosystem integrations. Use \code{citation("GLEAM")} for citation metadata.
 }
 \seealso{
 Useful links:

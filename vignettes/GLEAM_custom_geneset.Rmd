@@ -1,0 +1,39 @@
+---
+title: "GLEAM custom geneset example"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{GLEAM custom geneset example}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(GLEAM)
+```
+
+## Custom named-list genesets
+
+```{r}
+custom_gs <- list(
+  IFN_custom = c("STAT1", "IRF1", "ISG15", "IFIT3"),
+  CYT_custom = c("NKG7", "PRF1", "GZMB", "GNLY")
+)
+
+data("pbmc_medium_matrix", package = "GLEAM")
+data("pbmc_medium_meta", package = "GLEAM")
+
+sc <- score_pathway(
+  expr = pbmc_medium_matrix,
+  meta = pbmc_medium_meta,
+  geneset = custom_gs,
+  geneset_source = "list",
+  seurat = FALSE,
+  method = "mean",
+  min_genes = 2,
+  verbose = FALSE
+)
+
+plot_dot(sc, by = c("group", "celltype"))
+```
+

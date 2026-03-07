@@ -4,7 +4,17 @@
 \alias{plot_pseudobulk_box}
 \title{Pseudobulk boxplot for pathway scores}
 \usage{
-plot_pseudobulk_box(score, pathway, group, sample, celltype = NULL)
+plot_pseudobulk_box(
+  score,
+  pathway,
+  group,
+  sample,
+  celltype = NULL,
+  palette = "gleam_discrete",
+  point_size = 1.6,
+  alpha = 0.75,
+  theme_params = list()
+)
 }
 \arguments{
 \item{score}{\code{gleam_score} object.}
@@ -16,6 +26,14 @@ plot_pseudobulk_box(score, pathway, group, sample, celltype = NULL)
 \item{sample}{Sample variable.}
 
 \item{celltype}{Optional celltype variable.}
+
+\item{palette}{Discrete palette name or custom colors.}
+
+\item{point_size}{Jitter point size.}
+
+\item{alpha}{Box alpha.}
+
+\item{theme_params}{Optional list passed to \code{\link[=gleam_theme]{gleam_theme()}}.}
 }
 \value{
 A \code{ggplot} object.

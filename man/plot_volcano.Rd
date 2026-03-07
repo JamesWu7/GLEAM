@@ -4,7 +4,15 @@
 \alias{plot_volcano}
 \title{Volcano plot for differential pathways}
 \usage{
-plot_volcano(x, p_col = "p_adj", effect_col = "effect_size", sig_thresh = 0.05)
+plot_volcano(
+  x,
+  p_col = "p_adj",
+  effect_col = "effect_size",
+  sig_thresh = 0.05,
+  point_size = 1.8,
+  alpha = 0.8,
+  theme_params = list()
+)
 }
 \arguments{
 \item{x}{\code{gleam_test} object or result data.frame.}
@@ -14,6 +22,12 @@ plot_volcano(x, p_col = "p_adj", effect_col = "effect_size", sig_thresh = 0.05)
 \item{effect_col}{Effect size column name.}
 
 \item{sig_thresh}{Significance threshold for adjusted p-value.}
+
+\item{point_size}{Point size.}
+
+\item{alpha}{Point alpha.}
+
+\item{theme_params}{Optional list passed to \code{\link[=gleam_theme]{gleam_theme()}}.}
 }
 \value{
 A \code{ggplot} object.

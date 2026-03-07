@@ -10,7 +10,8 @@ plot_heatmap(
   fun = c("mean", "median", "fraction"),
   threshold = 0,
   top_n = NULL,
-  palette = "gleam_continuous"
+  palette = "gleam_continuous",
+  theme_params = list()
 )
 }
 \arguments{
@@ -25,6 +26,8 @@ plot_heatmap(
 \item{top_n}{Optional top pathways by variance.}
 
 \item{palette}{Continuous palette name or custom colors.}
+
+\item{theme_params}{Optional list passed to \code{\link[=gleam_theme]{gleam_theme()}}.}
 }
 \value{
 A \code{ggplot} object.

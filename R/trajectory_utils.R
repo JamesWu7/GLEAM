@@ -10,6 +10,11 @@ extract_pseudotime <- function(score, pseudotime = NULL, object = NULL) {
   check_score_object(score)
   meta <- score$meta
 
+  if (!is.null(pseudotime) && is.null(object) && (inherits(pseudotime, "SlingshotDataSet") || inherits(pseudotime, "cell_data_set") || inherits(pseudotime, "CellDataSet"))) {
+    object <- pseudotime
+    pseudotime <- NULL
+  }
+
   if (!is.null(pseudotime)) {
     if (length(pseudotime) == 1L && is.character(pseudotime) && pseudotime %in% colnames(meta)) {
       return(as.numeric(meta[[pseudotime]]))
@@ -25,6 +30,20 @@ extract_pseudotime <- function(score, pseudotime = NULL, object = NULL) {
       pt <- tryCatch(slingshot::slingPseudotime(object), error = function(e) NULL)
       if (!is.null(pt)) return(as.numeric(rowMeans(pt, na.rm = TRUE)))
     }
+    if (inherits(object, "CellDataSet") && requireNamespace("monocle", quietly = TRUE)) {
+      pd <- tryCatch({
+        if (requireNamespace("Biobase", quietly = TRUE)) {
+          Biobase::pData(object)
+        } else {
+          as.data.frame(object@phenoData@data)
+        }
+      }, error = function(e) NULL)
+      if (!is.null(pd)) {
+        for (nm in c("Pseudotime", "pseudotime")) {
+          if (nm %in% colnames(pd)) return(as.numeric(pd[[nm]]))
+        }
+      }
+    }
     if (inherits(object, "cell_data_set") && requireNamespace("monocle3", quietly = TRUE)) {
       pt <- tryCatch(monocle3::pseudotime(object), error = function(e) NULL)
       if (!is.null(pt)) return(as.numeric(pt))
@@ -35,7 +54,7 @@ extract_pseudotime <- function(score, pseudotime = NULL, object = NULL) {
     return(as.numeric(meta$pseudotime))
   }
 
-  stop("Unable to resolve pseudotime. Provide `pseudotime` explicitly.", call. = FALSE)
+  stop("Unable to resolve pseudotime. Provide `pseudotime` explicitly (vector/column or monocle/monocle3/slingshot object).", call. = FALSE)
 }
 
 #' Extract lineage labels
@@ -49,6 +68,11 @@ extract_pseudotime <- function(score, pseudotime = NULL, object = NULL) {
 extract_lineage <- function(score, lineage = NULL, object = NULL) {
   check_score_object(score)
   meta <- score$meta
+
+  if (!is.null(lineage) && is.null(object) && (inherits(lineage, "SlingshotDataSet") || inherits(lineage, "cell_data_set") || inherits(lineage, "CellDataSet"))) {
+    object <- lineage
+    lineage <- NULL
+  }
 
   if (!is.null(lineage)) {
     if (length(lineage) == 1L && is.character(lineage) && lineage %in% colnames(meta)) {
@@ -64,6 +88,20 @@ extract_lineage <- function(score, lineage = NULL, object = NULL) {
     cl <- tryCatch(slingshot::slingClusterLabels(object), error = function(e) NULL)
     if (!is.null(cl)) {
       return(apply(cl, 1, function(v) names(which.max(v))))
+    }
+  }
+  if (!is.null(object) && inherits(object, "CellDataSet") && requireNamespace("monocle", quietly = TRUE)) {
+    pd <- tryCatch({
+      if (requireNamespace("Biobase", quietly = TRUE)) {
+        Biobase::pData(object)
+      } else {
+        as.data.frame(object@phenoData@data)
+      }
+    }, error = function(e) NULL)
+    if (!is.null(pd)) {
+      for (nm in c("State", "state", "lineage", "branch")) {
+        if (nm %in% colnames(pd)) return(as.character(pd[[nm]]))
+      }
     }
   }
 
@@ -214,7 +252,7 @@ test_pathway_trajectory <- function(
       comparison_type = "trajectory",
       group1 = "pseudotime",
       group2 = NA_character_,
-      celltype = as.character(stats::median(as.numeric(as.factor(ln)), na.rm = TRUE)),
+      celltype = names(sort(table(as.character(ln[keep])), decreasing = TRUE))[1],
       level = "trajectory",
       effect_size = eff,
       median_group1 = stats::median(yk, na.rm = TRUE),

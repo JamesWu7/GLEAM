@@ -4,7 +4,13 @@
 \alias{plot_dot}
 \title{Dot plot of pathway summaries}
 \usage{
-plot_dot(score, by, threshold = 0, palette = "gleam_continuous")
+plot_dot(
+  score,
+  by,
+  threshold = 0,
+  palette = "gleam_continuous",
+  theme_params = list()
+)
 }
 \arguments{
 \item{score}{\code{gleam_score} object.}
@@ -14,6 +20,8 @@ plot_dot(score, by, threshold = 0, palette = "gleam_continuous")
 \item{threshold}{Threshold for active fraction.}
 
 \item{palette}{Continuous palette name or custom colors.}
+
+\item{theme_params}{Optional list passed to \code{\link[=gleam_theme]{gleam_theme()}}.}
 }
 \value{
 A \code{ggplot} object.

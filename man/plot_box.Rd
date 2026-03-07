@@ -4,7 +4,16 @@
 \alias{plot_box}
 \title{Box plot of sample-level pathway scores}
 \usage{
-plot_box(score, pathway, group, sample, palette = "gleam_discrete")
+plot_box(
+  score,
+  pathway,
+  group,
+  sample,
+  palette = "gleam_discrete",
+  point_size = 1.8,
+  alpha = 0.7,
+  theme_params = list()
+)
 }
 \arguments{
 \item{score}{\code{gleam_score} object.}
@@ -16,6 +25,12 @@ plot_box(score, pathway, group, sample, palette = "gleam_discrete")
 \item{sample}{Sample variable (metadata column name or vector).}
 
 \item{palette}{Discrete palette name or custom colors.}
+
+\item{point_size}{Jitter point size.}
+
+\item{alpha}{Box alpha.}
+
+\item{theme_params}{Optional list passed to \code{\link[=gleam_theme]{gleam_theme()}}.}
 }
 \value{
 A \code{ggplot} object.

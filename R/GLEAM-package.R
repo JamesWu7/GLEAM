@@ -2,7 +2,7 @@
 #'
 #' Matrix-native pathway and cell-state analysis toolkit for single-cell and
 #' spatial transcriptomics, with optional Seurat v4/v5, trajectory, and
-#' ecosystem integrations.
+#' ecosystem integrations. Use `citation("GLEAM")` for citation metadata.
 #'
 #' @keywords internal
 "_PACKAGE"

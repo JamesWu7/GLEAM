@@ -4,7 +4,15 @@
 \alias{plot_spatial_multi}
 \title{Plot multiple pathways on spatial coordinates}
 \usage{
-plot_spatial_multi(score, pathways, coords, palette = "gleam_continuous")
+plot_spatial_multi(
+  score,
+  pathways,
+  coords,
+  palette = "gleam_continuous",
+  point_size = 1.2,
+  alpha = 0.9,
+  theme_params = list()
+)
 }
 \arguments{
 \item{score}{\code{gleam_score} object.}
@@ -14,6 +22,12 @@ plot_spatial_multi(score, pathways, coords, palette = "gleam_continuous")
 \item{coords}{Spatial coordinates data.frame with x/y.}
 
 \item{palette}{Continuous palette.}
+
+\item{point_size}{Point size.}
+
+\item{alpha}{Point alpha.}
+
+\item{theme_params}{Optional list passed to \code{\link[=gleam_theme]{gleam_theme()}}.}
 }
 \value{
 A \code{ggplot} object.

@@ -1,0 +1,92 @@
+---
+title: "GLEAM quick start: spatial Seurat workflow"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{GLEAM quick start: spatial Seurat workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(GLEAM)
+```
+
+## Goal
+
+This quick start demonstrates:
+
+1. Spatial Seurat input
+2. Pathway scoring with built-in Hallmark genesets
+3. Region/sample-aware differential testing
+4. Spatial score mapping with explicit slice/tissue context
+
+## 1) Load/create spatial-capable Seurat object
+
+```{r, eval=FALSE}
+library(Seurat)
+data("spatial_medium_expr", package = "GLEAM")
+data("spatial_medium_meta", package = "GLEAM")
+
+sp_seu <- CreateSeuratObject(counts = spatial_medium_expr, meta.data = spatial_medium_meta)
+DefaultAssay(sp_seu) <- "RNA"
+sp_seu <- NormalizeData(sp_seu)
+sp_seu <- FindVariableFeatures(sp_seu)
+sp_seu <- ScaleData(sp_seu)
+sp_seu <- RunPCA(sp_seu)
+sp_seu <- RunUMAP(sp_seu, dims = 1:20)
+```
+
+## 2) Score pathways
+
+```{r, eval=FALSE}
+gs <- get_geneset("hallmark", source = "builtin", species = "human")
+sp <- score_pathway(
+  object = sp_seu,
+  geneset = gs,
+  geneset_source = "list",
+  seurat = TRUE,
+  assay = "RNA",
+  layer = "data",
+  slot = "data",
+  method = "rank"
+)
+```
+
+## 3) Spatial score plots (slice + coordinates)
+
+```{r, eval=FALSE}
+coords <- data.frame(
+  x = sp_seu@meta.data$x,
+  y = sp_seu@meta.data$y,
+  row.names = rownames(sp_seu@meta.data)
+)
+
+# Simulated tissue-like background for slice-context demonstration
+tissue_bg <- as.raster(matrix(colorRampPalette(c("#f7f3e8", "#eadfca", "#d9c7a4"))(256), nrow = 16))
+
+plot_spatial_score(
+  sp,
+  pathway = rownames(sp$score)[1],
+  coords = coords,
+  image = tissue_bg,
+  split.by = "sample"
+)
+```
+
+## 4) Spatial differential testing
+
+```{r, eval=FALSE}
+sp_res <- test_pathway(
+  score = sp,
+  region = "region",
+  group = "group",
+  sample = "sample",
+  level = "sample_region",
+  method = "wilcox"
+)
+
+top_sp <- sp_res$table$pathway[order(sp_res$table$p_adj)][1]
+plot_spatial_score(sp, pathway = top_sp, coords = coords, image = tissue_bg, split.by = "region")
+plot_spatial_compare(sp_res)
+```

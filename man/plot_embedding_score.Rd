@@ -4,7 +4,18 @@
 \alias{plot_embedding_score}
 \title{Plot pathway score on embedding coordinates}
 \usage{
-plot_embedding_score(score, pathway, embedding, split.by = NULL)
+plot_embedding_score(
+  score,
+  pathway,
+  embedding = NULL,
+  object = NULL,
+  reduction = "umap",
+  split.by = NULL,
+  point_size = 1.1,
+  alpha = 0.9,
+  palette = "gleam_continuous",
+  theme_params = list()
+)
 }
 \arguments{
 \item{score}{\code{gleam_score} object.}
@@ -13,7 +24,19 @@ plot_embedding_score(score, pathway, embedding, split.by = NULL)
 
 \item{embedding}{Embedding matrix with at least 2 columns.}
 
+\item{object}{Optional Seurat object.}
+
+\item{reduction}{Reduction name used when \code{embedding} is NULL.}
+
 \item{split.by}{Optional metadata column for faceting.}
+
+\item{point_size}{Point size.}
+
+\item{alpha}{Point alpha.}
+
+\item{palette}{Continuous palette name or custom colors.}
+
+\item{theme_params}{Optional list passed to \code{\link[=gleam_theme]{gleam_theme()}}.}
 }
 \value{
 A \code{ggplot} object.

@@ -32,6 +32,18 @@ source("scripts/render_examples.R")
 
 Rendered files are placed in `docs/tutorial_html/`.
 
+## Build pkgdown site
+```r
+pkgdown::build_site()
+```
+
+## Citation workflow
+```r
+citation("GLEAM")
+```
+
+Citation metadata is maintained in `inst/CITATION`.
+
 ## Notes
 - Matrix workflow is first-class and does not require Seurat.
 - Seurat workflows support v4 slot and v5 layer conventions.

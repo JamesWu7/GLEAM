@@ -4,12 +4,16 @@
 \alias{plot_celltype_compare}
 \title{Plot celltype comparison result}
 \usage{
-plot_celltype_compare(x, top_n = 20)
+plot_celltype_compare(x, top_n = 20, point_size = 2.5, theme_params = list())
 }
 \arguments{
 \item{x}{\code{gleam_test} object or result table.}
 
 \item{top_n}{Number of pathways to display.}
+
+\item{point_size}{Point size.}
+
+\item{theme_params}{Optional list passed to \code{\link[=gleam_theme]{gleam_theme()}}.}
 }
 \value{
 A \code{ggplot} object.

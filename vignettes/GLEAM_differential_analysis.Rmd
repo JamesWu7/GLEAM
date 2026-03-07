@@ -1,14 +1,67 @@
 ---
-title: "GLEAM differential analysis"
+title: "GLEAM differential analysis guide"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{GLEAM differential analysis}
+  %\VignetteIndexEntry{GLEAM differential analysis guide}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r, eval=FALSE}
-res_cell <- test_pathway(sc, group = "group", level = "cell")
-res_pb <- test_pathway(sc, group = "group", sample = "sample", level = "pseudobulk")
-res_wct <- compare_groups_within_celltype(sc, group = "group", celltype = "celltype", target_celltype = "CD8_T")
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(GLEAM)
+data("pbmc_medium_matrix", package = "GLEAM")
+data("pbmc_medium_meta", package = "GLEAM")
+sc <- score_pathway(
+  expr = pbmc_medium_matrix,
+  meta = pbmc_medium_meta,
+  geneset = "immune_small",
+  geneset_source = "builtin",
+  species = "human",
+  seurat = FALSE,
+  method = "rank",
+  min_genes = 3,
+  verbose = FALSE
+)
 ```
+
+## Comparison levels
+
+`test_pathway()` supports multiple levels:
+
+- `cell` (exploratory)
+- `sample`
+- `celltype`
+- `sample_celltype`
+- `pseudobulk`
+- `region`
+- `sample_region`
+- `trajectory`
+
+## Common patterns
+
+```{r, eval=FALSE}
+res_cell <- test_pathway(sc, group = "group", level = "cell", method = "wilcox")
+res_sample <- test_pathway(sc, group = "group", sample = "sample", level = "sample", method = "wilcox")
+res_celltype <- test_pathway(sc, celltype = "celltype", group = "group", level = "celltype", method = "wilcox")
+res_sample_celltype <- test_pathway(sc, group = "group", sample = "sample", celltype = "celltype", level = "sample_celltype")
+res_pb <- test_pathway(sc, group = "group", sample = "sample", celltype = "celltype", level = "pseudobulk")
+
+res_wct <- compare_groups_within_celltype(
+  score = sc,
+  group = "group",
+  celltype = "celltype",
+  target_celltype = "CD8_T",
+  sample = "sample",
+  level = "sample"
+)
+```
+
+## Differential result visualizations
+
+```{r, eval=FALSE}
+plot_volcano(res_pb)
+plot_celltype_compare(res_celltype)
+plot_group_in_celltype(res_wct)
+```
+

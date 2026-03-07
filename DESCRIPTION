@@ -55,5 +55,6 @@ Suggests:
     viridisLite
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-URL: https://github.com/jameswoo/GLEAM
+URL: https://github.com/jameswoo/GLEAM,
+    https://jameswoo.github.io/GLEAM
 BugReports: https://github.com/jameswoo/GLEAM/issues

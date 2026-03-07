@@ -22,21 +22,35 @@ get_geneset <- function(
 ) {
   source <- match.arg(source)
   ontology <- match.arg(ontology)
+  sp <- normalize_species(species)
 
   if (source == "auto") {
     source <- infer_geneset_source(geneset)
   }
 
+  if (source %in% c("builtin", "msigdb", "go", "kegg", "reactome") && !sp$supported_builtin) {
+    stop(
+      sprintf(
+        "Built-in geneset sources currently support only human/mouse. Received species '%s'. Use source='list'/'gmt'/'data.frame' for custom species genesets.",
+        as.character(species)
+      ),
+      call. = FALSE
+    )
+  }
+
+  species_msigdb <- sp$msigdb
+  species_meta <- sp$canonical
+
   gs <- switch(
     source,
-    builtin = get_builtin_geneset(geneset),
+    builtin = get_builtin_geneset(geneset, species = species_meta),
     list = as_geneset(geneset),
     gmt = read_gmt(as.character(geneset)),
     `data.frame` = as_geneset(geneset),
-    msigdb = get_geneset_msigdb(species = species, collection = collection, subcollection = subcollection),
-    go = get_geneset_go(species = species, ontology = ontology),
-    kegg = get_geneset_kegg(species = species),
-    reactome = get_geneset_reactome(species = species),
+    msigdb = get_geneset_msigdb(species = species_msigdb, collection = collection, subcollection = subcollection),
+    go = get_geneset_go(species = species_msigdb, ontology = ontology),
+    kegg = get_geneset_kegg(species = species_msigdb),
+    reactome = get_geneset_reactome(species = species_msigdb),
     stop(sprintf("Unsupported geneset source: %s", source), call. = FALSE)
   )
 
@@ -45,7 +59,7 @@ get_geneset <- function(
     source = source,
     collection = collection,
     subcollection = subcollection,
-    species = species,
+    species = species_meta,
     version = version
   )
 }
@@ -182,6 +196,9 @@ match_geneset <- function(gs, expr_genes, verbose = TRUE) {
 #' @keywords internal
 infer_geneset_source <- function(geneset) {
   if (length(geneset) == 1L && is.character(geneset) && geneset %in% c("hallmark", "immune_small")) return("builtin")
+  if (length(geneset) == 1L && is.character(geneset) && tolower(geneset) == "kegg") return("kegg")
+  if (length(geneset) == 1L && is.character(geneset) && tolower(geneset) == "reactome") return("reactome")
+  if (length(geneset) == 1L && is.character(geneset) && tolower(geneset) %in% c("go", "go_bp", "go_mf", "go_cc")) return("go")
   if (is.list(geneset) && !is.data.frame(geneset)) return("list")
   if (length(geneset) == 1L && is.character(geneset) && file.exists(geneset)) return("gmt")
   if (is.data.frame(geneset)) return("data.frame")
@@ -189,15 +206,35 @@ infer_geneset_source <- function(geneset) {
 }
 
 #' @keywords internal
-get_builtin_geneset <- function(geneset) {
+get_builtin_geneset <- function(geneset, species = "human") {
   if (!(length(geneset) == 1L && is.character(geneset))) {
     stop("Built-in geneset must be provided as a character name.", call. = FALSE)
+  }
+  if (!species %in% c("human", "mouse")) {
+    stop(sprintf("Built-in genesets support only human/mouse. Received species '%s'.", species), call. = FALSE)
   }
   if (!geneset %in% c("hallmark", "immune_small")) {
     stop(sprintf("Unknown built-in geneset '%s'.", geneset), call. = FALSE)
   }
   utils::data(list = geneset, package = "GLEAM", envir = environment())
   get(geneset, envir = environment())
+}
+
+#' @keywords internal
+normalize_species <- function(species) {
+  s <- tolower(trimws(as.character(species %||% "")))
+  s <- gsub("_", " ", s)
+
+  human_alias <- c("human", "homo sapiens", "hs", "h sapiens")
+  mouse_alias <- c("mouse", "mus musculus", "mm", "m musculus")
+
+  if (s %in% human_alias) {
+    return(list(canonical = "human", msigdb = "Homo sapiens", supported_builtin = TRUE))
+  }
+  if (s %in% mouse_alias) {
+    return(list(canonical = "mouse", msigdb = "Mus musculus", supported_builtin = TRUE))
+  }
+  list(canonical = s, msigdb = as.character(species), supported_builtin = FALSE)
 }
 
 #' @keywords internal

@@ -1,0 +1,91 @@
+---
+title: "GLEAM full spatial transcriptomics workflow"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{GLEAM full spatial transcriptomics workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(GLEAM)
+```
+
+## 1) Spatial object construction
+
+```{r, eval=FALSE}
+library(Seurat)
+data("spatial_medium_expr", package = "GLEAM")
+data("spatial_medium_meta", package = "GLEAM")
+data("spatial_medium_coords", package = "GLEAM")
+
+sp_seu <- CreateSeuratObject(counts = spatial_medium_expr, meta.data = spatial_medium_meta)
+sp_seu <- NormalizeData(sp_seu)
+sp_seu <- FindVariableFeatures(sp_seu)
+sp_seu <- ScaleData(sp_seu)
+sp_seu <- RunPCA(sp_seu)
+sp_seu <- RunUMAP(sp_seu, dims = 1:20)
+```
+
+## 2) Geneset scoring in spatial context
+
+```{r, eval=FALSE}
+gs <- get_geneset("hallmark", source = "builtin", species = "human")
+
+sp <- score_pathway(
+  object = sp_seu,
+  geneset = gs,
+  geneset_source = "list",
+  seurat = TRUE,
+  assay = "RNA",
+  layer = "data",
+  slot = "data",
+  method = "rank"
+)
+```
+
+## 3) Spatial visualization (true spatial context)
+
+```{r, eval=FALSE}
+coords <- data.frame(
+  x = sp_seu@meta.data$x,
+  y = sp_seu@meta.data$y,
+  row.names = rownames(sp_seu@meta.data)
+)
+
+# Slice/tissue-like background (replace with true tissue image when available)
+tissue_bg <- as.raster(matrix(colorRampPalette(c("#f8f5ea", "#e8dcc4", "#d2b48c"))(256), nrow = 16))
+
+plot_spatial_score(sp, pathway = rownames(sp$score)[1], coords = coords, image = tissue_bg)
+plot_spatial_score(sp, pathway = rownames(sp$score)[2], coords = coords, split.by = "section", image = tissue_bg)
+plot_spatial_multi(sp, pathways = rownames(sp$score)[1:4], coords = coords)
+```
+
+## 4) Spatial differential analysis
+
+```{r, eval=FALSE}
+# region vs region
+res_region <- test_pathway(sp, region = "region", level = "region", method = "wilcox")
+
+# group vs group within region
+res_group_region <- test_pathway(
+  sp,
+  region = "region",
+  group = "group",
+  sample = "sample",
+  level = "sample_region",
+  method = "wilcox"
+)
+
+top_sp <- res_group_region$table$pathway[order(res_group_region$table$p_adj)][1]
+plot_spatial_score(sp, pathway = top_sp, coords = coords, image = tissue_bg, split.by = "region")
+plot_spatial_compare(res_group_region)
+```
+
+## 5) Optional embedding linkage and trajectory-like display
+
+```{r, eval=FALSE}
+plot_embedding_score(sp, pathway = rownames(sp$score)[1], object = sp_seu, reduction = "umap")
+plot_pseudotime_score(sp, pathway = rownames(sp$score)[1], pseudotime = "pseudotime", lineage = "lineage")
+```

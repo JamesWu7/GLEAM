@@ -4,12 +4,16 @@
 \alias{plot_spatial_compare}
 \title{Plot spatial comparison result}
 \usage{
-plot_spatial_compare(x, top_n = 20)
+plot_spatial_compare(x, top_n = 20, alpha = 0.85, theme_params = list())
 }
 \arguments{
 \item{x}{\code{gleam_test} object or result table.}
 
 \item{top_n}{Number of pathways to display.}
+
+\item{alpha}{Bar alpha.}
+
+\item{theme_params}{Optional list passed to \code{\link[=gleam_theme]{gleam_theme()}}.}
 }
 \value{
 A \code{ggplot} object.

@@ -2,83 +2,64 @@
 output: github_document
 ---
 
+<p align="center">
+  <img src="man/figures/GLEAM_LOG.jpg" alt="GLEAM logo" width="220"/>
+</p>
+
 # GLEAM
 
-## GLEAM: Gene-set and cell-state exploration across space and time in R
+GLEAM: Gene-set and cell-state exploration across space and time in R
 
-- **G** = Gene-set
-- **L** = cell-state
-- **E** = Exploration
-- **A** = across
-- **M** = space and time
+**Navigation:** [Documentation](https://jameswoo.github.io/GLEAM/) | [Reference](https://jameswoo.github.io/GLEAM/reference/) | [Tutorials](https://jameswoo.github.io/GLEAM/articles/) | [Citation](https://jameswoo.github.io/GLEAM/articles/GLEAM_citation.html)
 
-GLEAM is a matrix-first toolkit for pathway and cell-state analysis in single-cell and spatial transcriptomics, with optional Seurat v4/v5 support.
+GLEAM provides pathway and cell-state analysis workflows across scRNA-seq, spatial transcriptomics, and trajectory-aware settings with matrix-native and Seurat-compatible interfaces.
 
-> Preferred GitHub repository name: **GLEAM**
-
-## Installation (development)
-
-```r
-source("scripts/setup_dev.R")
-source("scripts/check_env.R")
-```
-
-## Matrix quickstart
+## Quick start (Seurat scRNA-seq)
 
 ```r
 library(GLEAM)
-data("pbmc_medium_matrix", package = "GLEAM")
-data("pbmc_medium_meta", package = "GLEAM")
+
+hallmark_gs <- get_geneset("hallmark", source = "builtin", species = "human")
+kegg_gs <- get_geneset(NULL, source = "kegg", species = "human")
 
 sc <- score_pathway(
-  expr = pbmc_medium_matrix,
-  meta = pbmc_medium_meta,
-  geneset = "immune_small",
-  geneset_source = "builtin",
-  seurat = FALSE,
+  object = seu,
+  geneset = hallmark_gs,
+  geneset_source = "list",
+  seurat = TRUE,
+  assay = "RNA",
+  layer = "data",
+  slot = "data",
   method = "ensemble"
 )
-
-res <- test_pathway(
-  score = sc,
-  group = "group",
-  sample = "sample",
-  celltype = "celltype",
-  level = "pseudobulk",
-  method = "wilcox"
-)
-
+res <- test_pathway(sc, group = "group", sample = "sample", celltype = "celltype", level = "pseudobulk")
+top_pw <- res$table$pathway[order(res$table$p_adj)][1]
+plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "umap")
+plot_dot_bar(sc, by = c("group", "celltype"))
+plot_violin(sc, pathway = rownames(sc$score)[1], group = "group")
+plot_ridge(sc, pathway = rownames(sc$score)[1], group = "celltype")
 plot_volcano(res)
+
+sc_kegg <- score_pathway(object = seu, geneset = kegg_gs, geneset_source = "list", seurat = TRUE, method = "rank")
 ```
 
-## Seurat v4/v5 quickstart
+## Quick start (Seurat spatial)
 
 ```r
-# Requires Seurat / SeuratObject
-# sc <- score_pathway(
-#   object = seu,
-#   geneset = "hallmark",
-#   seurat = TRUE,
-#   assay = "RNA",
-#   layer = "data",  # v5 path
-#   slot = "data",   # v4 fallback
-#   method = "rank"
-# )
+sp <- score_pathway(object = sp_seu, geneset = hallmark_gs, geneset_source = "list", seurat = TRUE, assay = "Spatial")
+coords <- data.frame(
+  x = sp_seu@meta.data$x,
+  y = sp_seu@meta.data$y,
+  row.names = rownames(sp_seu@meta.data)
+)
+img <- as.raster(matrix(colorRampPalette(c("#f7f3e8", "#eadfca", "#d9c7a4"))(256), nrow = 16))
+plot_spatial_score(sp, pathway = rownames(sp$score)[1], coords = coords, image = img, split.by = "sample")
+sp_res <- test_pathway(sp, region = "region", group = "group", sample = "sample", level = "sample_region")
+top_sp_pw <- sp_res$table$pathway[order(sp_res$table$p_adj)][1]
+plot_spatial_score(sp, pathway = top_sp_pw, coords = coords, image = img, split.by = "region")
+plot_spatial_compare(sp_res)
 ```
 
-## Trajectory and spatial examples
+## Citation
 
-```r
-# Trajectory association
-# tr <- test_pathway_trajectory(sc, pseudotime = "pseudotime", lineage = "lineage")
-
-# Spatial plot
-# data("spatial_medium_coords", package = "GLEAM")
-# plot_spatial_score(sc, pathway = rownames(sc$score)[1], coords = spatial_medium_coords)
-```
-
-## Render tutorials locally
-
-```r
-source("scripts/render_examples.R")
-```
+`citation("GLEAM")`

@@ -5,10 +5,22 @@
 #' @param group Group variable (metadata column name or vector).
 #' @param sample Sample variable (metadata column name or vector).
 #' @param palette Discrete palette name or custom colors.
+#' @param point_size Jitter point size.
+#' @param alpha Box alpha.
+#' @param theme_params Optional list passed to [gleam_theme()].
 #'
 #' @return A `ggplot` object.
 #' @export
-plot_box <- function(score, pathway, group, sample, palette = "gleam_discrete") {
+plot_box <- function(
+  score,
+  pathway,
+  group,
+  sample,
+  palette = "gleam_discrete",
+  point_size = 1.8,
+  alpha = 0.7,
+  theme_params = list()
+) {
   check_score_object(score)
   if (!pathway %in% rownames(score$score)) {
     stop("`pathway` not found in score matrix.", call. = FALSE)
@@ -21,11 +33,12 @@ plot_box <- function(score, pathway, group, sample, palette = "gleam_discrete") 
 
   df <- data.frame(sample = as.character(s), group = as.character(g), score = y, stringsAsFactors = FALSE)
   samp <- stats::aggregate(score ~ sample + group, data = df, FUN = mean)
+  tp <- resolve_text_params(theme_params)
 
   ggplot2::ggplot(samp, ggplot2::aes(x = ggplot2::.data$group, y = ggplot2::.data$score, fill = ggplot2::.data$group)) +
-    ggplot2::geom_boxplot(alpha = 0.7, outlier.shape = NA) +
-    ggplot2::geom_jitter(width = 0.12, size = 1.8, alpha = 0.8) +
+    ggplot2::geom_boxplot(alpha = alpha, outlier.shape = NA) +
+    ggplot2::geom_jitter(width = 0.12, size = point_size, alpha = min(1, alpha + 0.1)) +
     scale_gleam_fill(palette = palette, continuous = FALSE) +
     ggplot2::labs(x = "Group", y = pathway, title = paste("Sample-level:", pathway)) +
-    .theme_gleam()
+    do.call(gleam_theme, tp)
 }

@@ -10,7 +10,10 @@ plot_spatial_score(
   coords,
   image = NULL,
   palette = "gleam_continuous",
-  split.by = NULL
+  split.by = NULL,
+  point_size = 1.4,
+  alpha = 0.9,
+  theme_params = list()
 )
 }
 \arguments{
@@ -25,6 +28,12 @@ plot_spatial_score(
 \item{palette}{Continuous palette name or colors.}
 
 \item{split.by}{Optional metadata split variable.}
+
+\item{point_size}{Point size.}
+
+\item{alpha}{Point alpha.}
+
+\item{theme_params}{Optional list passed to \code{\link[=gleam_theme]{gleam_theme()}}.}
 }
 \value{
 A \code{ggplot} object.

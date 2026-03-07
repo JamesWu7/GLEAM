@@ -4,7 +4,14 @@
 \alias{plot_ridge}
 \title{Ridge plot for pathway score distributions}
 \usage{
-plot_ridge(score, pathway, group)
+plot_ridge(
+  score,
+  pathway,
+  group,
+  palette = "gleam_discrete",
+  alpha = 0.75,
+  theme_params = list()
+)
 }
 \arguments{
 \item{score}{\code{gleam_score} object.}
@@ -12,6 +19,12 @@ plot_ridge(score, pathway, group)
 \item{pathway}{Pathway name.}
 
 \item{group}{Group variable.}
+
+\item{palette}{Discrete palette name or custom colors.}
+
+\item{alpha}{Transparency of ridges.}
+
+\item{theme_params}{Optional list passed to \code{\link[=gleam_theme]{gleam_theme()}}.}
 }
 \value{
 A \code{ggplot} object.

@@ -9,7 +9,11 @@ plot_pseudotime_score(
   pathway,
   pseudotime = NULL,
   lineage = NULL,
-  smooth = TRUE
+  smooth = TRUE,
+  point_size = 1.1,
+  alpha = 0.55,
+  palette = "gleam_discrete",
+  theme_params = list()
 )
 }
 \arguments{
@@ -22,6 +26,14 @@ plot_pseudotime_score(
 \item{lineage}{Optional lineage source for coloring.}
 
 \item{smooth}{Add smoothing line.}
+
+\item{point_size}{Point size.}
+
+\item{alpha}{Point alpha.}
+
+\item{palette}{Discrete palette for lineages.}
+
+\item{theme_params}{Optional list passed to \code{\link[=gleam_theme]{gleam_theme()}}.}
 }
 \value{
 A \code{ggplot} object.

@@ -7,8 +7,11 @@ list_palettes <- function() {
     "gleam_discrete",
     "gleam_continuous",
     "viridis",
+    "magma",
+    "plasma",
     "brewer_set2",
-    "brewer_dark2"
+    "brewer_dark2",
+    "manual"
   )
 }
 
@@ -22,6 +25,13 @@ list_palettes <- function() {
 #' @return Character color vector.
 #' @export
 get_palette <- function(name = "gleam_discrete", n = 8, continuous = FALSE, reverse = FALSE) {
+  if (length(name) > 1L) {
+    cols <- as.character(name)
+    if (continuous && length(cols) < n) cols <- grDevices::colorRampPalette(cols)(n)
+    if (reverse) cols <- rev(cols)
+    return(cols)
+  }
+
   cols <- switch(
     name,
     gleam_discrete = {
@@ -33,6 +43,14 @@ get_palette <- function(name = "gleam_discrete", n = 8, continuous = FALSE, reve
       check_plot_dependency("palette viridis", "viridisLite")
       viridisLite::viridis(max(2, n))
     },
+    magma = {
+      check_plot_dependency("palette magma", "viridisLite")
+      viridisLite::magma(max(2, n))
+    },
+    plasma = {
+      check_plot_dependency("palette plasma", "viridisLite")
+      viridisLite::plasma(max(2, n))
+    },
     brewer_set2 = {
       check_plot_dependency("palette brewer_set2", "RColorBrewer")
       RColorBrewer::brewer.pal(max(3, min(8, n)), "Set2")
@@ -41,7 +59,18 @@ get_palette <- function(name = "gleam_discrete", n = 8, continuous = FALSE, reve
       check_plot_dependency("palette brewer_dark2", "RColorBrewer")
       RColorBrewer::brewer.pal(max(3, min(8, n)), "Dark2")
     },
-    stop(sprintf("Unknown palette '%s'. Use list_palettes().", name), call. = FALSE)
+    {
+      if (requireNamespace("paletteer", quietly = TRUE)) {
+        pal <- tryCatch(as.character(paletteer::paletteer_d(name, n = n)), error = function(e) NULL)
+        if (!is.null(pal)) {
+          pal
+        } else {
+          stop(sprintf("Unknown palette '%s'. Use list_palettes() or provide a custom color vector.", name), call. = FALSE)
+        }
+      } else {
+        stop(sprintf("Unknown palette '%s'. Use list_palettes() or install 'paletteer'.", name), call. = FALSE)
+      }
+    }
   )
 
   if (continuous && length(cols) < n) {

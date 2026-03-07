@@ -18,3 +18,8 @@ test_that("palette helpers are available", {
   cols <- get_palette("gleam_discrete", n = 5)
   expect_equal(length(cols), 5)
 })
+
+test_that("theme helper returns ggplot theme", {
+  th <- gleam_theme(base_size = 12, title_size = 16, axis_text_size = 11)
+  expect_s3_class(th, "theme")
+})

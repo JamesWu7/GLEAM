@@ -1,0 +1,51 @@
+---
+title: "GLEAM supported geneset sources"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{GLEAM supported geneset sources}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(GLEAM)
+```
+
+## Official built-in species focus
+
+GLEAM built-in geneset workflows officially target:
+
+- `human`
+- `mouse`
+
+Unsupported species for built-in sources fail clearly and recommend custom genesets.
+
+## Source overview
+
+```{r}
+list_geneset_sources()
+```
+
+## Source examples
+
+```{r, eval=FALSE}
+# Built-in hallmark-like set
+gs_builtin <- get_geneset("hallmark", source = "builtin", species = "human")
+
+# User-defined list
+gs_list <- get_geneset(list(PATH_A = c("G1", "G2")), source = "list")
+
+# GMT file
+gs_gmt <- get_geneset("path/to/geneset.gmt", source = "gmt")
+
+# data.frame input
+gs_df <- get_geneset(data.frame(pathway = c("A", "A"), gene = c("G1", "G2")), source = "data.frame")
+
+# Optional curated sources (msigdbr backend)
+gs_go <- get_geneset(NULL, source = "go", species = "human", ontology = "BP")
+gs_kegg <- get_geneset(NULL, source = "kegg", species = "human")
+gs_reactome <- get_geneset(NULL, source = "reactome", species = "human")
+gs_msig <- get_geneset(NULL, source = "msigdb", species = "human", collection = "H")
+```
+

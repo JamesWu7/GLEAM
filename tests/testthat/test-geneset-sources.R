@@ -10,3 +10,15 @@ test_that("builtin geneset and search works", {
   hit <- search_geneset("hallmark", "INTERFERON", source = "builtin")
   expect_true(length(hit) >= 1)
 })
+
+test_that("builtin species support is explicit for human and mouse", {
+  gs_h <- get_geneset("hallmark", source = "builtin", species = "human")
+  gs_m <- get_geneset("hallmark", source = "builtin", species = "mouse")
+  expect_true(is.list(gs_h))
+  expect_true(is.list(gs_m))
+
+  expect_error(
+    get_geneset("hallmark", source = "builtin", species = "zebrafish"),
+    "human/mouse"
+  )
+})

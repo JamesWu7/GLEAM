@@ -10,7 +10,10 @@ plot_violin(
   group,
   celltype = NULL,
   trim = TRUE,
-  palette = "gleam_discrete"
+  palette = "gleam_discrete",
+  point_size = 1.4,
+  alpha = 0.7,
+  theme_params = list()
 )
 }
 \arguments{
@@ -25,6 +28,12 @@ plot_violin(
 \item{trim}{Passed to \code{geom_violin()}.}
 
 \item{palette}{Discrete palette name or custom colors.}
+
+\item{point_size}{Point size for boxplot outlier overlay.}
+
+\item{alpha}{Violin transparency.}
+
+\item{theme_params}{Optional list passed to \code{\link[=gleam_theme]{gleam_theme()}}.}
 }
 \value{
 A \code{ggplot} object.

@@ -9,7 +9,11 @@ plot_trajectory_score(
   pathway,
   embeddings = NULL,
   reduction = "umap",
-  object = NULL
+  object = NULL,
+  point_size = 1.1,
+  alpha = 0.9,
+  palette = "gleam_continuous",
+  theme_params = list()
 )
 }
 \arguments{
@@ -22,6 +26,14 @@ plot_trajectory_score(
 \item{reduction}{Reduction name for Seurat extraction when \code{embeddings} is NULL.}
 
 \item{object}{Optional Seurat object for reduction extraction.}
+
+\item{point_size}{Point size.}
+
+\item{alpha}{Point alpha.}
+
+\item{palette}{Continuous palette name or custom colors.}
+
+\item{theme_params}{Optional list passed to \code{\link[=gleam_theme]{gleam_theme()}}.}
 }
 \value{
 A \code{ggplot} object.

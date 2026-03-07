@@ -4,7 +4,15 @@
 \alias{plot_split_violin}
 \title{Split violin plot for pathway scores}
 \usage{
-plot_split_violin(score, pathway, x, split.by)
+plot_split_violin(
+  score,
+  pathway,
+  x,
+  split.by,
+  palette = "gleam_discrete",
+  alpha = 0.75,
+  theme_params = list()
+)
 }
 \arguments{
 \item{score}{\code{gleam_score} object.}
@@ -14,6 +22,12 @@ plot_split_violin(score, pathway, x, split.by)
 \item{x}{Grouping variable for x-axis.}
 
 \item{split.by}{Variable used for split/fill.}
+
+\item{palette}{Discrete palette name or custom colors.}
+
+\item{alpha}{Violin transparency.}
+
+\item{theme_params}{Optional list passed to \code{\link[=gleam_theme]{gleam_theme()}}.}
 }
 \value{
 A \code{ggplot} object.

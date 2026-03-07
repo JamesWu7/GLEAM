@@ -1,0 +1,94 @@
+---
+title: "GLEAM quick start: scRNA-seq Seurat workflow"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{GLEAM quick start: scRNA-seq Seurat workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+library(GLEAM)
+```
+
+## Goal
+
+This quick start demonstrates a practical Seurat-first scRNA workflow:
+
+1. Start from a Seurat object
+2. Load Hallmark and KEGG gene sets
+3. Score pathway activity
+4. Run differential analysis after scoring
+5. Visualize scores and differential outputs with Seurat-style displays
+
+## 1) Prepare Seurat object
+
+```{r, eval=FALSE}
+library(Seurat)
+
+# Build a lightweight demo object from bundled matrix+metadata
+data("pbmc_medium_matrix", package = "GLEAM")
+data("pbmc_medium_meta", package = "GLEAM")
+seu <- CreateSeuratObject(counts = pbmc_medium_matrix, meta.data = pbmc_medium_meta)
+
+seu <- NormalizeData(seu)
+seu <- FindVariableFeatures(seu)
+seu <- ScaleData(seu)
+seu <- RunPCA(seu)
+seu <- RunUMAP(seu, dims = 1:20)
+seu <- RunTSNE(seu, dims = 1:20)
+```
+
+## 2) Load built-in and curated genesets
+
+```{r, eval=FALSE}
+gs_hallmark <- get_geneset("hallmark", source = "builtin", species = "human")
+gs_kegg <- get_geneset(NULL, source = "kegg", species = "human") # msigdbr optional
+```
+
+## 3) Score pathways
+
+```{r, eval=FALSE}
+sc <- score_pathway(
+  object = seu,
+  geneset = gs_hallmark,
+  geneset_source = "list",
+  seurat = TRUE,
+  assay = "RNA",
+  layer = "data",
+  slot = "data",
+  method = "ensemble"
+)
+```
+
+## 4) Differential analysis after scoring
+
+```{r, eval=FALSE}
+res <- test_pathway(
+  score = sc,
+  group = "group",
+  sample = "sample",
+  celltype = "celltype",
+  level = "pseudobulk",
+  method = "wilcox"
+)
+```
+
+## 5) Core visualizations
+
+```{r, eval=FALSE}
+# FeaturePlot-like embedding displays
+top_pw <- res$table$pathway[order(res$table$p_adj)][1]
+plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "umap")
+plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "pca")
+plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "tsne")
+
+# Dot-bar and distribution displays
+plot_dot_bar(sc, by = c("group", "celltype"))
+plot_violin(sc, pathway = rownames(sc$score)[1], group = "group")
+plot_ridge(sc, pathway = rownames(sc$score)[1], group = "celltype")
+
+# Differential summary
+plot_volcano(res)
+```
