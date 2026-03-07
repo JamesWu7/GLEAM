@@ -1,0 +1,14 @@
+---
+title: "GLEAM differential analysis"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{GLEAM differential analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, eval=FALSE}
+res_cell <- test_pathway(sc, group = "group", level = "cell")
+res_pb <- test_pathway(sc, group = "group", sample = "sample", level = "pseudobulk")
+res_wct <- compare_groups_within_celltype(sc, group = "group", celltype = "celltype", target_celltype = "CD8_T")
+```

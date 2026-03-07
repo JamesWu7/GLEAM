@@ -57,6 +57,9 @@ test_pathway_sample_celltype <- function(
     if (sum(idx) < 4L) {
       return(NULL)
     }
+    if (length(unique(as.character(group)[idx])) < 2L) {
+      return(NULL)
+    }
 
     sub <- test_pathway_sample(
       score_mat = score_mat[, idx, drop = FALSE],
@@ -72,6 +75,29 @@ test_pathway_sample_celltype <- function(
     sub
   })
 
+  res <- res[!vapply(res, is.null, logical(1))]
+  if (length(res) == 0L) {
+    return(data.frame(
+      pathway = character(0),
+      comparison_type = character(0),
+      group1 = character(0),
+      group2 = character(0),
+      celltype = character(0),
+      level = character(0),
+      effect_size = numeric(0),
+      median_group1 = numeric(0),
+      median_group2 = numeric(0),
+      diff_median = numeric(0),
+      p_value = numeric(0),
+      p_adj = numeric(0),
+      n_group1 = integer(0),
+      n_group2 = integer(0),
+      mean_group1 = numeric(0),
+      mean_group2 = numeric(0),
+      direction = character(0),
+      stringsAsFactors = FALSE
+    ))
+  }
   out <- do.call(rbind, res)
   rownames(out) <- NULL
   out

@@ -1,4 +1,4 @@
-# Contributing to scPathway
+# Contributing to GLEAM
 
 ## Development setup
 1. `source("scripts/setup_dev.R")`
@@ -7,16 +7,16 @@
 
 ## Development cycle
 1. Create a feature branch from `main`.
-2. Add or update roxygen documentation.
-3. Add or update tests under `tests/testthat`.
+2. Update roxygen documentation.
+3. Add/update tests under `tests/testthat`.
 4. Run:
    - `devtools::document()`
    - `devtools::test()`
    - `devtools::check()`
 5. Update `NEWS.md` for user-visible changes.
 
-## Coding standards
+## Principles
 - Keep runtime dependencies minimal.
-- Prefer matrix-native internals.
-- Keep Seurat support optional.
-- Add explicit error and warning messages.
+- Keep matrix workflows robust.
+- Keep Seurat/trajectory/spatial integrations optional and explicit.
+- Use clear warnings and errors for optional feature gates.

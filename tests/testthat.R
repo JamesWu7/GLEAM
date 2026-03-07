@@ -1,4 +1,4 @@
 library(testthat)
-library(scPathway)
+library(GLEAM)
 
-test_check("scPathway")
+test_check("GLEAM")

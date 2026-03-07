@@ -2,66 +2,13 @@
 % Please edit documentation in R/api_run.R
 \name{run_scpathway}
 \alias{run_scpathway}
-\title{End-to-end scPathway workflow}
+\title{End-to-end scPathway workflow (deprecated alias)}
 \usage{
-run_scpathway(
-  object = NULL,
-  expr = NULL,
-  meta = NULL,
-  geneset = "hallmark",
-  seurat = TRUE,
-  assay = NULL,
-  layer = NULL,
-  slot = NULL,
-  method = "ensemble",
-  group,
-  sample = NULL,
-  celltype = NULL,
-  comparison = c("group", "celltype", "within_celltype"),
-  target_celltype = NULL,
-  level = "sample",
-  top_n = 20,
-  verbose = TRUE
-)
-}
-\arguments{
-\item{object}{Seurat object.}
-
-\item{expr}{Expression matrix for matrix mode.}
-
-\item{meta}{Metadata for matrix mode.}
-
-\item{geneset}{Geneset input.}
-
-\item{seurat}{Input mode.}
-
-\item{assay}{Seurat assay.}
-
-\item{layer}{Seurat layer.}
-
-\item{slot}{Legacy Seurat slot fallback.}
-
-\item{method}{Scoring method.}
-
-\item{group}{Group variable.}
-
-\item{sample}{Sample variable.}
-
-\item{celltype}{Celltype variable.}
-
-\item{comparison}{Comparison mode.}
-
-\item{target_celltype}{Target celltype for within-celltype comparison.}
-
-\item{level}{Testing level.}
-
-\item{top_n}{Number of top pathways.}
-
-\item{verbose}{Print messages.}
+run_scpathway(...)
 }
 \value{
 List containing score object and comparison result.
 }
 \description{
-End-to-end scPathway workflow
+End-to-end scPathway workflow (deprecated alias)
 }

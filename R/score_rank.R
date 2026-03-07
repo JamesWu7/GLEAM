@@ -13,7 +13,7 @@ score_rank_matrix <- function(expr, genesets, normalize = TRUE, verbose = TRUE) 
   ng <- nrow(expr)
 
   if (verbose) {
-    message("[scPathway] scoring rank method...")
+    message("[GLEAM] scoring rank method...")
   }
 
   out <- lapply(names(genesets), function(pw) {

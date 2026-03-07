@@ -3,17 +3,17 @@
 \docType{data}
 \name{toy_expr}
 \alias{toy_expr}
-\title{Toy expression dataset}
+\title{Tiny toy expression dataset for tests}
 \format{
 A list with components \code{expr} and \code{meta}.
 }
 \source{
-Simulated toy data
+Simulated data
 }
 \usage{
 toy_expr
 }
 \description{
-A list with expression matrix and metadata for tests/examples.
+A list with expression matrix and metadata for fast unit tests.
 }
 \keyword{datasets}

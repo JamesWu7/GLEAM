@@ -19,4 +19,3 @@ List with matched genesets and overlap info.
 \description{
 Match genesets to expression genes
 }
-\keyword{internal}

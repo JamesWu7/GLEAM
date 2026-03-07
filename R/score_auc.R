@@ -13,7 +13,7 @@ score_auc_matrix <- function(expr, genesets, auc_max_rank = 0.05, verbose = TRUE
   top_n <- max(1L, ceiling(nrow(expr) * auc_max_rank))
 
   if (verbose) {
-    message(sprintf("[scPathway] scoring auc method (top_n=%d)...", top_n))
+    message(sprintf("[GLEAM] scoring auc method (top_n=%d)...", top_n))
   }
 
   out <- lapply(names(genesets), function(pw) {

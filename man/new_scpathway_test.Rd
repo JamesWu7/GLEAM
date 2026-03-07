@@ -2,7 +2,7 @@
 % Please edit documentation in R/object_test.R
 \name{new_scpathway_test}
 \alias{new_scpathway_test}
-\title{Construct \code{scpathway_test} object}
+\title{Construct differential test object}
 \usage{
 new_scpathway_test(table, level, method, comparison = list(), params = list())
 }
@@ -18,9 +18,9 @@ new_scpathway_test(table, level, method, comparison = list(), params = list())
 \item{params}{Parameter list.}
 }
 \value{
-Object of class \code{scpathway_test}.
+Object of class \code{gleam_test} and \code{gleam_test}.
 }
 \description{
-Construct \code{scpathway_test} object
+Construct differential test object
 }
 \keyword{internal}

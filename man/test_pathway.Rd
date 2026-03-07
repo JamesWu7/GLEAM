@@ -6,28 +6,40 @@
 \usage{
 test_pathway(
   score,
-  group,
+  group = NULL,
   sample = NULL,
   celltype = NULL,
-  level = c("cell", "sample", "celltype", "sample_celltype"),
-  method = c("wilcox", "t", "lm"),
+  region = NULL,
+  pseudotime = NULL,
+  lineage = NULL,
+  level = c("cell", "sample", "celltype", "sample_celltype", "pseudobulk", "region",
+    "sample_region", "trajectory"),
+  method = c("wilcox", "t", "lm", "limma", "edgeR", "DESeq2", "spearman", "tradeSeq"),
   ref_group = NULL,
   paired = FALSE,
   covariates = NULL,
   adjust_method = "BH",
   min_cells = 10,
   min_samples = 2,
+  aggregation = c("mean", "median", "fraction", "sum"),
+  threshold = 0,
   verbose = TRUE
 )
 }
 \arguments{
-\item{score}{\code{scpathway_score} object.}
+\item{score}{\code{gleam_score} object.}
 
 \item{group}{Group variable (column name or vector).}
 
 \item{sample}{Sample variable (column name or vector).}
 
 \item{celltype}{Celltype variable (column name or vector).}
+
+\item{region}{Spatial region/domain variable (column name or vector).}
+
+\item{pseudotime}{Pseudotime source for trajectory mode.}
+
+\item{lineage}{Lineage source for trajectory mode.}
 
 \item{level}{Comparison level.}
 
@@ -41,14 +53,18 @@ test_pathway(
 
 \item{adjust_method}{Multiple testing adjustment method.}
 
-\item{min_cells}{Minimum cells per group (reserved for future checks).}
+\item{min_cells}{Minimum cells per group.}
 
-\item{min_samples}{Minimum samples per group (reserved for future checks).}
+\item{min_samples}{Minimum samples per group.}
+
+\item{aggregation}{Aggregation summary used by pseudobulk levels.}
+
+\item{threshold}{Threshold used when \code{aggregation = 'fraction'}.}
 
 \item{verbose}{Print messages.}
 }
 \value{
-An object of class \code{scpathway_test}.
+An object of class \code{gleam_test}.
 }
 \description{
 Test pathway differences

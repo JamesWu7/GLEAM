@@ -18,7 +18,7 @@ compare_groups_within_celltype(
 )
 }
 \arguments{
-\item{score}{\code{scpathway_score} object.}
+\item{score}{\code{gleam_score} object.}
 
 \item{group}{Group variable name or vector.}
 
@@ -39,7 +39,7 @@ compare_groups_within_celltype(
 \item{verbose}{Print messages.}
 }
 \value{
-An object of class \code{scpathway_test}.
+An object of class \code{gleam_test}.
 }
 \description{
 Compare groups within a fixed celltype

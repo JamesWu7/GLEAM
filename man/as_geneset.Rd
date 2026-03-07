@@ -15,4 +15,3 @@ Named list.
 \description{
 Coerce geneset input to named list
 }
-\keyword{internal}

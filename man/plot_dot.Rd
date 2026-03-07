@@ -4,14 +4,16 @@
 \alias{plot_dot}
 \title{Dot plot of pathway summaries}
 \usage{
-plot_dot(score, by, threshold = 0)
+plot_dot(score, by, threshold = 0, palette = "gleam_continuous")
 }
 \arguments{
-\item{score}{\code{scpathway_score} object.}
+\item{score}{\code{gleam_score} object.}
 
 \item{by}{Grouping metadata columns.}
 
 \item{threshold}{Threshold for active fraction.}
+
+\item{palette}{Continuous palette name or custom colors.}
 }
 \value{
 A \code{ggplot} object.

@@ -3,7 +3,7 @@
 \docType{data}
 \name{pbmc_small}
 \alias{pbmc_small}
-\title{Small PBMC example dataset}
+\title{Small PBMC example dataset (legacy compatibility)}
 \format{
 A list with components \code{expr} and \code{meta}.
 }
@@ -14,6 +14,6 @@ Simulated PBMC-like data
 pbmc_small
 }
 \description{
-A list with expression matrix and cell metadata.
+A list with sparse expression matrix and metadata.
 }
 \keyword{datasets}

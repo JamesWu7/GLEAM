@@ -1,10 +1,14 @@
-# scPathway news
+# GLEAM news
 
-## scPathway 0.1.0
-- Initial package scaffold with stable public API.
-- Added dual input mode (Seurat v5 optional + matrix-native).
-- Implemented pathway scoring methods: rank, auc, zmean, ensemble.
-- Implemented comparison framework: cell, sample, celltype, sample+celltype, within-celltype.
-- Added plotting API: violin, box, volcano, heatmap, dot, celltype compare, within-celltype compare.
-- Added bootstrap scripts for fresh R installations.
-- Added tests, vignettes, and GitHub workflow skeleton.
+## GLEAM 0.2.0
+- Renamed package from scPathway to GLEAM.
+- Added unified branding: "GLEAM: Gene-set and cell-state exploration across space and time in R".
+- Added Seurat v4/v5 compatibility helpers and embedding/spatial extraction interfaces.
+- Expanded geneset architecture with source-aware loaders and metadata.
+- Added scoring method registry and expanded native scoring methods.
+- Added optional scoring wrapper interfaces (dependency-gated).
+- Added pseudobulk/region/trajectory differential interfaces.
+- Added trajectory and spatial plotting interfaces.
+- Added palette utilities and score export/method comparison helpers.
+- Added medium-size matrix and spatial example datasets.
+- Added scripts for optional dependency checks, data refresh, Seurat example building, and tutorial HTML rendering.

@@ -1,6 +1,6 @@
 test_that("rank scoring returns pathway by cell matrix", {
-  data("toy_expr", package = "scPathway")
-  data("immune_small", package = "scPathway")
+  data("toy_expr", package = "GLEAM")
+  data("immune_small", package = "GLEAM")
 
   sc <- score_pathway(
     expr = toy_expr$expr,
@@ -12,7 +12,7 @@ test_that("rank scoring returns pathway by cell matrix", {
     verbose = FALSE
   )
 
-  expect_s3_class(sc, "scpathway_score")
+  expect_s3_class(sc, "gleam_score")
   expect_true(nrow(sc$score) > 0)
   expect_equal(ncol(sc$score), ncol(toy_expr$expr))
 })

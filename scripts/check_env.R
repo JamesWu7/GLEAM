@@ -1,9 +1,12 @@
-message("[scPathway] Environment check")
+message("[GLEAM] Environment check")
 message("R version: ", R.version.string)
 
 runtime <- c("Matrix", "ggplot2")
 dev <- c("devtools", "roxygen2", "testthat", "knitr", "rmarkdown", "pkgload", "usethis", "remotes")
-optional <- c("Seurat", "SeuratObject")
+optional <- c(
+  "Seurat", "SeuratObject", "msigdbr", "UCell", "AUCell", "GSVA", "singscore",
+  "slingshot", "monocle3", "tradeSeq", "patchwork", "viridisLite", "RColorBrewer"
+)
 
 check_pkgs <- function(pkgs, label) {
   message("\n", label)
@@ -16,10 +19,10 @@ check_pkgs <- function(pkgs, label) {
 
 check_pkgs(runtime, "Runtime packages")
 check_pkgs(dev, "Development packages")
-check_pkgs(optional, "Optional Seurat compatibility packages")
+check_pkgs(optional, "Optional integration packages")
 
 if (!requireNamespace("SeuratObject", quietly = TRUE) && !requireNamespace("Seurat", quietly = TRUE)) {
-  message("\n[scPathway] Note: Seurat mode (seurat = TRUE) will require Seurat or SeuratObject.")
+  message("\n[GLEAM] Note: Seurat mode (seurat = TRUE) requires Seurat/SeuratObject.")
 }
 
-message("\n[scPathway] Done.")
+message("\n[GLEAM] Done.")

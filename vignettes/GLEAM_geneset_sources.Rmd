@@ -1,0 +1,17 @@
+---
+title: "GLEAM geneset sources"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{GLEAM geneset sources}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, eval=FALSE}
+list_geneset_sources()
+search_geneset("hallmark", "INTERFERON")
+
+gs <- get_geneset("hallmark", source = "builtin")
+# optional msigdbr-backed sources:
+# gs_go <- get_geneset(NULL, source = "go", ontology = "BP")
+```

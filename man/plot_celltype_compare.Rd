@@ -7,7 +7,7 @@
 plot_celltype_compare(x, top_n = 20)
 }
 \arguments{
-\item{x}{\code{scpathway_test} object or result table.}
+\item{x}{\code{gleam_test} object or result table.}
 
 \item{top_n}{Number of pathways to display.}
 }

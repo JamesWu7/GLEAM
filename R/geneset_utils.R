@@ -1,18 +1,53 @@
 #' Get geneset collection
 #'
-#' @param geneset Geneset input. Supported: built-in name, named list,
-#'   GMT file path, or data.frame with `pathway` and `gene` columns.
+#' @param geneset Geneset input.
+#' @param source Geneset source. One of `auto`, `builtin`, `list`, `gmt`,
+#'   `data.frame`, `msigdb`, `go`, `kegg`, `reactome`.
+#' @param species Species label used by external geneset sources.
+#' @param collection MSigDB collection (for source = `msigdb`).
+#' @param subcollection MSigDB subcollection (for source = `msigdb`).
+#' @param ontology GO ontology (`BP`, `MF`, `CC`) for source = `go`.
+#' @param version Optional source version string.
 #'
-#' @return Named list of pathways to genes.
+#' @return Named list of pathways to genes with source metadata attached.
 #' @export
-get_geneset <- function(geneset) {
-  if (length(geneset) == 1L && is.character(geneset) && !file.exists(geneset)) {
-    if (geneset %in% c("hallmark", "immune_small")) {
-      data(list = geneset, package = "scPathway", envir = environment())
-      return(get(geneset, envir = environment()))
-    }
+get_geneset <- function(
+  geneset,
+  source = c("auto", "builtin", "list", "gmt", "data.frame", "msigdb", "go", "kegg", "reactome"),
+  species = "Homo sapiens",
+  collection = "H",
+  subcollection = NULL,
+  ontology = c("BP", "MF", "CC"),
+  version = NA_character_
+) {
+  source <- match.arg(source)
+  ontology <- match.arg(ontology)
+
+  if (source == "auto") {
+    source <- infer_geneset_source(geneset)
   }
-  as_geneset(geneset)
+
+  gs <- switch(
+    source,
+    builtin = get_builtin_geneset(geneset),
+    list = as_geneset(geneset),
+    gmt = read_gmt(as.character(geneset)),
+    `data.frame` = as_geneset(geneset),
+    msigdb = get_geneset_msigdb(species = species, collection = collection, subcollection = subcollection),
+    go = get_geneset_go(species = species, ontology = ontology),
+    kegg = get_geneset_kegg(species = species),
+    reactome = get_geneset_reactome(species = species),
+    stop(sprintf("Unsupported geneset source: %s", source), call. = FALSE)
+  )
+
+  set_geneset_metadata(
+    gs,
+    source = source,
+    collection = collection,
+    subcollection = subcollection,
+    species = species,
+    version = version
+  )
 }
 
 #' Read GMT file
@@ -20,7 +55,7 @@ get_geneset <- function(geneset) {
 #' @param path Path to GMT file.
 #'
 #' @return Named list of pathways.
-#' @keywords internal
+#' @export
 read_gmt <- function(path) {
   if (!file.exists(path)) {
     stop("GMT file does not exist: ", path, call. = FALSE)
@@ -48,13 +83,13 @@ read_gmt <- function(path) {
 #' @param x Geneset input.
 #'
 #' @return Named list.
-#' @keywords internal
+#' @export
 as_geneset <- function(x) {
   if (is.list(x) && !is.data.frame(x)) {
     if (is.null(names(x)) || any(names(x) == "")) {
       stop("Geneset list must be a named list.", call. = FALSE)
     }
-    return(lapply(x, unique))
+    return(lapply(x, function(v) unique(as.character(v[!is.na(v)]))))
   }
 
   if (length(x) == 1L && is.character(x) && file.exists(x)) {
@@ -81,12 +116,13 @@ as_geneset <- function(x) {
 #' @param max_genes Maximum genes per pathway.
 #'
 #' @return Filtered named list.
-#' @keywords internal
+#' @export
 check_geneset <- function(gs, min_genes = 5, max_genes = 500) {
   if (!is.list(gs) || is.null(names(gs))) {
     stop("Geneset must be a named list.", call. = FALSE)
   }
 
+  meta <- get_geneset_metadata(gs)
   gs <- lapply(gs, function(g) unique(as.character(g[!is.na(g)])))
   sizes <- vapply(gs, length, integer(1))
   keep <- sizes >= min_genes & sizes <= max_genes
@@ -96,7 +132,12 @@ check_geneset <- function(gs, min_genes = 5, max_genes = 500) {
   if (any(!keep)) {
     warnf("Filtered %d pathways outside gene count limits.", sum(!keep))
   }
-  gs[keep]
+  gs <- gs[keep]
+  if (!is.null(meta)) {
+    meta <- meta[meta$pathway %in% names(gs), , drop = FALSE]
+    gs <- set_geneset_metadata(gs, metadata = meta)
+  }
+  gs
 }
 
 #' Match genesets to expression genes
@@ -106,11 +147,13 @@ check_geneset <- function(gs, min_genes = 5, max_genes = 500) {
 #' @param verbose Print overlap summary.
 #'
 #' @return List with matched genesets and overlap info.
-#' @keywords internal
+#' @export
 match_geneset <- function(gs, expr_genes, verbose = TRUE) {
   matched <- lapply(gs, function(g) intersect(g, expr_genes))
   n_before <- vapply(gs, length, integer(1))
   n_after <- vapply(matched, length, integer(1))
+
+  base_meta <- get_geneset_metadata(gs)
   info <- data.frame(
     pathway = names(gs),
     n_genes_input = n_before,
@@ -118,10 +161,13 @@ match_geneset <- function(gs, expr_genes, verbose = TRUE) {
     frac_matched = n_after / pmax(1, n_before),
     stringsAsFactors = FALSE
   )
+  if (!is.null(base_meta)) {
+    info <- merge(base_meta, info, by = "pathway", all.y = TRUE, sort = FALSE)
+  }
 
   if (verbose) {
-    message(sprintf("[scPathway] matched pathways: %d", length(gs)))
-    message(sprintf("[scPathway] median matched genes: %.1f", stats::median(n_after)))
+    message(sprintf("[GLEAM] matched pathways: %d", length(gs)))
+    message(sprintf("[GLEAM] median matched genes: %.1f", stats::median(n_after)))
   }
 
   low <- n_after < 3L
@@ -129,5 +175,54 @@ match_geneset <- function(gs, expr_genes, verbose = TRUE) {
     warnf("%d pathways have fewer than 3 matched genes.", sum(low))
   }
 
+  matched <- set_geneset_metadata(matched, metadata = info)
   list(geneset = matched, info = info)
+}
+
+#' @keywords internal
+infer_geneset_source <- function(geneset) {
+  if (length(geneset) == 1L && is.character(geneset) && geneset %in% c("hallmark", "immune_small")) return("builtin")
+  if (is.list(geneset) && !is.data.frame(geneset)) return("list")
+  if (length(geneset) == 1L && is.character(geneset) && file.exists(geneset)) return("gmt")
+  if (is.data.frame(geneset)) return("data.frame")
+  "list"
+}
+
+#' @keywords internal
+get_builtin_geneset <- function(geneset) {
+  if (!(length(geneset) == 1L && is.character(geneset))) {
+    stop("Built-in geneset must be provided as a character name.", call. = FALSE)
+  }
+  if (!geneset %in% c("hallmark", "immune_small")) {
+    stop(sprintf("Unknown built-in geneset '%s'.", geneset), call. = FALSE)
+  }
+  data(list = geneset, package = "GLEAM", envir = environment())
+  get(geneset, envir = environment())
+}
+
+#' @keywords internal
+set_geneset_metadata <- function(gs, source = NA_character_, collection = NA_character_, subcollection = NA_character_, species = NA_character_, version = NA_character_, metadata = NULL) {
+  if (is.null(metadata)) {
+    n <- length(gs)
+    rep_len_chr <- function(x) {
+      if (is.null(x) || length(x) == 0L) x <- NA_character_
+      rep(as.character(x[[1]]), n)
+    }
+    metadata <- data.frame(
+      pathway = names(gs),
+      source = rep_len_chr(source),
+      collection = rep_len_chr(collection),
+      subcollection = rep_len_chr(subcollection),
+      species = rep_len_chr(species),
+      version = rep_len_chr(version),
+      stringsAsFactors = FALSE
+    )
+  }
+  attr(gs, "gleam_geneset_metadata") <- metadata
+  gs
+}
+
+#' @keywords internal
+get_geneset_metadata <- function(gs) {
+  attr(gs, "gleam_geneset_metadata")
 }

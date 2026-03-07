@@ -7,17 +7,17 @@
 aggregate_pathway(
   score,
   by,
-  fun = c("mean", "median", "fraction"),
+  fun = c("mean", "median", "fraction", "sum"),
   threshold = 0,
   long = TRUE
 )
 }
 \arguments{
-\item{score}{\code{scpathway_score} object.}
+\item{score}{\code{gleam_score} object.}
 
 \item{by}{Grouping variable(s): metadata column name(s), or vector.}
 
-\item{fun}{Aggregation function: mean, median, or fraction.}
+\item{fun}{Aggregation function: mean, median, fraction, sum, or a function.}
 
 \item{threshold}{Threshold used by \code{fraction}.}
 

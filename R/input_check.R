@@ -5,7 +5,29 @@
 #' @return Logical.
 #' @keywords internal
 is_seurat_object <- function(object) {
-  inherits(object, "Seurat")
+  inherits(object, "Seurat") || (!is.null(object) && "Seurat" %in% class(object))
+}
+
+#' Detect Seurat major version
+#'
+#' @param object Seurat object.
+#'
+#' @return Integer major version (4, 5) when detectable, otherwise `NA_integer_`.
+#' @keywords internal
+detect_seurat_version <- function(object = NULL) {
+  if (!is_seurat_object(object)) {
+    return(NA_integer_)
+  }
+
+  v <- NA_character_
+  if (requireNamespace("SeuratObject", quietly = TRUE)) {
+    v <- as.character(utils::packageVersion("SeuratObject"))
+  } else if (requireNamespace("Seurat", quietly = TRUE)) {
+    v <- as.character(utils::packageVersion("Seurat"))
+  }
+
+  if (is.na(v) || !nzchar(v)) return(NA_integer_)
+  as.integer(strsplit(v, "\\.")[[1]][1])
 }
 
 #' Validate input mode
@@ -27,6 +49,9 @@ check_input_mode <- function(object, expr, seurat = TRUE) {
     }
     if (!is_seurat_object(object)) {
       stop("`object` must be a Seurat object when `seurat = TRUE`.", call. = FALSE)
+    }
+    if (!requireNamespace("SeuratObject", quietly = TRUE) && !requireNamespace("Seurat", quietly = TRUE)) {
+      stop("Seurat mode requested but Seurat/SeuratObject is not installed.", call. = FALSE)
     }
   } else {
     if (is.null(expr)) {

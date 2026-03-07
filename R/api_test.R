@@ -1,53 +1,76 @@
 #' Test pathway differences
 #'
-#' @param score `scpathway_score` object.
+#' @param score `gleam_score` object.
 #' @param group Group variable (column name or vector).
 #' @param sample Sample variable (column name or vector).
 #' @param celltype Celltype variable (column name or vector).
+#' @param region Spatial region/domain variable (column name or vector).
+#' @param pseudotime Pseudotime source for trajectory mode.
+#' @param lineage Lineage source for trajectory mode.
 #' @param level Comparison level.
 #' @param method Statistical method.
 #' @param ref_group Reference group.
 #' @param paired Placeholder, currently ignored.
 #' @param covariates Placeholder, currently ignored.
 #' @param adjust_method Multiple testing adjustment method.
-#' @param min_cells Minimum cells per group (reserved for future checks).
-#' @param min_samples Minimum samples per group (reserved for future checks).
+#' @param min_cells Minimum cells per group.
+#' @param min_samples Minimum samples per group.
+#' @param aggregation Aggregation summary used by pseudobulk levels.
+#' @param threshold Threshold used when `aggregation = 'fraction'`.
 #' @param verbose Print messages.
 #'
-#' @return An object of class `scpathway_test`.
+#' @return An object of class `gleam_test`.
 #' @export
 test_pathway <- function(
   score,
-  group,
+  group = NULL,
   sample = NULL,
   celltype = NULL,
-  level = c("cell", "sample", "celltype", "sample_celltype"),
-  method = c("wilcox", "t", "lm"),
+  region = NULL,
+  pseudotime = NULL,
+  lineage = NULL,
+  level = c("cell", "sample", "celltype", "sample_celltype", "pseudobulk", "region", "sample_region", "trajectory"),
+  method = c("wilcox", "t", "lm", "limma", "edgeR", "DESeq2", "spearman", "tradeSeq"),
   ref_group = NULL,
   paired = FALSE,
   covariates = NULL,
   adjust_method = "BH",
   min_cells = 10,
   min_samples = 2,
+  aggregation = c("mean", "median", "fraction", "sum"),
+  threshold = 0,
   verbose = TRUE
 ) {
   check_score_object(score)
   level <- match.arg(level)
   method <- match.arg(method)
-  if (method == "lm") {
-    warning("lm method is reserved/experimental in v1.", call. = FALSE)
-    method <- "wilcox"
-  }
+  aggregation <- match.arg(aggregation)
 
   meta <- score$meta
-  group_v <- resolve_meta_var(meta, group, "group")
+  if (is.null(group) && level %in% c("cell", "sample", "sample_celltype", "pseudobulk", "sample_region")) {
+    stop("`group` is required for selected comparison level.", call. = FALSE)
+  }
+  group_v <- if (!is.null(group)) resolve_meta_var(meta, group, "group") else NULL
+
+  if (level == "trajectory") {
+    tst <- test_pathway_trajectory(
+      score = score,
+      pathway = NULL,
+      pseudotime = pseudotime,
+      lineage = lineage,
+      method = if (method %in% c("spearman", "lm", "tradeSeq")) method else "spearman",
+      adjust_method = adjust_method,
+      verbose = verbose
+    )
+    return(tst)
+  }
 
   if (level == "cell") {
-    if (verbose) warning("Cell-level testing is exploratory. Prefer sample-level for formal inference.", call. = FALSE)
+    if (verbose) warning("Cell-level testing is exploratory. Prefer sample/pseudobulk-level for formal inference.", call. = FALSE)
     tbl <- test_pathway_cell(
       score_mat = score$score,
       group = group_v,
-      method = method,
+      method = if (method == "t") "t" else "wilcox",
       ref_group = ref_group,
       adjust_method = adjust_method,
       level = "cell"
@@ -59,7 +82,7 @@ test_pathway <- function(
       score_mat = score$score,
       group = group_v,
       sample = sample_v,
-      method = method,
+      method = if (method == "t") "t" else "wilcox",
       ref_group = ref_group,
       adjust_method = adjust_method
     )
@@ -69,11 +92,11 @@ test_pathway <- function(
     tbl <- test_pathway_celltype(
       score_mat = score$score,
       celltype = celltype_v,
-      method = method,
+      method = if (method == "t") "t" else "wilcox",
       ref_celltype = ref_group,
       adjust_method = adjust_method
     )
-  } else {
+  } else if (level == "sample_celltype") {
     if (is.null(sample) || is.null(celltype)) {
       stop("`sample` and `celltype` are required for level = 'sample_celltype'.", call. = FALSE)
     }
@@ -84,9 +107,56 @@ test_pathway <- function(
       group = group_v,
       sample = sample_v,
       celltype = celltype_v,
-      method = method,
+      method = if (method == "t") "t" else "wilcox",
       ref_group = ref_group,
       adjust_method = adjust_method
+    )
+  } else if (level == "pseudobulk") {
+    if (is.null(sample)) stop("`sample` is required for level = 'pseudobulk'.", call. = FALSE)
+    sample_v <- resolve_meta_var(meta, sample, "sample")
+    celltype_v <- if (!is.null(celltype)) resolve_meta_var(meta, celltype, "celltype") else NULL
+    region_v <- if (!is.null(region)) resolve_meta_var(meta, region, "region") else NULL
+
+    tbl <- test_pathway_pseudobulk(
+      score = score,
+      group = group_v,
+      sample = sample_v,
+      celltype = celltype_v,
+      region = region_v,
+      method = method,
+      adjust_method = adjust_method,
+      aggregation = aggregation,
+      threshold = threshold,
+      ref_group = ref_group,
+      level = "pseudobulk"
+    )
+  } else if (level == "region") {
+    if (is.null(region)) stop("`region` is required for level = 'region'.", call. = FALSE)
+    region_v <- resolve_meta_var(meta, region, "region")
+    tbl <- test_pathway_spatial(
+      score = score,
+      region = region_v,
+      group = group_v,
+      sample = sample,
+      method = if (method == "t") "t" else "wilcox",
+      adjust_method = adjust_method,
+      level = "region"
+    )$table
+  } else { # sample_region
+    if (is.null(sample) || is.null(region)) stop("`sample` and `region` are required for level = 'sample_region'.", call. = FALSE)
+    sample_v <- resolve_meta_var(meta, sample, "sample")
+    region_v <- resolve_meta_var(meta, region, "region")
+    tbl <- test_pathway_pseudobulk(
+      score = score,
+      group = group_v,
+      sample = sample_v,
+      region = region_v,
+      method = method,
+      adjust_method = adjust_method,
+      aggregation = aggregation,
+      threshold = threshold,
+      ref_group = ref_group,
+      level = "sample_region"
     )
   }
 
@@ -100,14 +170,16 @@ test_pathway <- function(
       covariates = covariates,
       adjust_method = adjust_method,
       min_cells = min_cells,
-      min_samples = min_samples
+      min_samples = min_samples,
+      aggregation = aggregation,
+      threshold = threshold
     )
   )
 }
 
 #' Compare pathways across cell types
 #'
-#' @param score `scpathway_score` object.
+#' @param score `gleam_score` object.
 #' @param celltype Celltype variable name or vector.
 #' @param group Optional group variable (reserved for future stratified mode).
 #' @param method Statistical method.
@@ -115,7 +187,7 @@ test_pathway <- function(
 #' @param adjust_method Multiple testing adjustment method.
 #' @param verbose Print messages.
 #'
-#' @return An object of class `scpathway_test`.
+#' @return An object of class `gleam_test`.
 #' @export
 compare_celltypes <- function(
   score,
@@ -144,7 +216,7 @@ compare_celltypes <- function(
 
 #' Compare groups within a fixed celltype
 #'
-#' @param score `scpathway_score` object.
+#' @param score `gleam_score` object.
 #' @param group Group variable name or vector.
 #' @param celltype Celltype variable name or vector.
 #' @param target_celltype Target celltype label.
@@ -155,7 +227,7 @@ compare_celltypes <- function(
 #' @param adjust_method Multiple testing adjustment method.
 #' @param verbose Print messages.
 #'
-#' @return An object of class `scpathway_test`.
+#' @return An object of class `gleam_test`.
 #' @export
 compare_groups_within_celltype <- function(
   score,
@@ -173,7 +245,7 @@ compare_groups_within_celltype <- function(
   level <- match.arg(level)
   method <- match.arg(method)
   if (method == "lm") {
-    warning("lm method is reserved/experimental in v1, falling back to wilcox.", call. = FALSE)
+    warning("lm method is reserved/experimental in v0.2, falling back to wilcox.", call. = FALSE)
     method <- "wilcox"
   }
 

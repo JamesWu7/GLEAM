@@ -1,0 +1,17 @@
+---
+title: "GLEAM scoring method comparison"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{GLEAM scoring method comparison}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, eval=FALSE}
+m1 <- score_pathway(expr = pbmc_medium_matrix, meta = pbmc_medium_meta, geneset = "immune_small", seurat = FALSE, method = "rank")
+m2 <- score_pathway(expr = pbmc_medium_matrix, meta = pbmc_medium_meta, geneset = "immune_small", seurat = FALSE, method = "auc")
+m3 <- score_pathway(expr = pbmc_medium_matrix, meta = pbmc_medium_meta, geneset = "immune_small", seurat = FALSE, method = "zmean")
+
+cmp <- compare_scoring_methods(rank = m1, auc = m2, zmean = m3)
+head(cmp)
+```

@@ -15,4 +15,3 @@ Named list of pathways.
 \description{
 Read GMT file
 }
-\keyword{internal}

@@ -7,7 +7,7 @@
 plot_volcano(x, p_col = "p_adj", effect_col = "effect_size", sig_thresh = 0.05)
 }
 \arguments{
-\item{x}{\code{scpathway_test} object or result data.frame.}
+\item{x}{\code{gleam_test} object or result data.frame.}
 
 \item{p_col}{P-value column name.}
 

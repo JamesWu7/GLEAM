@@ -11,7 +11,7 @@ score_zmean_matrix <- function(expr, genesets, verbose = TRUE) {
   z <- zscore_by_row(expr)
 
   if (verbose) {
-    message("[scPathway] scoring zmean method...")
+    message("[GLEAM] scoring zmean method...")
   }
 
   out <- lapply(names(genesets), function(pw) {

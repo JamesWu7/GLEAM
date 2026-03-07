@@ -4,10 +4,17 @@
 \alias{plot_violin}
 \title{Violin plot of pathway scores}
 \usage{
-plot_violin(score, pathway, group, celltype = NULL, trim = TRUE)
+plot_violin(
+  score,
+  pathway,
+  group,
+  celltype = NULL,
+  trim = TRUE,
+  palette = "gleam_discrete"
+)
 }
 \arguments{
-\item{score}{\code{scpathway_score} object.}
+\item{score}{\code{gleam_score} object.}
 
 \item{pathway}{Pathway name.}
 
@@ -16,6 +23,8 @@ plot_violin(score, pathway, group, celltype = NULL, trim = TRUE)
 \item{celltype}{Optional celltype filter (single label or vector).}
 
 \item{trim}{Passed to \code{geom_violin()}.}
+
+\item{palette}{Discrete palette name or custom colors.}
 }
 \value{
 A \code{ggplot} object.

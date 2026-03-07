@@ -1,16 +1,22 @@
 #' Aggregate pathway scores
 #'
-#' @param score `scpathway_score` object.
+#' @param score `gleam_score` object.
 #' @param by Grouping variable(s): metadata column name(s), or vector.
-#' @param fun Aggregation function: mean, median, or fraction.
+#' @param fun Aggregation function: mean, median, fraction, sum, or a function.
 #' @param threshold Threshold used by `fraction`.
 #' @param long Return long-format table if TRUE.
 #'
 #' @return Aggregated table (long) or pathway-by-group matrix (wide).
 #' @export
-aggregate_pathway <- function(score, by, fun = c("mean", "median", "fraction"), threshold = 0, long = TRUE) {
+aggregate_pathway <- function(score, by, fun = c("mean", "median", "fraction", "sum"), threshold = 0, long = TRUE) {
   check_score_object(score)
-  fun <- match.arg(fun)
+  fun_name <- NULL
+  if (is.function(fun)) {
+    fun_name <- "custom"
+  } else {
+    fun <- match.arg(fun)
+    fun_name <- fun
+  }
 
   meta <- score$meta
   mat <- score$score
@@ -27,12 +33,17 @@ aggregate_pathway <- function(score, by, fun = c("mean", "median", "fraction"), 
   grp_key <- interaction(grp_df, drop = TRUE, lex.order = TRUE)
   grp_levels <- levels(grp_key)
 
-  agg_fun <- switch(
-    fun,
-    mean = function(x) rowMeans(x, na.rm = TRUE),
-    median = function(x) apply(x, 1, stats::median, na.rm = TRUE),
-    fraction = function(x) rowMeans(x > threshold, na.rm = TRUE)
-  )
+  agg_fun <- if (is.function(fun)) {
+    function(x) apply(x, 1, fun)
+  } else {
+    switch(
+      fun,
+      mean = function(x) rowMeans(x, na.rm = TRUE),
+      median = function(x) apply(x, 1, stats::median, na.rm = TRUE),
+      fraction = function(x) rowMeans(x > threshold, na.rm = TRUE),
+      sum = function(x) rowSums(x, na.rm = TRUE)
+    )
+  }
 
   wide <- sapply(grp_levels, function(gl) {
     idx <- grp_key == gl
@@ -63,5 +74,6 @@ aggregate_pathway <- function(score, by, fun = c("mean", "median", "fraction"), 
   }))
 
   rownames(out) <- NULL
+  out$summary_method <- fun_name
   out
 }

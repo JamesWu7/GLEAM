@@ -1,0 +1,20 @@
+---
+title: "GLEAM quickstart"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{GLEAM quickstart}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, eval=FALSE}
+library(GLEAM)
+data("pbmc_medium_matrix", package = "GLEAM")
+data("pbmc_medium_meta", package = "GLEAM")
+
+sc <- score_pathway(expr = pbmc_medium_matrix, meta = pbmc_medium_meta,
+                    geneset = "immune_small", geneset_source = "builtin",
+                    seurat = FALSE, method = "ensemble")
+res <- test_pathway(sc, group = "group", sample = "sample", level = "pseudobulk")
+plot_volcano(res)
+```

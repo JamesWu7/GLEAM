@@ -2,53 +2,83 @@
 output: github_document
 ---
 
-# scPathway
+# GLEAM
 
-`scPathway` is a lightweight R package for pathway analysis in single-cell RNA-seq.
+## GLEAM: Gene-set and cell-state exploration across space and time in R
 
-## Install (development)
+- **G** = Gene-set
+- **L** = cell-state
+- **E** = Exploration
+- **A** = across
+- **M** = space and time
+
+GLEAM is a matrix-first toolkit for pathway and cell-state analysis in single-cell and spatial transcriptomics, with optional Seurat v4/v5 support.
+
+> Preferred GitHub repository name: **GLEAM**
+
+## Installation (development)
 
 ```r
 source("scripts/setup_dev.R")
 source("scripts/check_env.R")
 ```
 
-## Matrix workflow
+## Matrix quickstart
 
 ```r
-library(scPathway)
-data("toy_expr", package = "scPathway")
+library(GLEAM)
+data("pbmc_medium_matrix", package = "GLEAM")
+data("pbmc_medium_meta", package = "GLEAM")
 
-res <- score_pathway(
-  expr = toy_expr$expr,
-  meta = toy_expr$meta,
+sc <- score_pathway(
+  expr = pbmc_medium_matrix,
+  meta = pbmc_medium_meta,
   geneset = "immune_small",
+  geneset_source = "builtin",
   seurat = FALSE,
-  method = "rank"
+  method = "ensemble"
 )
 
-cmp <- compare_groups_within_celltype(
-  score = res,
+res <- test_pathway(
+  score = sc,
   group = "group",
+  sample = "sample",
   celltype = "celltype",
-  target_celltype = "CD8_T",
-  level = "cell"
+  level = "pseudobulk",
+  method = "wilcox"
 )
 
-plot_violin(res, pathway = rownames(res$score)[1], group = "group")
+plot_volcano(res)
 ```
 
-## Seurat v5 workflow
+## Seurat v4/v5 quickstart
 
 ```r
-# Requires Seurat/SeuratObject installed
-# seu <- ...
-# res <- score_pathway(
+# Requires Seurat / SeuratObject
+# sc <- score_pathway(
 #   object = seu,
 #   geneset = "hallmark",
 #   seurat = TRUE,
 #   assay = "RNA",
-#   layer = "data",
-#   method = "ensemble"
+#   layer = "data",  # v5 path
+#   slot = "data",   # v4 fallback
+#   method = "rank"
 # )
+```
+
+## Trajectory and spatial examples
+
+```r
+# Trajectory association
+# tr <- test_pathway_trajectory(sc, pseudotime = "pseudotime", lineage = "lineage")
+
+# Spatial plot
+# data("spatial_medium_coords", package = "GLEAM")
+# plot_spatial_score(sc, pathway = rownames(sc$score)[1], coords = spatial_medium_coords)
+```
+
+## Render tutorials locally
+
+```r
+source("scripts/render_examples.R")
 ```

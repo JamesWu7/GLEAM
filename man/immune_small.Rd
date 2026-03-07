@@ -8,7 +8,7 @@
 A named list.
 }
 \source{
-Internal toy collection
+Internal curated collection
 }
 \usage{
 immune_small

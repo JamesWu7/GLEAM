@@ -1,4 +1,4 @@
-#' Construct `scpathway_score` object
+#' Construct score object
 #'
 #' @param score Pathway-by-cell matrix.
 #' @param meta Cell metadata `data.frame` aligned to score columns.
@@ -7,7 +7,7 @@
 #' @param geneset_info Geneset metadata.
 #' @param params Parameter list.
 #'
-#' @return Object of class `scpathway_score`.
+#' @return Object of class `gleam_score` and `gleam_score`.
 #' @keywords internal
 new_scpathway_score <- function(score, meta, method, geneset_name, geneset_info, params = list()) {
   if (is.null(colnames(score))) {
@@ -20,7 +20,7 @@ new_scpathway_score <- function(score, meta, method, geneset_name, geneset_info,
     meta <- meta[colnames(score), , drop = FALSE]
   }
 
-  structure(
+  obj <- structure(
     list(
       score = score,
       meta = meta,
@@ -29,6 +29,7 @@ new_scpathway_score <- function(score, meta, method, geneset_name, geneset_info,
       geneset_info = geneset_info,
       params = params
     ),
-    class = "scpathway_score"
+    class = c("gleam_score", "scpathway_score")
   )
+  obj
 }

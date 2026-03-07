@@ -1,9 +1,10 @@
-#' End-to-end scPathway workflow
+#' End-to-end GLEAM workflow
 #'
 #' @param object Seurat object.
 #' @param expr Expression matrix for matrix mode.
 #' @param meta Metadata for matrix mode.
 #' @param geneset Geneset input.
+#' @param geneset_source Geneset source.
 #' @param seurat Input mode.
 #' @param assay Seurat assay.
 #' @param layer Seurat layer.
@@ -15,27 +16,34 @@
 #' @param comparison Comparison mode.
 #' @param target_celltype Target celltype for within-celltype comparison.
 #' @param level Testing level.
+#' @param pseudotime Pseudotime vector or metadata column name.
+#' @param lineage Lineage vector or metadata column name.
+#' @param region Spatial region/domain column name or vector.
 #' @param top_n Number of top pathways.
 #' @param verbose Print messages.
 #'
 #' @return List containing score object and comparison result.
 #' @export
-run_scpathway <- function(
+run_gleam <- function(
   object = NULL,
   expr = NULL,
   meta = NULL,
   geneset = "hallmark",
+  geneset_source = "auto",
   seurat = TRUE,
   assay = NULL,
   layer = NULL,
   slot = NULL,
   method = "ensemble",
-  group,
+  group = NULL,
   sample = NULL,
   celltype = NULL,
-  comparison = c("group", "celltype", "within_celltype"),
+  comparison = c("group", "celltype", "within_celltype", "trajectory", "spatial"),
   target_celltype = NULL,
   level = "sample",
+  pseudotime = NULL,
+  lineage = NULL,
+  region = NULL,
   top_n = 20,
   verbose = TRUE
 ) {
@@ -46,6 +54,7 @@ run_scpathway <- function(
     expr = expr,
     meta = meta,
     geneset = geneset,
+    geneset_source = geneset_source,
     seurat = seurat,
     assay = assay,
     layer = layer,
@@ -56,12 +65,10 @@ run_scpathway <- function(
 
   tst <- switch(
     comparison,
-    group = test_pathway(sc, group = group, sample = sample, level = level, verbose = verbose),
+    group = test_pathway(sc, group = group, sample = sample, celltype = celltype, level = level, verbose = verbose),
     celltype = compare_celltypes(sc, celltype = celltype, group = group, verbose = verbose),
     within_celltype = {
-      if (is.null(target_celltype)) {
-        stop("`target_celltype` is required when comparison = 'within_celltype'.", call. = FALSE)
-      }
+      if (is.null(target_celltype)) stop("`target_celltype` is required when comparison = 'within_celltype'.", call. = FALSE)
       compare_groups_within_celltype(
         score = sc,
         group = group,
@@ -71,11 +78,29 @@ run_scpathway <- function(
         level = if (level %in% c("cell", "sample")) level else "sample",
         verbose = verbose
       )
+    },
+    trajectory = {
+      test_pathway_trajectory(sc, pathway = NULL, pseudotime = pseudotime, lineage = lineage, verbose = verbose)
+    },
+    spatial = {
+      if (is.null(region)) stop("`region` is required when comparison = 'spatial'.", call. = FALSE)
+      test_pathway(sc, group = group, sample = sample, region = region, level = "region", verbose = verbose)
     }
   )
 
-  ord <- order(tst$table$p_adj, decreasing = FALSE, na.last = TRUE)
-  top_tbl <- tst$table[head(ord, top_n), , drop = FALSE]
+  tbl <- if (inherits(tst, "gleam_test") || inherits(tst, "scpathway_test")) tst$table else tst
+  ord <- order(tbl$p_adj, decreasing = FALSE, na.last = TRUE)
+  top_tbl <- tbl[head(ord, min(top_n, nrow(tbl))), , drop = FALSE]
 
   list(score = sc, test = tst, top_table = top_tbl)
+}
+
+#' End-to-end scPathway workflow (deprecated alias)
+#'
+#' @inheritParams run_gleam
+#' @return List containing score object and comparison result.
+#' @export
+run_scpathway <- function(...) {
+  warning("`run_scpathway()` is deprecated; use `run_gleam()`.", call. = FALSE)
+  run_gleam(...)
 }

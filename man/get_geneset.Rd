@@ -4,14 +4,35 @@
 \alias{get_geneset}
 \title{Get geneset collection}
 \usage{
-get_geneset(geneset)
+get_geneset(
+  geneset,
+  source = c("auto", "builtin", "list", "gmt", "data.frame", "msigdb", "go", "kegg",
+    "reactome"),
+  species = "Homo sapiens",
+  collection = "H",
+  subcollection = NULL,
+  ontology = c("BP", "MF", "CC"),
+  version = NA_character_
+)
 }
 \arguments{
-\item{geneset}{Geneset input. Supported: built-in name, named list,
-GMT file path, or data.frame with \code{pathway} and \code{gene} columns.}
+\item{geneset}{Geneset input.}
+
+\item{source}{Geneset source. One of \code{auto}, \code{builtin}, \code{list}, \code{gmt},
+\code{data.frame}, \code{msigdb}, \code{go}, \code{kegg}, \code{reactome}.}
+
+\item{species}{Species label used by external geneset sources.}
+
+\item{collection}{MSigDB collection (for source = \code{msigdb}).}
+
+\item{subcollection}{MSigDB subcollection (for source = \code{msigdb}).}
+
+\item{ontology}{GO ontology (\code{BP}, \code{MF}, \code{CC}) for source = \code{go}.}
+
+\item{version}{Optional source version string.}
 }
 \value{
-Named list of pathways to genes.
+Named list of pathways to genes with source metadata attached.
 }
 \description{
 Get geneset collection

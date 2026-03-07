@@ -2,7 +2,7 @@
 % Please edit documentation in R/input_extract.R
 \name{resolve_seurat_layer}
 \alias{resolve_seurat_layer}
-\title{Resolve Seurat assay/layer with v5 compatibility}
+\title{Resolve Seurat assay/layer with v4/v5 compatibility}
 \usage{
 resolve_seurat_layer(object, assay = NULL, layer = NULL, slot = NULL)
 }
@@ -19,6 +19,6 @@ resolve_seurat_layer(object, assay = NULL, layer = NULL, slot = NULL)
 List with assay and layer/slot.
 }
 \description{
-Resolve Seurat assay/layer with v5 compatibility
+Resolve Seurat assay/layer with v4/v5 compatibility
 }
 \keyword{internal}

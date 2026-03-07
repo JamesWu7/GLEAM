@@ -1,7 +1,7 @@
 test_that("plot_violin returns ggplot object", {
   skip_if_not_installed("ggplot2")
 
-  data("toy_expr", package = "scPathway")
+  data("toy_expr", package = "GLEAM")
   sc <- score_pathway(
     expr = toy_expr$expr,
     meta = toy_expr$meta,

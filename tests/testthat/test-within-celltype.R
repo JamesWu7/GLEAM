@@ -1,5 +1,5 @@
 test_that("within-celltype comparison runs", {
-  data("toy_expr", package = "scPathway")
+  data("toy_expr", package = "GLEAM")
   sc <- score_pathway(
     expr = toy_expr$expr,
     meta = toy_expr$meta,
@@ -20,6 +20,6 @@ test_that("within-celltype comparison runs", {
     verbose = FALSE
   )
 
-  expect_s3_class(cmp, "scpathway_test")
+  expect_s3_class(cmp, "gleam_test")
   expect_true(nrow(cmp$table) > 0)
 })

@@ -9,16 +9,24 @@ score_pathway(
   expr = NULL,
   meta = NULL,
   geneset,
+  geneset_source = c("auto", "builtin", "list", "gmt", "data.frame", "msigdb", "go",
+    "kegg", "reactome"),
+  species = "Homo sapiens",
+  collection = "H",
+  subcollection = NULL,
+  ontology = c("BP", "MF", "CC"),
   seurat = TRUE,
   assay = NULL,
   layer = NULL,
   slot = NULL,
-  method = c("rank", "auc", "zmean", "ensemble"),
+  method = c("rank", "auc", "zmean", "mean", "scaled_mean", "robust", "singscore_like",
+    "ssgsea_like", "ensemble", "addmodulescore", "ucell", "aucell", "gsva", "singscore"),
   min_genes = 5,
   max_genes = 500,
   auc_max_rank = 0.05,
   ensemble_methods = c("rank", "auc", "zmean"),
   ensemble_combine = c("mean", "median"),
+  method_params = list(),
   verbose = TRUE
 )
 }
@@ -29,7 +37,18 @@ score_pathway(
 
 \item{meta}{Metadata data.frame for matrix mode.}
 
-\item{geneset}{Geneset input: built-in name, named list, GMT path, or data.frame.}
+\item{geneset}{Geneset input.}
+
+\item{geneset_source}{Geneset source (\code{auto}, \code{builtin}, \code{list}, \code{gmt}, \code{data.frame},
+\code{msigdb}, \code{go}, \code{kegg}, \code{reactome}).}
+
+\item{species}{Species label for source-aware geneset loading.}
+
+\item{collection}{Collection parameter for source-aware geneset loading.}
+
+\item{subcollection}{Subcollection parameter for source-aware geneset loading.}
+
+\item{ontology}{GO ontology (\code{BP}, \code{MF}, \code{CC}) for GO source.}
 
 \item{seurat}{Logical input mode.}
 
@@ -39,7 +58,7 @@ score_pathway(
 
 \item{slot}{Legacy Seurat slot fallback.}
 
-\item{method}{Scoring method.}
+\item{method}{Scoring method. See \code{\link[=list_scoring_methods]{list_scoring_methods()}}.}
 
 \item{min_genes}{Minimum genes per pathway.}
 
@@ -51,12 +70,14 @@ score_pathway(
 
 \item{ensemble_combine}{Ensemble combine strategy.}
 
+\item{method_params}{Optional named list for method-specific parameters.}
+
 \item{verbose}{Whether to print messages.}
 }
 \value{
-An object of class \code{scpathway_score}.
+An object of class \code{gleam_score}.
 }
 \description{
-Supports Seurat v5 input (\code{seurat = TRUE}) and direct matrix/sparse matrix
+Supports Seurat v4/v5 input (\code{seurat = TRUE}) and direct matrix/sparse matrix
 input (\code{seurat = FALSE}). Seurat is optional and only required for Seurat mode.
 }

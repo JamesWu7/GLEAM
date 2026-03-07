@@ -1,13 +1,14 @@
 #' Box plot of sample-level pathway scores
 #'
-#' @param score `scpathway_score` object.
+#' @param score `gleam_score` object.
 #' @param pathway Pathway name.
 #' @param group Group variable (metadata column name or vector).
 #' @param sample Sample variable (metadata column name or vector).
+#' @param palette Discrete palette name or custom colors.
 #'
 #' @return A `ggplot` object.
 #' @export
-plot_box <- function(score, pathway, group, sample) {
+plot_box <- function(score, pathway, group, sample, palette = "gleam_discrete") {
   check_score_object(score)
   if (!pathway %in% rownames(score$score)) {
     stop("`pathway` not found in score matrix.", call. = FALSE)
@@ -24,6 +25,7 @@ plot_box <- function(score, pathway, group, sample) {
   ggplot2::ggplot(samp, ggplot2::aes(x = group, y = score, fill = group)) +
     ggplot2::geom_boxplot(alpha = 0.7, outlier.shape = NA) +
     ggplot2::geom_jitter(width = 0.12, size = 1.8, alpha = 0.8) +
+    scale_gleam_fill(palette = palette, continuous = FALSE) +
     ggplot2::labs(x = "Group", y = pathway, title = paste("Sample-level:", pathway)) +
-    .theme_scpathway()
+    .theme_gleam()
 }

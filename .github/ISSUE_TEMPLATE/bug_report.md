@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Report a reproducible problem in scPathway
+about: Report a reproducible problem in GLEAM
 ---
 
 ## Description

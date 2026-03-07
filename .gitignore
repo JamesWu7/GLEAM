@@ -11,4 +11,4 @@ renv/
 renv.lock
 .DS_Store
 coverage/
-
+docs/tutorial_html/

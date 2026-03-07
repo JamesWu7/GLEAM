@@ -1,0 +1,13 @@
+---
+title: "GLEAM trajectory mapping"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{GLEAM trajectory mapping}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, eval=FALSE}
+tr <- test_pathway_trajectory(sc, pseudotime = "pseudotime", lineage = "lineage")
+plot_pseudotime_score(sc, pathway = rownames(sc$score)[1], pseudotime = "pseudotime", lineage = "lineage")
+```

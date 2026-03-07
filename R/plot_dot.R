@@ -3,13 +3,14 @@
 #' Dot size represents fraction of cells above threshold,
 #' and dot color represents mean pathway score.
 #'
-#' @param score `scpathway_score` object.
+#' @param score `gleam_score` object.
 #' @param by Grouping metadata columns.
 #' @param threshold Threshold for active fraction.
+#' @param palette Continuous palette name or custom colors.
 #'
 #' @return A `ggplot` object.
 #' @export
-plot_dot <- function(score, by, threshold = 0) {
+plot_dot <- function(score, by, threshold = 0, palette = "gleam_continuous") {
   mean_df <- aggregate_pathway(score, by = by, fun = "mean", long = TRUE)
   frac_df <- aggregate_pathway(score, by = by, fun = "fraction", threshold = threshold, long = TRUE)
 
@@ -20,7 +21,7 @@ plot_dot <- function(score, by, threshold = 0) {
   ggplot2::ggplot(mean_df, ggplot2::aes(x = group_key, y = pathway)) +
     ggplot2::geom_point(ggplot2::aes(size = fraction, color = value), alpha = 0.9) +
     ggplot2::scale_size_continuous(range = c(1, 8)) +
-    ggplot2::scale_color_gradient2(low = "#3b4cc0", mid = "#f7f7f7", high = "#b40426", midpoint = 0) +
+    scale_gleam_color(palette = palette, continuous = TRUE) +
     ggplot2::labs(x = paste(by, collapse = ":"), y = "Pathway", title = "Pathway dot plot") +
-    .theme_scpathway()
+    .theme_gleam()
 }

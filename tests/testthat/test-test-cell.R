@@ -1,5 +1,5 @@
 test_that("cell-level testing returns required fields", {
-  data("toy_expr", package = "scPathway")
+  data("toy_expr", package = "GLEAM")
   sc <- score_pathway(
     expr = toy_expr$expr,
     meta = toy_expr$meta,
@@ -11,7 +11,7 @@ test_that("cell-level testing returns required fields", {
   )
 
   tt <- test_pathway(sc, group = "group", level = "cell", method = "wilcox", verbose = FALSE)
-  expect_s3_class(tt, "scpathway_test")
+  expect_s3_class(tt, "gleam_test")
 
   req <- c(
     "pathway", "comparison_type", "group1", "group2", "celltype", "level",

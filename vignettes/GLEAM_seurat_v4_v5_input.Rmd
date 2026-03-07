@@ -1,0 +1,21 @@
+---
+title: "GLEAM Seurat v4/v5 input"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{GLEAM Seurat v4/v5 input}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, eval=FALSE}
+# Seurat v5 layer path or v4 slot fallback
+sc <- score_pathway(
+  object = seu,
+  geneset = "hallmark",
+  seurat = TRUE,
+  assay = "RNA",
+  layer = "data",
+  slot = "data",
+  method = "rank"
+)
+```

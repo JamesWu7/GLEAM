@@ -19,4 +19,3 @@ Filtered named list.
 \description{
 Validate genesets by size
 }
-\keyword{internal}

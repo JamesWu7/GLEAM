@@ -1,7 +1,7 @@
-test_that("run_scpathway end-to-end works", {
-  data("toy_expr", package = "scPathway")
+test_that("run_gleam end-to-end works", {
+  data("toy_expr", package = "GLEAM")
 
-  out <- run_scpathway(
+  out <- run_gleam(
     expr = toy_expr$expr,
     meta = toy_expr$meta,
     geneset = "immune_small",
@@ -17,6 +17,6 @@ test_that("run_scpathway end-to-end works", {
   )
 
   expect_true(all(c("score", "test", "top_table") %in% names(out)))
-  expect_s3_class(out$score, "scpathway_score")
-  expect_s3_class(out$test, "scpathway_test")
+  expect_s3_class(out$score, "gleam_score")
+  expect_s3_class(out$test, "gleam_test")
 })

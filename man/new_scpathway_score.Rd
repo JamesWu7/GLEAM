@@ -2,7 +2,7 @@
 % Please edit documentation in R/object_score.R
 \name{new_scpathway_score}
 \alias{new_scpathway_score}
-\title{Construct \code{scpathway_score} object}
+\title{Construct score object}
 \usage{
 new_scpathway_score(
   score,
@@ -27,9 +27,9 @@ new_scpathway_score(
 \item{params}{Parameter list.}
 }
 \value{
-Object of class \code{scpathway_score}.
+Object of class \code{gleam_score} and \code{gleam_score}.
 }
 \description{
-Construct \code{scpathway_score} object
+Construct score object
 }
 \keyword{internal}

@@ -34,9 +34,36 @@ resolve_meta_var <- function(meta, x, arg_name) {
 
 #' @keywords internal
 check_score_object <- function(score) {
-  if (!inherits(score, "scpathway_score")) {
+  if (!inherits(score, "gleam_score") && !inherits(score, "scpathway_score")) {
     stop("`score` must be an object returned by score_pathway().", call. = FALSE)
   }
+}
+
+#' @keywords internal
+require_optional_package <- function(pkg, feature = NULL) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    msg <- if (is.null(feature)) {
+      sprintf("Optional package '%s' is required.", pkg)
+    } else {
+      sprintf("Optional package '%s' is required for %s.", pkg, feature)
+    }
+    stop(paste0(msg, " Install with install.packages('", pkg, "')."), call. = FALSE)
+  }
+  invisible(TRUE)
+}
+
+#' @keywords internal
+check_method_dependency <- function(method, pkg = NULL) {
+  if (!is.null(pkg)) {
+    require_optional_package(pkg, feature = sprintf("method '%s'", method))
+  }
+  invisible(TRUE)
+}
+
+#' @keywords internal
+check_plot_dependency <- function(plot_name, pkg) {
+  require_optional_package(pkg, feature = sprintf("plot '%s'", plot_name))
+  invisible(TRUE)
 }
 
 #' @keywords internal

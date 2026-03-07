@@ -1,13 +1,14 @@
-Package: scPathway
+Package: GLEAM
 Type: Package
-Title: Lightweight Pathway Analysis for Single-Cell RNA-seq
-Version: 0.1.0
+Title: Gene-set and Cell-state Exploration Across Space and Time in R
+Version: 0.2.0
 Authors@R: person("James", "Woo", email = "james@example.com", role = c("aut", "cre"))
 Author: James Woo [aut, cre]
 Maintainer: James Woo <james@example.com>
-Description: A lightweight, matrix-native toolkit for pathway scoring and comparison
-    in single-cell RNA-seq data with optional Seurat v5 input compatibility.
-    Supports cell-level exploratory analysis and sample-level formal inference.
+Description: GLEAM provides matrix-native pathway and cell-state analysis workflows
+    across single-cell and spatial transcriptomics. It supports Seurat v4/v5
+    compatibility, trajectory-aware mapping, pseudobulk comparisons, and
+    publication-friendly visualization with optional ecosystem integrations.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -24,17 +25,37 @@ Imports:
     stats,
     utils
 Suggests:
+    AUCell,
+    clusterProfiler,
     devtools,
+    DESeq2,
+    edgeR,
+    ggpubr,
+    ggridges,
+    GSVA,
     knitr,
+    limma,
+    mgcv,
+    monocle3,
+    msigdbr,
+    paletteer,
+    patchwork,
     pkgload,
+    RColorBrewer,
+    ReactomePA,
     remotes,
     rmarkdown,
     roxygen2,
     Seurat,
     SeuratObject,
+    singscore,
+    slingshot,
     testthat,
-    usethis
+    tradeSeq,
+    UCell,
+    usethis,
+    viridisLite
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-URL: https://github.com/jameswoo/scPathway
-BugReports: https://github.com/jameswoo/scPathway/issues
+URL: https://github.com/jameswoo/GLEAM
+BugReports: https://github.com/jameswoo/GLEAM/issues

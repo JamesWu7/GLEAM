@@ -4,16 +4,18 @@
 \alias{plot_box}
 \title{Box plot of sample-level pathway scores}
 \usage{
-plot_box(score, pathway, group, sample)
+plot_box(score, pathway, group, sample, palette = "gleam_discrete")
 }
 \arguments{
-\item{score}{\code{scpathway_score} object.}
+\item{score}{\code{gleam_score} object.}
 
 \item{pathway}{Pathway name.}
 
 \item{group}{Group variable (metadata column name or vector).}
 
 \item{sample}{Sample variable (metadata column name or vector).}
+
+\item{palette}{Discrete palette name or custom colors.}
 }
 \value{
 A \code{ggplot} object.

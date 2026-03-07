@@ -1,0 +1,53 @@
+url: https://jameswoo.github.io/GLEAM
+template:
+  bootstrap: 5
+home:
+  title: "GLEAM"
+  description: "Gene-set and cell-state exploration across space and time in R"
+reference:
+  - title: Core APIs
+    contents:
+      - score_pathway
+      - aggregate_pathway
+      - test_pathway
+      - differential_pathway
+      - compare_celltypes
+      - compare_groups_within_celltype
+      - run_gleam
+      - run_scpathway
+  - title: Genesets
+    contents:
+      - get_geneset
+      - list_geneset_sources
+      - search_geneset
+  - title: Scoring and export
+    contents:
+      - list_scoring_methods
+      - compare_scoring_methods
+      - collect_scores
+      - summarize_scores
+      - export_scores
+  - title: Trajectory and spatial
+    contents:
+      - test_pathway_trajectory
+      - test_pathway_spatial
+      - plot_pseudotime_score
+      - plot_trajectory_score
+      - plot_spatial_score
+      - plot_spatial_compare
+      - plot_spatial_multi
+  - title: Visualization
+    contents:
+      - starts_with("plot_")
+articles:
+  - title: Tutorials
+    navbar: Tutorials
+    contents:
+      - GLEAM_quickstart
+      - GLEAM_seurat_v4_v5_input
+      - GLEAM_geneset_sources
+      - GLEAM_scoring_method_comparison
+      - GLEAM_differential_analysis
+      - GLEAM_trajectory_mapping
+      - GLEAM_spatial_analysis
+      - GLEAM_visualization_gallery

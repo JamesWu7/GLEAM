@@ -15,7 +15,7 @@ compare_celltypes(
 )
 }
 \arguments{
-\item{score}{\code{scpathway_score} object.}
+\item{score}{\code{gleam_score} object.}
 
 \item{celltype}{Celltype variable name or vector.}
 
@@ -30,7 +30,7 @@ compare_celltypes(
 \item{verbose}{Print messages.}
 }
 \value{
-An object of class \code{scpathway_test}.
+An object of class \code{gleam_test}.
 }
 \description{
 Compare pathways across cell types

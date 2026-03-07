@@ -9,11 +9,12 @@ plot_heatmap(
   by,
   fun = c("mean", "median", "fraction"),
   threshold = 0,
-  top_n = NULL
+  top_n = NULL,
+  palette = "gleam_continuous"
 )
 }
 \arguments{
-\item{score}{\code{scpathway_score} object.}
+\item{score}{\code{gleam_score} object.}
 
 \item{by}{Grouping metadata columns.}
 
@@ -22,6 +23,8 @@ plot_heatmap(
 \item{threshold}{Threshold used by \code{fraction}.}
 
 \item{top_n}{Optional top pathways by variance.}
+
+\item{palette}{Continuous palette name or custom colors.}
 }
 \value{
 A \code{ggplot} object.

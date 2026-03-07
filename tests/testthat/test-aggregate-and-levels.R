@@ -1,5 +1,5 @@
 test_that("aggregate_pathway supports mean and fraction", {
-  data("toy_expr", package = "scPathway")
+  data("toy_expr", package = "GLEAM")
   sc <- score_pathway(
     expr = toy_expr$expr,
     meta = toy_expr$meta,
@@ -20,7 +20,7 @@ test_that("aggregate_pathway supports mean and fraction", {
 })
 
 test_that("test_pathway supports sample and sample_celltype levels", {
-  data("toy_expr", package = "scPathway")
+  data("toy_expr", package = "GLEAM")
   sc <- score_pathway(
     expr = toy_expr$expr,
     meta = toy_expr$meta,
@@ -32,7 +32,7 @@ test_that("test_pathway supports sample and sample_celltype levels", {
   )
 
   s1 <- test_pathway(sc, group = "group", sample = "sample", level = "sample", verbose = FALSE)
-  expect_s3_class(s1, "scpathway_test")
+  expect_s3_class(s1, "gleam_test")
   expect_true(nrow(s1$table) > 0)
 
   s2 <- test_pathway(
@@ -43,6 +43,6 @@ test_that("test_pathway supports sample and sample_celltype levels", {
     level = "sample_celltype",
     verbose = FALSE
   )
-  expect_s3_class(s2, "scpathway_test")
+  expect_s3_class(s2, "gleam_test")
   expect_true(nrow(s2$table) > 0)
 })

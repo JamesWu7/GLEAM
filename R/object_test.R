@@ -1,4 +1,4 @@
-#' Construct `scpathway_test` object
+#' Construct differential test object
 #'
 #' @param table Differential pathway result table.
 #' @param level Comparison level.
@@ -6,7 +6,7 @@
 #' @param comparison Comparison details.
 #' @param params Parameter list.
 #'
-#' @return Object of class `scpathway_test`.
+#' @return Object of class `gleam_test` and `gleam_test`.
 #' @keywords internal
 new_scpathway_test <- function(table, level, method, comparison = list(), params = list()) {
   structure(
@@ -17,6 +17,6 @@ new_scpathway_test <- function(table, level, method, comparison = list(), params
       comparison = comparison,
       params = params
     ),
-    class = "scpathway_test"
+    class = c("gleam_test", "scpathway_test")
   )
 }
