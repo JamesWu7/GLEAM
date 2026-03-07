@@ -196,7 +196,7 @@ get_builtin_geneset <- function(geneset) {
   if (!geneset %in% c("hallmark", "immune_small")) {
     stop(sprintf("Unknown built-in geneset '%s'.", geneset), call. = FALSE)
   }
-  data(list = geneset, package = "GLEAM", envir = environment())
+  utils::data(list = geneset, package = "GLEAM", envir = environment())
   get(geneset, envir = environment())
 }
 

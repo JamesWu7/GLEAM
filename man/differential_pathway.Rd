@@ -6,6 +6,9 @@
 \usage{
 differential_pathway(...)
 }
+\arguments{
+\item{...}{Arguments passed to \code{\link[=test_pathway]{test_pathway()}}.}
+}
 \value{
 An object of class \code{gleam_test}.
 }

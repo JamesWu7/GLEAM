@@ -24,7 +24,7 @@ plot_spatial_multi <- function(score, pathways, coords, palette = "gleam_continu
     )
   }))
 
-  ggplot2::ggplot(long, ggplot2::aes(x = x, y = y, color = value)) +
+  ggplot2::ggplot(long, ggplot2::aes(x = ggplot2::.data$x, y = ggplot2::.data$y, color = ggplot2::.data$value)) +
     ggplot2::geom_point(size = 1.2, alpha = 0.9) +
     scale_gleam_color(palette = palette, continuous = TRUE) +
     ggplot2::facet_wrap(~ pathway) +

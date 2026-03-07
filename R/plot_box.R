@@ -22,7 +22,7 @@ plot_box <- function(score, pathway, group, sample, palette = "gleam_discrete") 
   df <- data.frame(sample = as.character(s), group = as.character(g), score = y, stringsAsFactors = FALSE)
   samp <- stats::aggregate(score ~ sample + group, data = df, FUN = mean)
 
-  ggplot2::ggplot(samp, ggplot2::aes(x = group, y = score, fill = group)) +
+  ggplot2::ggplot(samp, ggplot2::aes(x = ggplot2::.data$group, y = ggplot2::.data$score, fill = ggplot2::.data$group)) +
     ggplot2::geom_boxplot(alpha = 0.7, outlier.shape = NA) +
     ggplot2::geom_jitter(width = 0.12, size = 1.8, alpha = 0.8) +
     scale_gleam_fill(palette = palette, continuous = FALSE) +

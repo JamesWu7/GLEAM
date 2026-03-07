@@ -26,7 +26,7 @@ plot_embedding_score <- function(score, pathway, embedding, split.by = NULL) {
     df$split <- as.factor(grp)
   }
 
-  p <- ggplot2::ggplot(df, ggplot2::aes(dim1, dim2, color = value)) +
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = ggplot2::.data$dim1, y = ggplot2::.data$dim2, color = ggplot2::.data$value)) +
     ggplot2::geom_point(size = 1.1, alpha = 0.9) +
     ggplot2::scale_color_gradient2(low = "#3b4cc0", mid = "#f7f7f7", high = "#b40426", midpoint = 0) +
     ggplot2::labs(x = colnames(emb)[1], y = colnames(emb)[2], color = pathway) +

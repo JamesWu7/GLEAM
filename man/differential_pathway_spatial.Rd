@@ -6,6 +6,9 @@
 \usage{
 differential_pathway_spatial(...)
 }
+\arguments{
+\item{...}{Arguments passed to \code{\link[=test_pathway_spatial]{test_pathway_spatial()}}.}
+}
 \value{
 \code{gleam_test} object.
 }

@@ -29,7 +29,7 @@ plot_volcano <- function(x, p_col = "p_adj", effect_col = "effect_size", sig_thr
     stringsAsFactors = FALSE
   )
 
-  ggplot2::ggplot(df, ggplot2::aes(x = effect, y = neglog10, color = significant)) +
+  ggplot2::ggplot(df, ggplot2::aes(x = ggplot2::.data$effect, y = ggplot2::.data$neglog10, color = ggplot2::.data$significant)) +
     ggplot2::geom_point(alpha = 0.8) +
     ggplot2::geom_hline(yintercept = -log10(sig_thresh), linetype = 2, color = "grey40") +
     ggplot2::labs(x = "Effect size", y = "-log10(adj p)", title = "Differential pathway volcano") +

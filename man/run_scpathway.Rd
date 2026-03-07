@@ -6,6 +6,9 @@
 \usage{
 run_scpathway(...)
 }
+\arguments{
+\item{...}{Arguments passed to \code{\link[=run_gleam]{run_gleam()}}.}
+}
 \value{
 List containing score object and comparison result.
 }

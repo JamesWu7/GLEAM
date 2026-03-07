@@ -29,7 +29,7 @@ plot_trajectory_score <- function(score, pathway, embeddings = NULL, reduction =
     stringsAsFactors = FALSE
   )
 
-  ggplot2::ggplot(df, ggplot2::aes(x = dim1, y = dim2, color = score)) +
+  ggplot2::ggplot(df, ggplot2::aes(x = ggplot2::.data$dim1, y = ggplot2::.data$dim2, color = ggplot2::.data$score)) +
     ggplot2::geom_point(size = 1.1, alpha = 0.9) +
     ggplot2::scale_color_gradient2(low = "#3b4cc0", mid = "#f7f7f7", high = "#b40426", midpoint = 0) +
     ggplot2::labs(title = paste("Trajectory map:", pathway), x = colnames(emb)[1], y = colnames(emb)[2]) +

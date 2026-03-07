@@ -1,6 +1,6 @@
 #' Differential pathway along trajectory
 #'
-#' @inheritParams test_pathway_trajectory
+#' @param ... Arguments passed to [test_pathway_trajectory()].
 #'
 #' @return `gleam_test` object.
 #' @export

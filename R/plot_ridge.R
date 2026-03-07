@@ -14,7 +14,7 @@ plot_ridge <- function(score, pathway, group) {
   g <- resolve_meta_var(score$meta, group, "group")
   df <- data.frame(group = as.factor(g), value = as.numeric(score$score[pathway, ]), stringsAsFactors = FALSE)
 
-  ggplot2::ggplot(df, ggplot2::aes(x = value, y = group, fill = group)) +
+  ggplot2::ggplot(df, ggplot2::aes(x = ggplot2::.data$value, y = ggplot2::.data$group, fill = ggplot2::.data$group)) +
     ggridges::geom_density_ridges(alpha = 0.75, scale = 1.2) +
     ggplot2::labs(title = paste("Ridge plot:", pathway), x = "Pathway score", y = "Group") +
     .theme_gleam()

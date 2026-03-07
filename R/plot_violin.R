@@ -35,7 +35,7 @@ plot_violin <- function(score, pathway, group, celltype = NULL, trim = TRUE, pal
 
   df <- data.frame(group = as.factor(g[keep]), score = y[keep], stringsAsFactors = FALSE)
 
-  ggplot2::ggplot(df, ggplot2::aes(x = group, y = score, fill = group)) +
+  ggplot2::ggplot(df, ggplot2::aes(x = ggplot2::.data$group, y = ggplot2::.data$score, fill = ggplot2::.data$group)) +
     ggplot2::geom_violin(trim = trim, alpha = 0.7, color = NA) +
     ggplot2::geom_boxplot(width = 0.12, outlier.shape = NA, fill = "white", alpha = 0.8) +
     scale_gleam_fill(palette = palette, continuous = FALSE) +

@@ -90,14 +90,14 @@ run_gleam <- function(
 
   tbl <- if (inherits(tst, "gleam_test") || inherits(tst, "scpathway_test")) tst$table else tst
   ord <- order(tbl$p_adj, decreasing = FALSE, na.last = TRUE)
-  top_tbl <- tbl[head(ord, min(top_n, nrow(tbl))), , drop = FALSE]
+  top_tbl <- tbl[utils::head(ord, min(top_n, nrow(tbl))), , drop = FALSE]
 
   list(score = sc, test = tst, top_table = top_tbl)
 }
 
 #' End-to-end scPathway workflow (deprecated alias)
 #'
-#' @inheritParams run_gleam
+#' @param ... Arguments passed to [run_gleam()].
 #' @return List containing score object and comparison result.
 #' @export
 run_scpathway <- function(...) {

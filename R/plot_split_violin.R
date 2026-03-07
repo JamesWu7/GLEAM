@@ -15,7 +15,7 @@ plot_split_violin <- function(score, pathway, x, split.by) {
   sv <- resolve_meta_var(score$meta, split.by, "split.by")
   df <- data.frame(x = as.factor(xv), split = as.factor(sv), value = as.numeric(score$score[pathway, ]), stringsAsFactors = FALSE)
 
-  ggplot2::ggplot(df, ggplot2::aes(x = x, y = value, fill = split)) +
+  ggplot2::ggplot(df, ggplot2::aes(x = ggplot2::.data$x, y = ggplot2::.data$value, fill = ggplot2::.data$split)) +
     ggplot2::geom_violin(position = ggplot2::position_dodge(width = 0.85), alpha = 0.75, trim = TRUE) +
     ggplot2::geom_boxplot(width = 0.15, outlier.shape = NA, position = ggplot2::position_dodge(width = 0.85)) +
     ggplot2::labs(title = paste("Split violin:", pathway), x = as.character(substitute(x)), y = "Pathway score") +

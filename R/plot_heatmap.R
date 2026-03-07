@@ -21,7 +21,7 @@ plot_heatmap <- function(score, by, fun = c("mean", "median", "fraction"), thres
 
   agg$pathway <- factor(agg$pathway, levels = rev(unique(agg$pathway)))
 
-  ggplot2::ggplot(agg, ggplot2::aes(x = group_key, y = pathway, fill = value)) +
+  ggplot2::ggplot(agg, ggplot2::aes(x = ggplot2::.data$group_key, y = ggplot2::.data$pathway, fill = ggplot2::.data$value)) +
     ggplot2::geom_tile() +
     scale_gleam_fill(palette = palette, continuous = TRUE) +
     ggplot2::labs(x = paste(by, collapse = ":"), y = "Pathway", title = "Pathway heatmap") +

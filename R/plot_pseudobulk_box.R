@@ -27,7 +27,7 @@ plot_pseudobulk_box <- function(score, pathway, group, sample, celltype = NULL) 
   pb <- stats::aggregate(value ~ sample + group + celltype, data = df, FUN = mean)
   pb$group_celltype <- interaction(pb$group, pb$celltype, drop = TRUE)
 
-  ggplot2::ggplot(pb, ggplot2::aes(x = group_celltype, y = value, fill = group)) +
+  ggplot2::ggplot(pb, ggplot2::aes(x = ggplot2::.data$group_celltype, y = ggplot2::.data$value, fill = ggplot2::.data$group)) +
     ggplot2::geom_boxplot(outlier.shape = NA, alpha = 0.75) +
     ggplot2::geom_jitter(width = 0.12, size = 1.6, alpha = 0.9) +
     ggplot2::labs(title = paste("Pseudobulk:", pathway), x = "Group-Celltype", y = "Mean pathway score") +
