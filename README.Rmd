@@ -1,0 +1,54 @@
+---
+output: github_document
+---
+
+# scPathway
+
+`scPathway` is a lightweight R package for pathway analysis in single-cell RNA-seq.
+
+## Install (development)
+
+```r
+source("scripts/setup_dev.R")
+source("scripts/check_env.R")
+```
+
+## Matrix workflow
+
+```r
+library(scPathway)
+data("toy_expr", package = "scPathway")
+
+res <- score_pathway(
+  expr = toy_expr$expr,
+  meta = toy_expr$meta,
+  geneset = "immune_small",
+  seurat = FALSE,
+  method = "rank"
+)
+
+cmp <- compare_groups_within_celltype(
+  score = res,
+  group = "group",
+  celltype = "celltype",
+  target_celltype = "CD8_T",
+  level = "cell"
+)
+
+plot_violin(res, pathway = rownames(res$score)[1], group = "group")
+```
+
+## Seurat v5 workflow
+
+```r
+# Requires Seurat/SeuratObject installed
+# seu <- ...
+# res <- score_pathway(
+#   object = seu,
+#   geneset = "hallmark",
+#   seurat = TRUE,
+#   assay = "RNA",
+#   layer = "data",
+#   method = "ensemble"
+# )
+```

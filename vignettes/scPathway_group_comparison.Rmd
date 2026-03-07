@@ -1,0 +1,13 @@
+---
+title: "Group comparison"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Group comparison}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, eval=FALSE}
+res <- test_pathway(sc, group = "group", sample = "sample", level = "sample")
+plot_volcano(res)
+```

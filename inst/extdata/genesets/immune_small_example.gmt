@@ -1,0 +1,5 @@
+T_cell_activation	description	CD3D	CD3E	LCK	TRAC
+Cytotoxicity	description	NKG7	PRF1	GZMB	GNLY
+IFN_response	description	STAT1	IRF1	CXCL10	ISG15
+Antigen_presentation	description	HLA-DRA	HLA-DRB1	CD74	B2M
+Exhaustion	description	PDCD1	LAG3	TIGIT	HAVCR2

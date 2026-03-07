@@ -1,0 +1,21 @@
+---
+title: "scPathway basic"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{scPathway basic}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, eval=FALSE}
+library(scPathway)
+data("toy_expr", package = "scPathway")
+
+sc <- score_pathway(
+  expr = toy_expr$expr,
+  meta = toy_expr$meta,
+  geneset = "immune_small",
+  seurat = FALSE,
+  method = "rank"
+)
+```

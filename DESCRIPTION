@@ -1,0 +1,40 @@
+Package: scPathway
+Type: Package
+Title: Lightweight Pathway Analysis for Single-Cell RNA-seq
+Version: 0.1.0
+Authors@R: person("James", "Woo", email = "james@example.com", role = c("aut", "cre"))
+Author: James Woo [aut, cre]
+Maintainer: James Woo <james@example.com>
+Description: A lightweight, matrix-native toolkit for pathway scoring and comparison
+    in single-cell RNA-seq data with optional Seurat v5 input compatibility.
+    Supports cell-level exploratory analysis and sample-level formal inference.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Depends:
+    R (>= 4.1.0)
+Imports:
+    Matrix,
+    ggplot2,
+    graphics,
+    grDevices,
+    methods,
+    stats,
+    utils
+Suggests:
+    devtools,
+    knitr,
+    pkgload,
+    remotes,
+    rmarkdown,
+    roxygen2,
+    Seurat,
+    SeuratObject,
+    testthat,
+    usethis
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+URL: https://github.com/jameswoo/scPathway
+BugReports: https://github.com/jameswoo/scPathway/issues

@@ -1,0 +1,13 @@
+---
+title: "Celltype comparison"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Celltype comparison}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, eval=FALSE}
+ct <- compare_celltypes(sc, celltype = "celltype")
+plot_celltype_compare(ct)
+```
