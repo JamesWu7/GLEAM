@@ -31,7 +31,12 @@ source("scripts/build_example_seurat.R")
 source("scripts/generate_homepage_figures.R")
 ```
 
-Generated figures are placed in `docs/assets/figures/` for README/pkgdown reuse.
+Generated figures are placed in `assets/figures/` and copied into `docs/assets/` during pkgdown deployment.
+
+## Audit full Seurat example object structure (optional)
+```r
+source("scripts/audit_example_objects.R")
+```
 
 ## Optional Monocle3 helper
 ```r

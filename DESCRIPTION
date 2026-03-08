@@ -1,11 +1,11 @@
 Package: GLEAM
 Type: Package
-Title: Gene-set and Cell-state Exploration Across Space and Time in R
+Title: Gene-Set and Cell-State Exploration Across Space and Time in R
 Version: 0.2.0
 Authors@R: person("James", "Woo", email = "james@example.com", role = c("aut", "cre"))
 Author: James Woo [aut, cre]
 Maintainer: James Woo <james@example.com>
-Description: GLEAM provides matrix-native signature and cell-state analysis workflows
+Description: Provides matrix-native signature and cell-state analysis workflows
     across single-cell and spatial transcriptomics. It supports Seurat v4/v5
     compatibility, trajectory-aware mapping, pseudobulk comparisons, and
     publication-friendly visualization with optional ecosystem integrations.
@@ -59,5 +59,6 @@ Suggests:
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 URL: https://github.com/JamesWu7/GLEAM,
-    https://jameswu7.github.io/GLEAM
+    https://JamesWu7.github.io/GLEAM/
 BugReports: https://github.com/JamesWu7/GLEAM/issues
+Config/Needs/website: pkgdown, knitr, rmarkdown, pkgload

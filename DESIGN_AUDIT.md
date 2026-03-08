@@ -130,7 +130,7 @@ Repository: `JamesWu7/GLEAM`
 ## 13) Vignette rendering / figure reuse strategy audit
 - Vignette Rmds tuned for readable HTML output sizing.
 - Stable homepage/doc figure export script: `scripts/generate_homepage_figures.R`.
-- Figure targets in `docs/assets/figures/` and surfaced in README.
+- Figure targets in `assets/figures/` and surfaced in README.
 
 ## 14) README/docs landing visual audit
 - README top now has larger logo and figure-first snapshot block.
@@ -138,7 +138,7 @@ Repository: `JamesWu7/GLEAM`
 - Remaining deployment dependency: GitHub Pages publish run must succeed for live docs URL.
 
 ## 15) Example data / asset placement audit
-- Logo moved to stable docs path: `docs/assets/GLEAM_LOG.jpg`.
+- Logo moved to stable asset path: `assets/GLEAM_LOG.jpg`.
 - Full example Seurat objects moved from repo root to `inst/extdata/full_examples/`.
 - Packaged lightweight matrix/meta data retained in `data/`.
 
@@ -188,14 +188,14 @@ Repository: `JamesWu7/GLEAM`
 
 ## 25) Vignette knitting + figure surfacing strategy
 - Vignette chunks include explicit sizing (`fig.width`, `fig.height`, `out.width`, `dpi`).
-- Reusable figures generated from package workflows into `docs/assets/figures`.
+- Reusable figures generated from package workflows into `assets/figures`.
 - README and pkgdown home consume stable figure paths.
 
 ## 26) Example-data and asset layout strategy
 - `data/`: packaged lightweight test/demo matrices/meta.
 - `inst/extdata/full_examples/`: larger full Seurat objects.
 - `data-raw/`: derivation scripts and data process notes.
-- `docs/assets/`: logo + presentation figures.
+- `assets/`: logo + presentation figures.
 
 ## 27) Subset-for-testing strategy
 - Keep core tests on lightweight packaged matrix data.
@@ -213,7 +213,7 @@ Repository: `JamesWu7/GLEAM`
 - Tests: new trajectory optional/compatibility tests under `tests/testthat/`.
 - CI: `.github/workflows/optional-monocle3.yaml`, updated `pkgdown.yaml`.
 - Docs/homepage: `README.md`, `README.Rmd`, `_pkgdown.yml`, vignettes, figure script.
-- Data/assets: `inst/extdata/full_examples/`, `data-raw/derive_test_subsets.R`, `docs/assets/GLEAM_LOG.jpg`.
+- Data/assets: `inst/extdata/full_examples/`, `data-raw/derive_test_subsets.R`, `assets/GLEAM_LOG.jpg`.
 
 ## 30) Migration / backward-compatibility plan
 - New users: use signature-first API.
@@ -222,7 +222,7 @@ Repository: `JamesWu7/GLEAM`
 
 ## 31) Repository metadata consistency plan
 - All owner/repo links standardized to `JamesWu7/GLEAM`.
-- pkgdown URL standardized to `https://jameswu7.github.io/GLEAM`.
+- pkgdown URL standardized to `https://JamesWu7.github.io/GLEAM/`.
 
 ## 32) Work-tree / task-tree for modular execution
 
@@ -245,7 +245,7 @@ Repository: `JamesWu7/GLEAM`
 - Tests: `tests/testthat/`
 - Data: `data/`, `inst/extdata/`, `data-raw/`
 - Documentation: `README*`, `vignettes/`, `man/`, `API_MIGRATION.md`, `MONOCLE3_INTEGRATION.md`
-- Publishing: `_pkgdown.yml`, `.github/workflows/pkgdown.yaml`, `docs/assets/`
+- Publishing: `_pkgdown.yml`, `.github/workflows/pkgdown.yaml`, `assets/`
 
 ## 33) Exported function classification table
 

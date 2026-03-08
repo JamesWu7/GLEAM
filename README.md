@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/GLEAM_LOG.jpg" alt="GLEAM logo" width="280"/>
+  <img src="assets/GLEAM_LOG.jpg" alt="GLEAM logo" width="330"/>
 </p>
 
 # GLEAM
@@ -9,19 +9,42 @@ GLEAM: Gene-set and cell-state exploration across space and time in R
 ![R-CMD-check](https://github.com/JamesWu7/GLEAM/actions/workflows/R-CMD-check.yaml/badge.svg)
 ![pkgdown](https://github.com/JamesWu7/GLEAM/actions/workflows/pkgdown.yaml/badge.svg)
 
-**Navigation:** [Documentation](https://jameswu7.github.io/GLEAM/) | [Reference](https://jameswu7.github.io/GLEAM/reference/) | [Tutorials](https://jameswu7.github.io/GLEAM/articles/) | [Citation](https://jameswu7.github.io/GLEAM/articles/GLEAM_citation.html)
-
 GLEAM provides pathway/signature scoring, cell-state exploration, differential analysis after scoring, trajectory-aware mapping, and spatial transcriptomics analysis for both matrix-native and Seurat workflows. Built-in geneset examples focus on human and mouse, and custom genesets remain fully supported for other species.
 
-## Workflow snapshots
+## Installation
+
+```r
+# Core install
+install.packages("GLEAM")
+```
+
+```r
+# Recommended ecosystem (Seurat + curated genesets)
+install.packages(c("Seurat", "SeuratObject", "msigdbr"))
+```
+
+```r
+# Optional trajectory backend (Monocle3 path; not required for core workflows)
+if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+BiocManager::install(version = "3.21", ask = FALSE)
+install.packages(c("remotes", "devtools"))
+remotes::install_github("bnprks/BPCells/r", upgrade = "never")
+devtools::install_github("cole-trapnell-lab/monocle3", upgrade = "never")
+```
+
+**Navigation:** [Documentation](https://JamesWu7.github.io/GLEAM/) | [Reference](https://JamesWu7.github.io/GLEAM/reference/) | [Tutorials](https://JamesWu7.github.io/GLEAM/articles/) | [Citation](https://JamesWu7.github.io/GLEAM/articles/GLEAM_citation.html)
+
+## Workflow highlights
+
+Figures below are generated from `vignettes/GLEAM_homepage_showcase.Rmd` via `scripts/generate_homepage_figures.R`.
 
 <p align="center">
-  <img src="docs/assets/figures/scrna_embedding_signature.png" alt="scRNA signature embedding view" width="46%"/>
-  <img src="docs/assets/figures/spatial_signature_map.png" alt="Spatial signature map view" width="46%"/>
+  <img src="assets/figures/embedding_signature_feature.png" alt="Feature-style signature score on embedding" width="48%"/>
+  <img src="assets/figures/spatial_slice_signature.png" alt="Spatial slice-style signature score map" width="48%"/>
 </p>
 <p align="center">
-  <img src="docs/assets/figures/scrna_dotbar_signature.png" alt="Dot-bar signature comparison" width="46%"/>
-  <img src="docs/assets/figures/trajectory_signature_trend.png" alt="Trajectory signature trend" width="46%"/>
+  <img src="assets/figures/signature_dotbar_compare.png" alt="Dot-bar signature comparison" width="46%"/>
+  <img src="assets/figures/trajectory_signature_trend.png" alt="Trajectory signature trend" width="46%"/>
 </p>
 
 ## Quick start (Seurat scRNA-seq)
@@ -44,6 +67,10 @@ sc <- score_signature(
 )
 res <- test_signature(sc, group = "group", sample = "sample", celltype = "celltype", level = "pseudobulk")
 top_pw <- res$table$pathway[order(res$table$p_adj)][1]
+# Ensure embedding reductions exist before FeaturePlot-like visualization.
+if (!"pca" %in% names(seu@reductions)) seu <- Seurat::RunPCA(seu)
+if (!"umap" %in% names(seu@reductions)) seu <- Seurat::RunUMAP(seu, dims = 1:20)
+if (!"tsne" %in% names(seu@reductions)) seu <- Seurat::RunTSNE(seu, dims = 1:20)
 plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "umap")
 plot_dot_bar(sc, by = c("group", "celltype"))
 plot_violin(sc, pathway = rownames(sc$score)[1], group = "group")
@@ -57,6 +84,8 @@ sc_kegg <- score_signature(object = seu, geneset = kegg_gs, geneset_source = "li
 
 ```r
 sp <- score_signature(object = sp_seu, geneset = hallmark_gs, geneset_source = "list", seurat = TRUE, assay = "Spatial")
+# Require explicit spatial coordinates in metadata for plotting.
+stopifnot(all(c("x", "y") %in% colnames(sp_seu@meta.data)))
 coords <- data.frame(
   x = sp_seu@meta.data$x,
   y = sp_seu@meta.data$y,
@@ -106,18 +135,18 @@ plot_dot(sc_custom, by = c("group", "celltype"))
 
 ## Detailed tutorials by function category
 
-- Input/extraction: [Seurat v4/v5 input guide](https://jameswu7.github.io/GLEAM/articles/GLEAM_seurat_v4_v5_input.html)
-- Geneset management: [Supported genesets](https://jameswu7.github.io/GLEAM/articles/GLEAM_supported_genesets.html)
-- Scoring/methods: [Scoring method comparison](https://jameswu7.github.io/GLEAM/articles/GLEAM_scoring_method_comparison.html)
-- Differential analysis: [Differential analysis tutorial](https://jameswu7.github.io/GLEAM/articles/GLEAM_differential_analysis.html)
-- Trajectory analysis: [Trajectory mapping tutorial](https://jameswu7.github.io/GLEAM/articles/GLEAM_trajectory_mapping.html)
-- Spatial analysis: [Spatial full workflow](https://jameswu7.github.io/GLEAM/articles/GLEAM_full_spatial_workflow.html)
-- Function categories overview: [Function categories](https://jameswu7.github.io/GLEAM/articles/GLEAM_function_categories.html)
+- Input/extraction: [Seurat v4/v5 input guide](https://JamesWu7.github.io/GLEAM/articles/GLEAM_seurat_v4_v5_input.html)
+- Geneset management: [Supported genesets](https://JamesWu7.github.io/GLEAM/articles/GLEAM_supported_genesets.html)
+- Scoring/methods: [Scoring method comparison](https://JamesWu7.github.io/GLEAM/articles/GLEAM_scoring_method_comparison.html)
+- Differential analysis: [Differential analysis tutorial](https://JamesWu7.github.io/GLEAM/articles/GLEAM_differential_analysis.html)
+- Trajectory analysis: [Trajectory mapping tutorial](https://JamesWu7.github.io/GLEAM/articles/GLEAM_trajectory_mapping.html)
+- Spatial analysis: [Spatial full workflow](https://JamesWu7.github.io/GLEAM/articles/GLEAM_full_spatial_workflow.html)
+- Function categories overview: [Function categories](https://JamesWu7.github.io/GLEAM/articles/GLEAM_function_categories.html)
 
 ## Full workflow tutorials
 
-- Full scRNA workflow: [GLEAM_full_scrna_workflow](https://jameswu7.github.io/GLEAM/articles/GLEAM_full_scrna_workflow.html)
-- Full spatial workflow: [GLEAM_full_spatial_workflow](https://jameswu7.github.io/GLEAM/articles/GLEAM_full_spatial_workflow.html)
+- Full scRNA workflow: [GLEAM_full_scrna_workflow](https://JamesWu7.github.io/GLEAM/articles/GLEAM_full_scrna_workflow.html)
+- Full spatial workflow: [GLEAM_full_spatial_workflow](https://JamesWu7.github.io/GLEAM/articles/GLEAM_full_spatial_workflow.html)
 
 ## Installation tiers
 
@@ -153,4 +182,4 @@ plot_dot(sc_custom, by = c("group", "celltype"))
 ## Citation
 
 - R-native: `citation("GLEAM")`
-- Citation guide: [GLEAM citation](https://jameswu7.github.io/GLEAM/articles/GLEAM_citation.html)
+- Citation guide: [GLEAM citation](https://JamesWu7.github.io/GLEAM/articles/GLEAM_citation.html)
