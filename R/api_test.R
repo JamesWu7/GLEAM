@@ -27,6 +27,7 @@ test_pathway <- function(
   group = NULL,
   sample = NULL,
   celltype = NULL,
+  target_celltype = NULL,
   region = NULL,
   pseudotime = NULL,
   lineage = NULL,
@@ -54,6 +55,41 @@ test_pathway <- function(
     stop("`group` is required for selected comparison level.", call. = FALSE)
   }
   group_v <- if (!is.null(group)) resolve_meta_var(meta, group, "group") else NULL
+
+  if (!is.null(target_celltype)) {
+    if (is.null(group) || is.null(celltype)) {
+      stop("`group` and `celltype` are required when `target_celltype` is provided.", call. = FALSE)
+    }
+    use_level <- if (level %in% c("cell", "sample")) level else if (!is.null(sample)) "sample" else "cell"
+    smp <- if (!is.null(sample)) resolve_meta_var(meta, sample, "sample") else NULL
+    tbl <- test_groups_within_celltype(
+      score_mat = score$score,
+      group = group_v,
+      celltype = resolve_meta_var(meta, celltype, "celltype"),
+      target_celltype = target_celltype,
+      sample = smp,
+      level = use_level,
+      method = if (method == "t") "t" else "wilcox",
+      ref_group = ref_group,
+      adjust_method = adjust_method
+    )
+    return(new_scpathway_test(
+      table = tbl,
+      level = use_level,
+      method = method,
+      comparison = list(target_celltype = target_celltype),
+      params = list(
+        paired = paired,
+        covariates = covariates,
+        adjust_method = adjust_method,
+        min_cells = min_cells,
+        min_samples = min_samples,
+        aggregation = aggregation,
+        threshold = threshold,
+        backend = backend
+      )
+    ))
+  }
 
   if (level == "trajectory") {
     tst <- test_pathway_trajectory(
@@ -193,7 +229,7 @@ test_pathway <- function(
 #' @param verbose Print messages.
 #'
 #' @return An object of class `gleam_test`.
-#' @export
+#' @keywords internal
 compare_celltypes <- function(
   score,
   celltype,
@@ -233,7 +269,7 @@ compare_celltypes <- function(
 #' @param verbose Print messages.
 #'
 #' @return An object of class `gleam_test`.
-#' @export
+#' @keywords internal
 compare_groups_within_celltype <- function(
   score,
   group,

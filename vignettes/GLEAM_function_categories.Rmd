@@ -12,8 +12,6 @@ vignette: >
 - `score_signature()`
 - `seurat_mode()`
 - `extract_embedding()`
-- `spatial_table()`
-- `trajectory_table()`
 
 ## 2) Geneset management
 
@@ -35,8 +33,6 @@ vignette: >
 ## 4) Differential analysis
 
 - `test_signature()`
-- `compare_celltypes()`
-- `compare_groups_within_celltype()`
 - `test_signature_spatial()`
 - `test_signature_trajectory()`
 

@@ -5,7 +5,7 @@
 #' @param meta Optional metadata table.
 #'
 #' @return Data.frame.
-#' @export
+#' @keywords internal
 spatial_table <- function(score, coords, meta = NULL) {
   join_score_spatial(score = score, coords = coords, meta = meta)
 }

@@ -47,12 +47,12 @@ res_celltype <- test_signature(sc, celltype = "celltype", group = "group", level
 res_sample_celltype <- test_signature(sc, group = "group", sample = "sample", celltype = "celltype", level = "sample_celltype")
 res_pb <- test_signature(sc, group = "group", sample = "sample", celltype = "celltype", level = "pseudobulk")
 
-res_wct <- compare_groups_within_celltype(
+res_wct <- test_signature(
   score = sc,
   group = "group",
+  sample = "sample",
   celltype = "celltype",
   target_celltype = "CD8_T",
-  sample = "sample",
   level = "sample"
 )
 ```
@@ -64,4 +64,3 @@ plot_volcano(res_pb)
 plot_celltype_compare(res_celltype)
 plot_group_in_celltype(res_wct)
 ```
-

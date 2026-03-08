@@ -10,12 +10,13 @@ test_that("within-celltype comparison runs", {
     verbose = FALSE
   )
 
-  cmp <- compare_groups_within_celltype(
+  cmp <- test_signature(
     score = sc,
     group = "group",
+    sample = "sample",
     celltype = "celltype",
     target_celltype = "CD8_T",
-    level = "cell",
+    level = "sample",
     method = "wilcox",
     verbose = FALSE
   )

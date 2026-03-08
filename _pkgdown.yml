@@ -27,8 +27,6 @@ reference:
       - score_signature
       - seurat_mode
       - extract_embedding
-      - spatial_table
-      - trajectory_table
   - title: Geneset management
     contents:
       - get_geneset
@@ -47,8 +45,6 @@ reference:
   - title: Differential analysis
     contents:
       - test_signature
-      - compare_celltypes
-      - compare_groups_within_celltype
       - test_signature_spatial
       - test_signature_trajectory
   - title: Trajectory analysis

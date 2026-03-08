@@ -3,7 +3,7 @@
 #' @inheritParams as_trajectory_data
 #'
 #' @return Data.frame.
-#' @export
+#' @keywords internal
 trajectory_table <- function(
   score,
   pseudotime = NULL,

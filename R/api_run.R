@@ -69,15 +69,15 @@ run_gleam <- function(
   tst <- switch(
     comparison,
     group = test_signature(sc, group = group, sample = sample, celltype = celltype, level = level, verbose = verbose),
-    celltype = compare_celltypes(sc, celltype = celltype, group = group, verbose = verbose),
+    celltype = test_signature(sc, group = if (is.null(group)) rep("all", ncol(sc$score)) else group, celltype = celltype, level = "celltype", verbose = verbose),
     within_celltype = {
       if (is.null(target_celltype)) stop("`target_celltype` is required when comparison = 'within_celltype'.", call. = FALSE)
-      compare_groups_within_celltype(
+      test_signature(
         score = sc,
         group = group,
+        sample = sample,
         celltype = celltype,
         target_celltype = target_celltype,
-        sample = sample,
         level = if (level %in% c("cell", "sample")) level else "sample",
         verbose = verbose
       )
