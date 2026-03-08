@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_box.R
 \name{plot_box}
 \alias{plot_box}
-\title{Box plot of sample-level pathway scores}
+\title{Box plot of sample-level signature scores}
 \usage{
 plot_box(
   score,
@@ -18,7 +18,7 @@ plot_box(
 \arguments{
 \item{score}{\code{gleam_score} object.}
 
-\item{pathway}{Pathway name.}
+\item{pathway}{Signature name (legacy argument name).}
 
 \item{group}{Group variable (metadata column name or vector).}
 
@@ -36,5 +36,5 @@ plot_box(
 A \code{ggplot} object.
 }
 \description{
-Box plot of sample-level pathway scores
+Box plot of sample-level signature scores
 }

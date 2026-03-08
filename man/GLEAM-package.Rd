@@ -14,6 +14,7 @@ ecosystem integrations. Use \code{citation("GLEAM")} for citation metadata.
 Useful links:
 \itemize{
   \item \url{https://github.com/JamesWu7/GLEAM}
+  \item \url{https://jameswu7.github.io/GLEAM}
   \item Report bugs at \url{https://github.com/JamesWu7/GLEAM/issues}
 }
 

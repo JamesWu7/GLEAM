@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_embedding_score.R
 \name{plot_embedding_score}
 \alias{plot_embedding_score}
-\title{Plot pathway score on embedding coordinates}
+\title{Plot signature score on embedding coordinates}
 \usage{
 plot_embedding_score(
   score,
@@ -20,7 +20,7 @@ plot_embedding_score(
 \arguments{
 \item{score}{\code{gleam_score} object.}
 
-\item{pathway}{Pathway name.}
+\item{pathway}{Signature name (legacy argument name).}
 
 \item{embedding}{Embedding matrix with at least 2 columns.}
 
@@ -42,5 +42,5 @@ plot_embedding_score(
 A \code{ggplot} object.
 }
 \description{
-Plot pathway score on embedding coordinates
+Plot signature score on embedding coordinates
 }

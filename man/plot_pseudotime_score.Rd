@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_pseudotime_score.R
 \name{plot_pseudotime_score}
 \alias{plot_pseudotime_score}
-\title{Plot pathway score over pseudotime}
+\title{Plot signature score over pseudotime}
 \usage{
 plot_pseudotime_score(
   score,
@@ -19,7 +19,7 @@ plot_pseudotime_score(
 \arguments{
 \item{score}{\code{gleam_score} object.}
 
-\item{pathway}{Pathway name.}
+\item{pathway}{Signature name (legacy argument name).}
 
 \item{pseudotime}{Pseudotime source.}
 
@@ -39,5 +39,5 @@ plot_pseudotime_score(
 A \code{ggplot} object.
 }
 \description{
-Plot pathway score over pseudotime
+Plot signature score over pseudotime
 }

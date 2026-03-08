@@ -35,3 +35,4 @@ An object of class \code{gleam_test}.
 \description{
 Compare pathways across cell types
 }
+\keyword{internal}

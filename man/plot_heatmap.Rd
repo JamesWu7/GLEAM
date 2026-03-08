@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_heatmap.R
 \name{plot_heatmap}
 \alias{plot_heatmap}
-\title{Heatmap of aggregated pathway scores}
+\title{Heatmap of aggregated signature scores}
 \usage{
 plot_heatmap(
   score,
@@ -23,7 +23,7 @@ plot_heatmap(
 
 \item{threshold}{Threshold used by \code{fraction}.}
 
-\item{top_n}{Optional top pathways by variance.}
+\item{top_n}{Optional top signatures by variance.}
 
 \item{palette}{Continuous palette name or custom colors.}
 
@@ -33,5 +33,5 @@ plot_heatmap(
 A \code{ggplot} object.
 }
 \description{
-Heatmap of aggregated pathway scores
+Heatmap of aggregated signature scores
 }

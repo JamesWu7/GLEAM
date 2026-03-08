@@ -9,7 +9,7 @@ plot_group_in_celltype(x, top_n = 20, alpha = 0.85, theme_params = list())
 \arguments{
 \item{x}{\code{gleam_test} object or result table.}
 
-\item{top_n}{Number of pathways to display.}
+\item{top_n}{Number of signatures to display.}
 
 \item{alpha}{Bar alpha.}
 

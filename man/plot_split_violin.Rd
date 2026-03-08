@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_split_violin.R
 \name{plot_split_violin}
 \alias{plot_split_violin}
-\title{Split violin plot for pathway scores}
+\title{Split violin plot for signature scores}
 \usage{
 plot_split_violin(
   score,
@@ -17,7 +17,7 @@ plot_split_violin(
 \arguments{
 \item{score}{\code{gleam_score} object.}
 
-\item{pathway}{Pathway name.}
+\item{pathway}{Signature name (legacy argument name).}
 
 \item{x}{Grouping variable for x-axis.}
 
@@ -33,5 +33,5 @@ plot_split_violin(
 A \code{ggplot} object.
 }
 \description{
-Split violin plot for pathway scores
+Split violin plot for signature scores
 }

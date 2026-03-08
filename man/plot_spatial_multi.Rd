@@ -2,12 +2,13 @@
 % Please edit documentation in R/plot_spatial_multi.R
 \name{plot_spatial_multi}
 \alias{plot_spatial_multi}
-\title{Plot multiple pathways on spatial coordinates}
+\title{Plot multiple signatures on spatial coordinates}
 \usage{
 plot_spatial_multi(
   score,
   pathways,
-  coords,
+  coords = NULL,
+  object = NULL,
   palette = "gleam_continuous",
   point_size = 1.2,
   alpha = 0.9,
@@ -17,9 +18,11 @@ plot_spatial_multi(
 \arguments{
 \item{score}{\code{gleam_score} object.}
 
-\item{pathways}{Character vector of pathway names.}
+\item{pathways}{Character vector of signature names (legacy argument name).}
 
 \item{coords}{Spatial coordinates data.frame with x/y.}
+
+\item{object}{Optional Seurat spatial object for in-slice plotting.}
 
 \item{palette}{Continuous palette.}
 
@@ -33,5 +36,5 @@ plot_spatial_multi(
 A \code{ggplot} object.
 }
 \description{
-Plot multiple pathways on spatial coordinates
+Plot multiple signatures on spatial coordinates
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_violin.R
 \name{plot_violin}
 \alias{plot_violin}
-\title{Violin plot of pathway scores}
+\title{Violin plot of signature scores}
 \usage{
 plot_violin(
   score,
@@ -19,7 +19,7 @@ plot_violin(
 \arguments{
 \item{score}{\code{gleam_score} object.}
 
-\item{pathway}{Pathway name.}
+\item{pathway}{Signature name (legacy argument name).}
 
 \item{group}{Group variable (metadata column name or vector).}
 
@@ -39,5 +39,5 @@ plot_violin(
 A \code{ggplot} object.
 }
 \description{
-Violin plot of pathway scores
+Violin plot of signature scores
 }

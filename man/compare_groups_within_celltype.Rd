@@ -44,3 +44,4 @@ An object of class \code{gleam_test}.
 \description{
 Compare groups within a fixed celltype
 }
+\keyword{internal}

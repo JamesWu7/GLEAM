@@ -19,3 +19,4 @@ Data.frame.
 \description{
 Build spatial table from score object
 }
+\keyword{internal}

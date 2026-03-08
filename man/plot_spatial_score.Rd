@@ -2,12 +2,13 @@
 % Please edit documentation in R/plot_spatial_score.R
 \name{plot_spatial_score}
 \alias{plot_spatial_score}
-\title{Plot pathway score on spatial coordinates}
+\title{Plot signature score on spatial coordinates}
 \usage{
 plot_spatial_score(
   score,
   pathway,
-  coords,
+  coords = NULL,
+  object = NULL,
   image = NULL,
   palette = "gleam_continuous",
   split.by = NULL,
@@ -19,9 +20,11 @@ plot_spatial_score(
 \arguments{
 \item{score}{\code{gleam_score} object.}
 
-\item{pathway}{Pathway name.}
+\item{pathway}{Signature name (legacy argument name).}
 
 \item{coords}{Spatial coordinates data.frame with x/y.}
+
+\item{object}{Optional Seurat spatial object for in-slice plotting.}
 
 \item{image}{Optional raster/image object. If provided, used as background.}
 
@@ -39,5 +42,5 @@ plot_spatial_score(
 A \code{ggplot} object.
 }
 \description{
-Plot pathway score on spatial coordinates
+Plot signature score on spatial coordinates
 }

@@ -29,3 +29,4 @@ Data.frame.
 \description{
 Build trajectory table from score object
 }
+\keyword{internal}

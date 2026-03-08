@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_trajectory_score.R
 \name{plot_trajectory_score}
 \alias{plot_trajectory_score}
-\title{Plot pathway score on trajectory embedding}
+\title{Plot signature score on trajectory embedding}
 \usage{
 plot_trajectory_score(
   score,
@@ -19,7 +19,7 @@ plot_trajectory_score(
 \arguments{
 \item{score}{\code{gleam_score} object.}
 
-\item{pathway}{Pathway name.}
+\item{pathway}{Signature name (legacy argument name).}
 
 \item{embeddings}{Embedding matrix with at least 2 columns.}
 
@@ -39,5 +39,5 @@ plot_trajectory_score(
 A \code{ggplot} object.
 }
 \description{
-Plot pathway score on trajectory embedding
+Plot signature score on trajectory embedding
 }

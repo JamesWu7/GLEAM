@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_dot.R
 \name{plot_dot}
 \alias{plot_dot}
-\title{Dot plot of pathway summaries}
+\title{Dot plot of signature summaries}
 \usage{
 plot_dot(
   score,
@@ -28,5 +28,5 @@ A \code{ggplot} object.
 }
 \description{
 Dot size represents fraction of cells above threshold,
-and dot color represents mean pathway score.
+and dot color represents mean signature score.
 }

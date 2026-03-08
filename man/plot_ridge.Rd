@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_ridge.R
 \name{plot_ridge}
 \alias{plot_ridge}
-\title{Ridge plot for pathway score distributions}
+\title{Ridge plot for signature score distributions}
 \usage{
 plot_ridge(
   score,
@@ -16,7 +16,7 @@ plot_ridge(
 \arguments{
 \item{score}{\code{gleam_score} object.}
 
-\item{pathway}{Pathway name.}
+\item{pathway}{Signature name (legacy argument name).}
 
 \item{group}{Group variable.}
 
@@ -30,5 +30,5 @@ plot_ridge(
 A \code{ggplot} object.
 }
 \description{
-Ridge plot for pathway score distributions
+Ridge plot for signature score distributions
 }

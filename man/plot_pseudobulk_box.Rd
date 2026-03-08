@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_pseudobulk_box.R
 \name{plot_pseudobulk_box}
 \alias{plot_pseudobulk_box}
-\title{Pseudobulk boxplot for pathway scores}
+\title{Pseudobulk boxplot for signature scores}
 \usage{
 plot_pseudobulk_box(
   score,
@@ -19,7 +19,7 @@ plot_pseudobulk_box(
 \arguments{
 \item{score}{\code{gleam_score} object.}
 
-\item{pathway}{Pathway name.}
+\item{pathway}{Signature name (legacy argument name).}
 
 \item{group}{Group variable.}
 
@@ -39,5 +39,5 @@ plot_pseudobulk_box(
 A \code{ggplot} object.
 }
 \description{
-Pseudobulk boxplot for pathway scores
+Pseudobulk boxplot for signature scores
 }

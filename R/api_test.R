@@ -4,6 +4,7 @@
 #' @param group Group variable (column name or vector).
 #' @param sample Sample variable (column name or vector).
 #' @param celltype Celltype variable (column name or vector).
+#' @param target_celltype Target celltype label for within-celltype group comparisons.
 #' @param region Spatial region/domain variable (column name or vector).
 #' @param pseudotime Pseudotime source for trajectory mode.
 #' @param lineage Lineage source for trajectory mode.

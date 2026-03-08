@@ -4,5 +4,6 @@
 #' spatial transcriptomics, with optional Seurat v4/v5, trajectory, and
 #' ecosystem integrations. Use `citation("GLEAM")` for citation metadata.
 #'
+#' @importFrom rlang .data
 #' @keywords internal
 "_PACKAGE"

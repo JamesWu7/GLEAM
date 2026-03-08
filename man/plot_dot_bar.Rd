@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_dot_bar.R
 \name{plot_dot_bar}
 \alias{plot_dot_bar}
-\title{Dot + bar summary plot for pathway groups}
+\title{Dot + bar summary plot for signature groups}
 \usage{
 plot_dot_bar(
   score,
@@ -20,7 +20,7 @@ plot_dot_bar(
 
 \item{threshold}{Threshold for active fraction.}
 
-\item{pathway}{Optional pathway filter.}
+\item{pathway}{Optional signature filter (legacy argument name).}
 
 \item{color_palette}{Continuous palette for mean score.}
 
@@ -30,5 +30,5 @@ plot_dot_bar(
 A \code{ggplot} object.
 }
 \description{
-Dot + bar summary plot for pathway groups
+Dot + bar summary plot for signature groups
 }

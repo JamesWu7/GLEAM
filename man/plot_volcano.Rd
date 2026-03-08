@@ -2,7 +2,7 @@
 % Please edit documentation in R/plot_volcano.R
 \name{plot_volcano}
 \alias{plot_volcano}
-\title{Volcano plot for differential pathways}
+\title{Volcano plot for differential signatures}
 \usage{
 plot_volcano(
   x,
@@ -33,5 +33,5 @@ plot_volcano(
 A \code{ggplot} object.
 }
 \description{
-Volcano plot for differential pathways
+Volcano plot for differential signatures
 }
