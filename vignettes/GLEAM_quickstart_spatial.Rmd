@@ -25,11 +25,16 @@ library(GLEAM)
 This quick start demonstrates:
 
 1. Spatial Seurat input
-2. Pathway scoring with built-in Hallmark genesets
-3. Region/sample-aware differential testing
-4. Spatial score mapping with explicit slice/tissue context
+2. Standard preprocessing (normalization, HVG, PCA, neighbors, clustering, UMAP)
+3. Pathway scoring with built-in Hallmark genesets
+4. Region/sample-aware differential testing
+5. Spatial score mapping with explicit slice/tissue context
 
 ## 1) Load/create spatial-capable Seurat object
+
+We keep the same conventional preprocessing logic used in scRNA analysis
+(normalization, PCA, neighbors, clustering, UMAP) so spatial signature patterns
+can be interpreted together with inferred spot states.
 
 ```{r spatial-seurat-object, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.5, fig.height=5.4, out.width="90%"}
 library(Seurat)
@@ -42,12 +47,16 @@ sp_seu <- NormalizeData(sp_seu)
 sp_seu <- FindVariableFeatures(sp_seu)
 sp_seu <- ScaleData(sp_seu)
 sp_seu <- RunPCA(sp_seu)
+sp_seu <- FindNeighbors(sp_seu, dims = 1:20)
+sp_seu <- FindClusters(sp_seu, resolution = 0.4)
 sp_seu <- RunUMAP(sp_seu, dims = 1:20)
 
 # Show object context early
 dim(sp_seu)
 sp_seu
 head(sp_seu@meta.data[, c("sample", "group", "region", "x", "y")])
+table(Idents(sp_seu))
+DimPlot(sp_seu, reduction = "umap", group.by = "seurat_clusters", label = TRUE, repel = TRUE, pt.size = 0.45)
 DimPlot(sp_seu, reduction = "umap", group.by = "region", pt.size = 0.45)
 ```
 
