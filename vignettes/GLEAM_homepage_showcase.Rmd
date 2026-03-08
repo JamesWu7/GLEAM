@@ -29,54 +29,146 @@ if (requireNamespace("GLEAM", quietly = TRUE)) {
 
 This vignette generates the canonical homepage figures used by README/pkgdown.
 
-```{r data-prep}
-data("toy_expr", package = "GLEAM")
-data("spatial_medium_expr", package = "GLEAM")
-data("spatial_medium_meta", package = "GLEAM")
-data("spatial_medium_coords", package = "GLEAM")
+```{r data-prep, eval=requireNamespace("Seurat", quietly = TRUE)}
+library(Seurat)
 
+ifnb_path <- system.file("extdata", "full_examples", "ifnb_seurat.rds", package = "GLEAM")
+a1_path <- system.file("extdata", "full_examples", "stxBrain_anterior1_seurat.rds", package = "GLEAM")
+p1_path <- system.file("extdata", "full_examples", "stxBrain_posterior1_seurat.rds", package = "GLEAM")
+
+if (ifnb_path == "") ifnb_path <- file.path("inst", "extdata", "full_examples", "ifnb_seurat.rds")
+if (a1_path == "") a1_path <- file.path("inst", "extdata", "full_examples", "stxBrain_anterior1_seurat.rds")
+if (p1_path == "") p1_path <- file.path("inst", "extdata", "full_examples", "stxBrain_posterior1_seurat.rds")
+
+seu <- readRDS(ifnb_path)
+if (ncol(seu) > 5000) seu <- subset(seu, cells = colnames(seu)[1:5000])
+md <- seu@meta.data
+if (!"sample" %in% colnames(md)) md$sample <- if ("orig.ident" %in% colnames(md)) as.character(md$orig.ident) else "sample_1"
+if (!"group" %in% colnames(md)) md$group <- if ("stim" %in% colnames(md)) as.character(md$stim) else ifelse(seq_len(nrow(md)) <= nrow(md)/2, "A", "B")
+if (!"celltype" %in% colnames(md)) md$celltype <- if ("seurat_clusters" %in% colnames(md)) paste0("cluster_", md$seurat_clusters) else as.character(Idents(seu))
+if (!"pca" %in% names(seu@reductions)) {
+  seu <- NormalizeData(seu)
+  seu <- FindVariableFeatures(seu)
+  seu <- ScaleData(seu)
+  seu <- RunPCA(seu)
+}
+if (!"umap" %in% names(seu@reductions)) {
+  seu <- FindNeighbors(seu, dims = 1:20)
+  seu <- FindClusters(seu, resolution = 0.4)
+  seu <- RunUMAP(seu, dims = 1:20)
+}
+md$pseudotime <- rank(Embeddings(seu, "pca")[, 1], ties.method = "average") / ncol(seu)
+md$lineage <- md$celltype
+seu@meta.data <- md
+
+map_geneset_to_expr <- function(gs, expr_genes) {
+  expr_genes <- as.character(expr_genes)
+  expr_upper <- toupper(expr_genes)
+  mapped <- lapply(gs, function(g) {
+    idx <- match(toupper(unique(as.character(g))), expr_upper, nomatch = 0L)
+    unique(expr_genes[idx[idx > 0L]])
+  })
+  mapped[vapply(mapped, length, integer(1)) > 0L]
+}
+
+fallback_signatures <- function(expr_genes) {
+  g <- unique(as.character(expr_genes))
+  g <- g[!is.na(g) & nzchar(g)]
+  k <- min(30L, max(3L, floor(length(g) / 4)))
+  idx1 <- seq_len(min(k, length(g)))
+  idx2 <- seq.int(max(1L, length(g) - k + 1L), length(g))
+  list(
+    Signature_A = g[idx1],
+    Signature_B = g[idx2]
+  )
+}
+
+hallmark_gs <- NULL
+for (sp in c("human", "mouse")) {
+  gs_try <- try(get_geneset("hallmark", source = "builtin", species = sp), silent = TRUE)
+  if (inherits(gs_try, "try-error")) next
+  gs_try <- map_geneset_to_expr(gs_try, rownames(seu))
+  gs_try <- gs_try[vapply(gs_try, length, integer(1)) >= 3L]
+  if (length(gs_try) > 0L) {
+    hallmark_gs <- gs_try
+    break
+  }
+}
+if (is.null(hallmark_gs) || length(hallmark_gs) == 0L) {
+  message("[GLEAM] No matched Hallmark signatures; using object-derived fallback signatures.")
+  hallmark_gs <- fallback_signatures(rownames(seu))
+}
 sc <- score_signature(
-  expr = toy_expr$expr,
-  meta = toy_expr$meta,
-  geneset = "immune_small",
-  seurat = FALSE,
+  object = seu,
+  geneset = hallmark_gs,
+  geneset_source = "list",
+  seurat = TRUE,
   method = "rank",
   min_genes = 3,
   verbose = FALSE
 )
 
-pc <- stats::prcomp(t(as.matrix(toy_expr$expr)), center = TRUE, scale. = TRUE)
-emb <- pc$x[, 1:2, drop = FALSE]
-colnames(emb) <- c("UMAP_1", "UMAP_2")
+sp_a1 <- readRDS(a1_path)
+sp_p1 <- readRDS(p1_path)
+sp_seu <- merge(sp_a1, y = sp_p1, add.cell.ids = c("anterior", "posterior"))
+if (ncol(sp_seu) > 6000) sp_seu <- subset(sp_seu, cells = colnames(sp_seu)[1:6000])
+sp_md <- sp_seu@meta.data
+if (!"sample" %in% colnames(sp_md)) sp_md$sample <- if ("orig.ident" %in% colnames(sp_md)) as.character(sp_md$orig.ident) else "sample_1"
+if (!"group" %in% colnames(sp_md)) sp_md$group <- ifelse(grepl("anterior", sp_md$sample, ignore.case = TRUE), "anterior", "posterior")
+if (!"region" %in% colnames(sp_md)) sp_md$region <- if ("seurat_clusters" %in% colnames(sp_md)) paste0("cluster_", sp_md$seurat_clusters) else sp_md$group
+if (!"pca" %in% names(sp_seu@reductions)) {
+  sp_seu <- NormalizeData(sp_seu)
+  sp_seu <- FindVariableFeatures(sp_seu)
+  sp_seu <- ScaleData(sp_seu)
+  sp_seu <- RunPCA(sp_seu)
+}
+sp_seu@meta.data <- sp_md
 
+sp_genes <- rownames(sp_seu)
+half_n <- max(30, floor(length(sp_genes) / 2))
+idx_a <- seq_len(min(half_n, length(sp_genes)))
+idx_b <- seq(from = min(half_n + 1, length(sp_genes)), to = length(sp_genes))
+gs_sp <- list(
+  Spatial_signature_A = unique(sp_genes[idx_a])[1:min(30, length(unique(sp_genes[idx_a])))],
+  Spatial_signature_B = unique(sp_genes[idx_b])[1:min(30, length(unique(sp_genes[idx_b])))]
+)
 sp <- score_signature(
-  expr = spatial_medium_expr,
-  meta = spatial_medium_meta,
-  geneset = "immune_small",
-  seurat = FALSE,
+  object = sp_seu,
+  geneset = gs_sp,
+  geneset_source = "list",
+  seurat = TRUE,
   method = "rank",
   min_genes = 3,
   verbose = FALSE
 )
+
+coords <- if (all(c("x", "y") %in% colnames(sp_md))) {
+  data.frame(x = sp_md$x, y = sp_md$y, row.names = rownames(sp_md))
+} else if (all(c("imagecol", "imagerow") %in% colnames(sp_md))) {
+  data.frame(x = sp_md$imagecol, y = sp_md$imagerow, row.names = rownames(sp_md))
+} else {
+  emb <- Embeddings(sp_seu, reduction = "pca")[, 1:2, drop = FALSE]
+  data.frame(x = emb[, 1], y = emb[, 2], row.names = rownames(emb))
+}
 ```
 
-```{r embedding_feature, fig.width=8.0, fig.height=5.6, out.width="96%"}
-plot_embedding_score(sc, pathway = rownames(sc$score)[1], embedding = emb) +
+```{r embedding_feature, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=8.0, fig.height=5.6, out.width="96%"}
+plot_embedding_score(sc, pathway = rownames(sc$score)[1], object = seu, reduction = "umap") +
   ggplot2::labs(title = "Signature score on embedding")
 ```
 
-```{r spatial_slice, fig.width=8.0, fig.height=5.6, out.width="96%"}
+```{r spatial_slice, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=8.0, fig.height=5.6, out.width="96%"}
 tissue_bg <- as.raster(matrix(colorRampPalette(c("#f8f5ea", "#e8dcc4", "#d2b48c"))(256), nrow = 16))
-plot_spatial_score(sp, pathway = rownames(sp$score)[1], coords = spatial_medium_coords, image = tissue_bg) +
+plot_spatial_score(sp, pathway = rownames(sp$score)[1], coords = coords, image = tissue_bg) +
   ggplot2::labs(title = "Signature score on spatial slice")
 ```
 
-```{r dotbar_compare}
+```{r dotbar_compare, eval=requireNamespace("Seurat", quietly = TRUE)}
 plot_dot_bar(sc, by = c("group", "celltype"), pathway = rownames(sc$score)[1:5]) +
   ggplot2::labs(title = "Dot-bar signature comparison")
 ```
 
-```{r trajectory_trend}
+```{r trajectory_trend, eval=requireNamespace("Seurat", quietly = TRUE)}
 plot_pseudotime_score(sc, pathway = rownames(sc$score)[1], pseudotime = "pseudotime", lineage = "lineage") +
   ggplot2::labs(title = "Trajectory-aware signature trend")
 ```

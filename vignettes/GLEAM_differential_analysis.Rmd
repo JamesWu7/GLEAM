@@ -7,14 +7,28 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, eval=requireNamespace("Seurat", quietly = TRUE)}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(GLEAM)
-data("pbmc_medium_matrix", package = "GLEAM")
-data("pbmc_medium_meta", package = "GLEAM")
+library(Seurat)
+
+ifnb_path <- system.file("extdata", "full_examples", "ifnb_seurat.rds", package = "GLEAM")
+if (ifnb_path == "") ifnb_path <- file.path("inst", "extdata", "full_examples", "ifnb_seurat.rds")
+seu <- readRDS(ifnb_path)
+if (ncol(seu) > 5000) seu <- subset(seu, cells = colnames(seu)[1:5000])
+
+expr_ifnb <- tryCatch(
+  Seurat::GetAssayData(seu, assay = DefaultAssay(seu), layer = "counts"),
+  error = function(e) Seurat::GetAssayData(seu, assay = DefaultAssay(seu), slot = "counts")
+)
+meta_ifnb <- seu@meta.data
+if (!"sample" %in% colnames(meta_ifnb)) meta_ifnb$sample <- if ("orig.ident" %in% colnames(meta_ifnb)) as.character(meta_ifnb$orig.ident) else "sample_1"
+if (!"group" %in% colnames(meta_ifnb)) meta_ifnb$group <- if ("stim" %in% colnames(meta_ifnb)) as.character(meta_ifnb$stim) else ifelse(seq_len(nrow(meta_ifnb)) <= nrow(meta_ifnb)/2, "A", "B")
+if (!"celltype" %in% colnames(meta_ifnb)) meta_ifnb$celltype <- if ("seurat_clusters" %in% colnames(meta_ifnb)) paste0("cluster_", meta_ifnb$seurat_clusters) else as.character(Idents(seu))
+
 sc <- score_signature(
-  expr = pbmc_medium_matrix,
-  meta = pbmc_medium_meta,
+  expr = expr_ifnb,
+  meta = meta_ifnb,
   geneset = "immune_small",
   geneset_source = "builtin",
   species = "human",

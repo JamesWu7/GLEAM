@@ -14,23 +14,8 @@ GLEAM provides pathway/signature scoring, cell-state exploration, differential a
 ## Installation
 
 ```r
-# Core install
 if (!requireNamespace("devtools", quietly = TRUE)) install.packages("devtools")
 devtools::install_github("JamesWu7/GLEAM")
-```
-
-```r
-# Recommended ecosystem (Seurat + curated genesets)
-install.packages(c("Seurat", "SeuratObject", "msigdbr"))
-```
-
-```r
-# Optional trajectory backend (Monocle3 path; not required for core workflows)
-if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
-BiocManager::install(version = "3.21", ask = FALSE)
-install.packages(c("remotes", "devtools"))
-remotes::install_github("bnprks/BPCells/r", upgrade = "never")
-devtools::install_github("cole-trapnell-lab/monocle3", upgrade = "never")
 ```
 
 **Navigation:** [Documentation](https://JamesWu7.github.io/GLEAM/) | [Reference](https://JamesWu7.github.io/GLEAM/reference/) | [Tutorials](https://JamesWu7.github.io/GLEAM/articles/) | [Citation](#citation)
@@ -52,16 +37,36 @@ Figures below are generated from `vignettes/GLEAM_homepage_showcase.Rmd` via `sc
 
 ```r
 library(GLEAM)
+library(Seurat)
+
+ifnb_path <- system.file("extdata", "full_examples", "ifnb_seurat.rds", package = "GLEAM")
+if (ifnb_path == "") ifnb_path <- file.path("inst", "extdata", "full_examples", "ifnb_seurat.rds")
+seu <- readRDS(ifnb_path)
+if (ncol(seu) > 5000) seu <- subset(seu, cells = colnames(seu)[1:5000])
+
+md <- seu@meta.data
+if (!"sample" %in% colnames(md)) md$sample <- if ("orig.ident" %in% colnames(md)) as.character(md$orig.ident) else "sample_1"
+if (!"group" %in% colnames(md)) md$group <- if ("stim" %in% colnames(md)) as.character(md$stim) else ifelse(seq_len(nrow(md)) <= nrow(md)/2, "A", "B")
+if (!"celltype" %in% colnames(md)) md$celltype <- if ("seurat_clusters" %in% colnames(md)) paste0("cluster_", md$seurat_clusters) else as.character(Idents(seu))
+seu@meta.data <- md
+
+if (!"pca" %in% names(seu@reductions)) seu <- RunPCA(seu)
+if (!"umap" %in% names(seu@reductions)) seu <- RunUMAP(seu, dims = 1:20)
 
 hallmark_gs <- get_geneset("hallmark", source = "builtin", species = "human")
-
-sc <- score_signature(object = seu, geneset = hallmark_gs, geneset_source = "list", seurat = TRUE, method = "ensemble")
+sc <- score_signature(object = seu, geneset = hallmark_gs, geneset_source = "list", seurat = TRUE, method = "ensemble", min_genes = 3)
 res <- test_signature(sc, group = "group", sample = "sample", celltype = "celltype", level = "pseudobulk")
 top_pw <- res$table$pathway[order(res$table$p_adj)][1]
-if (!"pca" %in% names(seu@reductions)) seu <- Seurat::RunPCA(seu)
-if (!"umap" %in% names(seu@reductions)) seu <- Seurat::RunUMAP(seu, dims = 1:20)
-plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "umap")
-plot_violin(sc, pathway = rownames(sc$score)[1], group = "group")
+
+p1 <- plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "umap")
+p2 <- plot_violin(sc, pathway = rownames(sc$score)[1], group = "group")
+
+if (requireNamespace("patchwork", quietly = TRUE)) {
+  p1 + p2 + patchwork::plot_layout(ncol = 2)
+} else {
+  p1
+  p2
+}
 ```
 
 <p align="center">
@@ -71,18 +76,56 @@ plot_violin(sc, pathway = rownames(sc$score)[1], group = "group")
 ## Quick start (Seurat spatial)
 
 ```r
-sp <- score_signature(object = sp_seu, geneset = hallmark_gs, geneset_source = "list", seurat = TRUE, assay = "Spatial")
-stopifnot(all(c("x", "y") %in% colnames(sp_seu@meta.data)))
-coords <- data.frame(
-  x = sp_seu@meta.data$x,
-  y = sp_seu@meta.data$y,
-  row.names = rownames(sp_seu@meta.data)
+library(Seurat)
+
+a1_path <- system.file("extdata", "full_examples", "stxBrain_anterior1_seurat.rds", package = "GLEAM")
+p1_path <- system.file("extdata", "full_examples", "stxBrain_posterior1_seurat.rds", package = "GLEAM")
+if (a1_path == "") a1_path <- file.path("inst", "extdata", "full_examples", "stxBrain_anterior1_seurat.rds")
+if (p1_path == "") p1_path <- file.path("inst", "extdata", "full_examples", "stxBrain_posterior1_seurat.rds")
+
+sp_a1 <- readRDS(a1_path)
+sp_p1 <- readRDS(p1_path)
+sp_seu <- merge(sp_a1, y = sp_p1, add.cell.ids = c("anterior", "posterior"))
+if (ncol(sp_seu) > 6000) sp_seu <- subset(sp_seu, cells = colnames(sp_seu)[1:6000])
+
+sp_md <- sp_seu@meta.data
+if (!"sample" %in% colnames(sp_md)) sp_md$sample <- if ("orig.ident" %in% colnames(sp_md)) as.character(sp_md$orig.ident) else "sample_1"
+if (!"group" %in% colnames(sp_md)) sp_md$group <- ifelse(grepl("anterior", sp_md$sample, ignore.case = TRUE), "anterior", "posterior")
+if (!"region" %in% colnames(sp_md)) sp_md$region <- if ("seurat_clusters" %in% colnames(sp_md)) paste0("cluster_", sp_md$seurat_clusters) else sp_md$group
+sp_seu@meta.data <- sp_md
+
+coords <- if (all(c("x", "y") %in% colnames(sp_md))) {
+  data.frame(x = sp_md$x, y = sp_md$y, row.names = rownames(sp_md))
+} else if (all(c("imagecol", "imagerow") %in% colnames(sp_md))) {
+  data.frame(x = sp_md$imagecol, y = sp_md$imagerow, row.names = rownames(sp_md))
+} else {
+  emb <- Embeddings(sp_seu, reduction = "pca")[, 1:2, drop = FALSE]
+  data.frame(x = emb[, 1], y = emb[, 2], row.names = rownames(emb))
+}
+
+sp_genes <- rownames(sp_seu)
+half_n <- max(30, floor(length(sp_genes) / 2))
+idx_a <- seq_len(min(half_n, length(sp_genes)))
+idx_b <- seq(from = min(half_n + 1, length(sp_genes)), to = length(sp_genes))
+gs_spatial <- list(
+  Spatial_signature_A = unique(sp_genes[idx_a])[1:min(30, length(unique(sp_genes[idx_a])))],
+  Spatial_signature_B = unique(sp_genes[idx_b])[1:min(30, length(unique(sp_genes[idx_b])))]
 )
+
+sp <- score_signature(object = sp_seu, geneset = gs_spatial, geneset_source = "list", seurat = TRUE, assay = "RNA", method = "rank", min_genes = 3)
 img <- as.raster(matrix(colorRampPalette(c("#f7f3e8", "#eadfca", "#d9c7a4"))(256), nrow = 16))
-plot_spatial_score(sp, pathway = rownames(sp$score)[1], coords = coords, image = img, split.by = "sample")
 sp_res <- test_signature(sp, region = "region", group = "group", sample = "sample", level = "sample_region")
 top_sp_pw <- sp_res$table$pathway[order(sp_res$table$p_adj)][1]
-plot_spatial_score(sp, pathway = top_sp_pw, coords = coords, image = img, split.by = "region")
+
+p1 <- plot_spatial_score(sp, pathway = rownames(sp$score)[1], coords = coords, image = img, split.by = "sample")
+p2 <- plot_spatial_score(sp, pathway = top_sp_pw, coords = coords, image = img, split.by = "region")
+
+if (requireNamespace("patchwork", quietly = TRUE)) {
+  p1 + p2 + patchwork::plot_layout(ncol = 2)
+} else {
+  p1
+  p2
+}
 ```
 
 <p align="center">

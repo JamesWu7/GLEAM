@@ -34,18 +34,26 @@ This guide demonstrates:
 
 ```{r build-seurat, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.5, fig.height=5.4}
 library(Seurat)
-data("pbmc_medium_matrix", package = "GLEAM")
-data("pbmc_medium_meta", package = "GLEAM")
 
-seu <- CreateSeuratObject(counts = pbmc_medium_matrix, meta.data = pbmc_medium_meta)
-seu <- NormalizeData(seu)
-seu <- FindVariableFeatures(seu)
-seu <- ScaleData(seu)
-seu <- RunPCA(seu)
-seu <- FindNeighbors(seu, dims = 1:20)
-seu <- FindClusters(seu, resolution = 0.4)
-seu <- RunUMAP(seu, dims = 1:20)
-seu <- RunTSNE(seu, dims = 1:20)
+ifnb_path <- system.file("extdata", "full_examples", "ifnb_seurat.rds", package = "GLEAM")
+if (ifnb_path == "") ifnb_path <- file.path("inst", "extdata", "full_examples", "ifnb_seurat.rds")
+seu <- readRDS(ifnb_path)
+if (ncol(seu) > 5000) seu <- subset(seu, cells = colnames(seu)[1:5000])
+
+if (!"pca" %in% names(seu@reductions)) {
+  seu <- NormalizeData(seu)
+  seu <- FindVariableFeatures(seu)
+  seu <- ScaleData(seu)
+  seu <- RunPCA(seu)
+}
+if (!"umap" %in% names(seu@reductions)) {
+  seu <- FindNeighbors(seu, dims = 1:20)
+  seu <- FindClusters(seu, resolution = 0.4)
+  seu <- RunUMAP(seu, dims = 1:20)
+}
+if (!"tsne" %in% names(seu@reductions)) {
+  seu <- RunTSNE(seu, dims = 1:20)
+}
 
 dim(seu)
 seu
@@ -55,12 +63,51 @@ DimPlot(seu, reduction = "umap", group.by = "seurat_clusters", label = TRUE, rep
 
 ## 2) Seurat v5-preferred path (`layer`)
 
+```{r resolve-hallmark, eval=requireNamespace("Seurat", quietly = TRUE)}
+map_geneset_to_expr <- function(gs, expr_genes) {
+  expr_genes <- as.character(expr_genes)
+  expr_upper <- toupper(expr_genes)
+  mapped <- lapply(gs, function(g) {
+    idx <- match(toupper(unique(as.character(g))), expr_upper, nomatch = 0L)
+    unique(expr_genes[idx[idx > 0L]])
+  })
+  mapped[vapply(mapped, length, integer(1)) > 0L]
+}
+
+fallback_signatures <- function(expr_genes) {
+  g <- unique(as.character(expr_genes))
+  g <- g[!is.na(g) & nzchar(g)]
+  k <- min(30L, max(3L, floor(length(g) / 4)))
+  idx1 <- seq_len(min(k, length(g)))
+  idx2 <- seq.int(max(1L, length(g) - k + 1L), length(g))
+  list(
+    Signature_A = g[idx1],
+    Signature_B = g[idx2]
+  )
+}
+
+gs_for_score <- NULL
+for (sp in c("human", "mouse")) {
+  gs_try <- try(get_geneset("hallmark", source = "builtin", species = sp), silent = TRUE)
+  if (inherits(gs_try, "try-error")) next
+  gs_try <- map_geneset_to_expr(gs_try, rownames(seu))
+  gs_try <- gs_try[vapply(gs_try, length, integer(1)) >= 3L]
+  if (length(gs_try) > 0L) {
+    gs_for_score <- gs_try
+    break
+  }
+}
+if (is.null(gs_for_score) || length(gs_for_score) == 0L) {
+  message("[GLEAM] No matched Hallmark signatures; using object-derived fallback signatures.")
+  gs_for_score <- fallback_signatures(rownames(seu))
+}
+```
+
 ```{r seurat-v5-layer, eval=requireNamespace("Seurat", quietly = TRUE)}
 sc_v5 <- score_signature(
   object = seu,
-  geneset = "hallmark",
-  geneset_source = "builtin",
-  species = "human",
+  geneset = gs_for_score,
+  geneset_source = "list",
   seurat = TRUE,
   assay = "RNA",
   layer = "data",
@@ -75,9 +122,8 @@ sc_v5 <- score_signature(
 ```{r seurat-v4-slot, eval=requireNamespace("Seurat", quietly = TRUE)}
 sc_v4 <- score_signature(
   object = seu,
-  geneset = "hallmark",
-  geneset_source = "builtin",
-  species = "human",
+  geneset = gs_for_score,
+  geneset_source = "list",
   seurat = TRUE,
   assay = "RNA",
   layer = NULL,

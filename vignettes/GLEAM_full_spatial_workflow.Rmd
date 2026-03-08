@@ -28,25 +28,50 @@ low-dimensional embeddings.
 
 ```{r full-spatial-object, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.6, fig.height=5.6, out.width="92%"}
 library(Seurat)
-data("spatial_medium_expr", package = "GLEAM")
-data("spatial_medium_meta", package = "GLEAM")
-data("spatial_medium_coords", package = "GLEAM")
 
-sp_seu <- CreateSeuratObject(counts = spatial_medium_expr, meta.data = spatial_medium_meta)
-sp_seu <- NormalizeData(sp_seu)
-sp_seu <- FindVariableFeatures(sp_seu)
-sp_seu <- ScaleData(sp_seu)
-sp_seu <- RunPCA(sp_seu)
+a1_path <- system.file("extdata", "full_examples", "stxBrain_anterior1_seurat.rds", package = "GLEAM")
+p1_path <- system.file("extdata", "full_examples", "stxBrain_posterior1_seurat.rds", package = "GLEAM")
+if (a1_path == "") a1_path <- file.path("inst", "extdata", "full_examples", "stxBrain_anterior1_seurat.rds")
+if (p1_path == "") p1_path <- file.path("inst", "extdata", "full_examples", "stxBrain_posterior1_seurat.rds")
+
+sp_a1 <- readRDS(a1_path)
+sp_p1 <- readRDS(p1_path)
+sp_seu <- merge(sp_a1, y = sp_p1, add.cell.ids = c("anterior", "posterior"))
+if (ncol(sp_seu) > 8000) sp_seu <- subset(sp_seu, cells = colnames(sp_seu)[1:8000])
+
+sp_md <- sp_seu@meta.data
+if (!"sample" %in% colnames(sp_md)) sp_md$sample <- if ("orig.ident" %in% colnames(sp_md)) as.character(sp_md$orig.ident) else "sample_1"
+if (!"group" %in% colnames(sp_md)) sp_md$group <- ifelse(grepl("anterior", sp_md$sample, ignore.case = TRUE), "anterior", "posterior")
+if (!"region" %in% colnames(sp_md)) sp_md$region <- if ("seurat_clusters" %in% colnames(sp_md)) paste0("cluster_", sp_md$seurat_clusters) else sp_md$group
+if (!"section" %in% colnames(sp_md)) sp_md$section <- sp_md$sample
+sp_seu@meta.data <- sp_md
+
+if (!"pca" %in% names(sp_seu@reductions)) {
+  sp_seu <- NormalizeData(sp_seu)
+  sp_seu <- FindVariableFeatures(sp_seu)
+  sp_seu <- ScaleData(sp_seu)
+  sp_seu <- RunPCA(sp_seu)
+}
 ElbowPlot(sp_seu, ndims = 30)
-sp_seu <- FindNeighbors(sp_seu, dims = 1:20)
-sp_seu <- FindClusters(sp_seu, resolution = 0.5)
-sp_seu <- RunUMAP(sp_seu, dims = 1:20)
-sp_seu <- RunTSNE(sp_seu, dims = 1:20)
+if (!"umap" %in% names(sp_seu@reductions)) {
+  sp_seu <- FindNeighbors(sp_seu, dims = 1:20)
+  sp_seu <- FindClusters(sp_seu, resolution = 0.5)
+  sp_seu <- RunUMAP(sp_seu, dims = 1:20)
+}
+if (!"tsne" %in% names(sp_seu@reductions)) {
+  sp_seu <- RunTSNE(sp_seu, dims = 1:20)
+}
+if (!"pseudotime" %in% colnames(sp_seu@meta.data)) {
+  sp_seu$pseudotime <- rank(Embeddings(sp_seu, "pca")[, 1], ties.method = "average") / ncol(sp_seu)
+}
+if (!"lineage" %in% colnames(sp_seu@meta.data)) {
+  sp_seu$lineage <- as.character(sp_seu$region)
+}
 
 # Show object context before scoring
 dim(sp_seu)
 sp_seu
-head(sp_seu@meta.data[, c("sample", "group", "region", "section", "x", "y")])
+head(sp_seu@meta.data[, intersect(c("sample", "group", "region", "section", "x", "y", "imagecol", "imagerow"), colnames(sp_seu@meta.data))])
 table(Idents(sp_seu))
 table(cluster = Idents(sp_seu), region = sp_seu$region)
 DimPlot(sp_seu, reduction = "umap", group.by = "seurat_clusters", label = TRUE, repel = TRUE, pt.size = 0.35)
@@ -57,7 +82,14 @@ DimPlot(sp_seu, reduction = "tsne", group.by = "section", pt.size = 0.35)
 ## 2) Geneset scoring in spatial context
 
 ```{r full-spatial-score, eval=requireNamespace("Seurat", quietly = TRUE)}
-gs <- get_geneset("hallmark", source = "builtin", species = "human")
+sp_genes <- rownames(sp_seu)
+half_n <- max(30, floor(length(sp_genes) / 2))
+idx_a <- seq_len(min(half_n, length(sp_genes)))
+idx_b <- seq(from = min(half_n + 1, length(sp_genes)), to = length(sp_genes))
+gs <- list(
+  Spatial_signature_A = unique(sp_genes[idx_a])[1:min(30, length(unique(sp_genes[idx_a])))],
+  Spatial_signature_B = unique(sp_genes[idx_b])[1:min(30, length(unique(sp_genes[idx_b])))]
+)
 
 sp <- score_signature(
   object = sp_seu,
@@ -75,11 +107,14 @@ sp <- score_signature(
 ## 3) Spatial visualization (true spatial context)
 
 ```{r full-spatial-map, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.6, fig.height=5.6, out.width="92%"}
-coords <- data.frame(
-  x = sp_seu@meta.data$x,
-  y = sp_seu@meta.data$y,
-  row.names = rownames(sp_seu@meta.data)
-)
+coords <- if (all(c("x", "y") %in% colnames(sp_seu@meta.data))) {
+  data.frame(x = sp_seu@meta.data$x, y = sp_seu@meta.data$y, row.names = rownames(sp_seu@meta.data))
+} else if (all(c("imagecol", "imagerow") %in% colnames(sp_seu@meta.data))) {
+  data.frame(x = sp_seu@meta.data$imagecol, y = sp_seu@meta.data$imagerow, row.names = rownames(sp_seu@meta.data))
+} else {
+  emb <- Embeddings(sp_seu, reduction = "pca")[, 1:2, drop = FALSE]
+  data.frame(x = emb[, 1], y = emb[, 2], row.names = rownames(emb))
+}
 
 # Slice/tissue-like background (replace with true tissue image when available)
 tissue_bg <- as.raster(matrix(colorRampPalette(c("#f8f5ea", "#e8dcc4", "#d2b48c"))(256), nrow = 16))
