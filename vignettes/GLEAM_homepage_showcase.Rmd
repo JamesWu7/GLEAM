@@ -12,10 +12,10 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.align = "center",
-  fig.width = 7.8,
-  fig.height = 5.4,
-  out.width = "90%",
-  dpi = 160
+  fig.width = 9.8,
+  fig.height = 6.8,
+  out.width = "96%",
+  dpi = 220
 )
 
 if (requireNamespace("GLEAM", quietly = TRUE)) {
@@ -272,23 +272,23 @@ sp <- score_signature(
 coords <- data.frame(x = sp_md$x, y = sp_md$y, row.names = rownames(sp_md))
 ```
 
-```{r embedding_feature, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=8.0, fig.height=5.6, out.width="96%"}
+```{r embedding_feature, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=10.0, fig.height=7.0, out.width="98%"}
 plot_embedding_score(sc, pathway = rownames(sc$score)[1], object = seu, reduction = "umap") +
   ggplot2::labs(title = "Signature score on embedding")
 ```
 
-```{r spatial_slice, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=8.0, fig.height=5.6, out.width="96%"}
+```{r spatial_slice, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=11.0, fig.height=8.2, out.width="100%"}
 tissue_bg <- as.raster(matrix(colorRampPalette(c("#f8f5ea", "#e8dcc4", "#d2b48c"))(256), nrow = 16))
 plot_spatial_score(sp, pathway = rownames(sp$score)[1], coords = coords, image = tissue_bg) +
   ggplot2::labs(title = "Signature score on spatial slice")
 ```
 
-```{r dotbar_compare, eval=requireNamespace("Seurat", quietly = TRUE)}
-plot_dot_bar(sc, by = c(group_col, celltype_col), pathway = rownames(sc$score)[1:5]) +
+```{r dotbar_compare, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=12.8, fig.height=8.8, out.width="100%"}
+plot_dot_bar(sc, by = c("group", "celltype"), pathway = rownames(sc$score)[1:5]) +
   ggplot2::labs(title = "Dot-bar signature comparison")
 ```
 
-```{r trajectory_trend, eval=requireNamespace("Seurat", quietly = TRUE)}
+```{r trajectory_trend, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=10.0, fig.height=6.8, out.width="96%"}
 plot_pseudotime_score(sc, pathway = rownames(sc$score)[1], pseudotime = "pseudotime", lineage = "lineage") +
   ggplot2::labs(title = "Trajectory-aware signature trend")
 ```

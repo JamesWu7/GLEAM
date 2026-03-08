@@ -29,12 +29,14 @@ devtools::install_github("JamesWu7/GLEAM")
 Figures below are generated from `vignettes/GLEAM_homepage_showcase.Rmd` via `scripts/generate_homepage_figures.R`.
 
 <p align="center">
-  <img src="man/figures/embedding_signature_feature.png" alt="Feature-style signature score on embedding" width="48%"/>
-  <img src="man/figures/spatial_slice_signature.png" alt="Spatial slice-style signature score map" width="48%"/>
+  <img src="man/figures/embedding_signature_feature.png" alt="Feature-style signature score on embedding" width="95%"/>
 </p>
 <p align="center">
-  <img src="man/figures/signature_dotbar_compare.png" alt="Dot-bar signature comparison" width="46%"/>
-  <img src="man/figures/trajectory_signature_trend.png" alt="Trajectory signature trend" width="46%"/>
+  <img src="man/figures/spatial_slice_signature.png" alt="Spatial slice-style signature score map" width="95%"/>
+</p>
+<p align="center">
+  <img src="man/figures/signature_dotbar_compare.png" alt="Dot-bar signature comparison" width="49%"/>
+  <img src="man/figures/trajectory_signature_trend.png" alt="Trajectory signature trend" width="49%"/>
 </p>
 
 ## Quick start (Seurat scRNA-seq)
@@ -135,7 +137,7 @@ if (requireNamespace("patchwork", quietly = TRUE)) {
 ```
 
 <p align="center">
-  <img src="man/figures/embedding_signature_feature.png" alt="scRNA quick start embedding visualization" width="78%"/>
+  <img src="man/figures/embedding_signature_feature.png" alt="scRNA quick start embedding visualization" width="92%"/>
 </p>
 
 ## Quick start (Seurat spatial)
@@ -274,7 +276,7 @@ if (requireNamespace("patchwork", quietly = TRUE)) {
 ```
 
 <p align="center">
-  <img src="man/figures/spatial_slice_signature.png" alt="Spatial quick start slice visualization" width="78%"/>
+  <img src="man/figures/spatial_slice_signature.png" alt="Spatial quick start slice visualization" width="95%"/>
 </p>
 
 ## Custom gene-set example (concise)

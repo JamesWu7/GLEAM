@@ -12,10 +12,10 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.align = "center",
-  fig.width = 7.4,
-  fig.height = 5.3,
-  out.width = "88%",
-  dpi = 120
+  fig.width = 9.8,
+  fig.height = 7.2,
+  out.width = "96%",
+  dpi = 180
 )
 library(GLEAM)
 ```
@@ -26,7 +26,7 @@ This workflow loads Seurat spatial objects, then combines expression and metadat
 at matrix level to avoid image-slot compatibility breakpoints across Seurat
 versions while retaining true spatial coordinate analysis.
 
-```{r full-spatial-object, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.6, fig.height=5.6, out.width="92%"}
+```{r full-spatial-object, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=9.8, fig.height=7.2, out.width="96%"}
 library(Seurat)
 
 a1_path <- system.file("extdata", "full_examples", "stxBrain_anterior1_seurat.rds", package = "GLEAM")
@@ -176,7 +176,7 @@ sp <- score_signature(
 
 ## 3) Spatial visualization (true spatial context)
 
-```{r full-spatial-map, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.6, fig.height=5.6, out.width="92%"}
+```{r full-spatial-map, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=11.2, fig.height=8.2, out.width="100%"}
 coords <- data.frame(x = sp_md$x, y = sp_md$y, row.names = rownames(sp_md))
 
 # Slice/tissue-like background (replace with true tissue image when available)
@@ -189,7 +189,7 @@ plot_spatial_multi(sp, pathways = rownames(sp$score)[1:4], coords = coords)
 
 ## 4) Spatial differential analysis
 
-```{r full-spatial-diff, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.6, fig.height=5.6, out.width="92%"}
+```{r full-spatial-diff, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=11.4, fig.height=8.4, out.width="100%"}
 # region vs region
 res_region <- test_signature(sp, region = "region", level = "region", method = "wilcox")
 
@@ -210,7 +210,7 @@ plot_spatial_compare(res_group_region)
 
 ## 5) Optional embedding linkage and trajectory-like display
 
-```{r full-spatial-embedding-link, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.6, fig.height=5.6, out.width="92%"}
+```{r full-spatial-embedding-link, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=10.0, fig.height=7.2, out.width="96%"}
 emb2 <- as.matrix(sp_md[, c("x", "y"), drop = FALSE])
 rownames(emb2) <- rownames(sp_md)
 colnames(emb2) <- c("Spatial_1", "Spatial_2")

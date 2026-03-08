@@ -8,6 +8,12 @@ test_that("additional plotting APIs return ggplot", {
   p2 <- plot_dot_bar(sc, by = c("group", "celltype"), pathway = rownames(sc$score)[1])
   expect_s3_class(p2, "ggplot")
 
+  sc2 <- sc
+  sc2$meta$stim <- sc2$meta$group
+  sc2$meta$seurat_annotations <- sc2$meta$celltype
+  p2b <- plot_dot_bar(sc2, by = c("stim", "seurat_annotations"), pathway = rownames(sc2$score)[1])
+  expect_s3_class(p2b, "ggplot")
+
   p3 <- plot_pseudobulk_box(sc, pathway = rownames(sc$score)[1], group = "group", sample = "sample", celltype = "celltype")
   expect_s3_class(p3, "ggplot")
 })

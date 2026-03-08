@@ -298,19 +298,19 @@ generate_from_full_examples <- function() {
 
   p1 <- plot_embedding_score(sc, pathway = rownames(sc$score)[1], object = seu, reduction = "umap") +
     ggplot2::labs(title = "Signature score on embedding")
-  ggplot2::ggsave(file.path(out_dir, "embedding_signature_feature.png"), p1, width = 8.0, height = 5.6, dpi = 160)
+  ggplot2::ggsave(file.path(out_dir, "embedding_signature_feature.png"), p1, width = 10.0, height = 7.0, dpi = 220)
 
   p2 <- plot_spatial_score(sp, pathway = rownames(sp$score)[1], coords = coords, image = tissue_bg) +
     ggplot2::labs(title = "Signature score on spatial slice")
-  ggplot2::ggsave(file.path(out_dir, "spatial_slice_signature.png"), p2, width = 8.0, height = 5.6, dpi = 160)
+  ggplot2::ggsave(file.path(out_dir, "spatial_slice_signature.png"), p2, width = 11.0, height = 8.2, dpi = 240)
 
   p3 <- plot_dot_bar(sc, by = c(group_col, celltype_col), pathway = rownames(sc$score)[1:5]) +
     ggplot2::labs(title = "Dot-bar signature comparison")
-  ggplot2::ggsave(file.path(out_dir, "signature_dotbar_compare.png"), p3, width = 8.0, height = 5.4, dpi = 160)
+  ggplot2::ggsave(file.path(out_dir, "signature_dotbar_compare.png"), p3, width = 12.8, height = 8.8, dpi = 220)
 
   p4 <- plot_pseudotime_score(sc, pathway = rownames(sc$score)[1], pseudotime = "pseudotime", lineage = "lineage") +
     ggplot2::labs(title = "Trajectory-aware signature trend")
-  ggplot2::ggsave(file.path(out_dir, "trajectory_signature_trend.png"), p4, width = 7.8, height = 5.2, dpi = 160)
+  ggplot2::ggsave(file.path(out_dir, "trajectory_signature_trend.png"), p4, width = 10.0, height = 6.8, dpi = 220)
 
   TRUE
 }
