@@ -17,8 +17,30 @@ Monocle3 support in GLEAM is optional.
 ## Installation
 
 ```r
-install.packages("BiocManager")
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
+
+# Optional: pin Bioconductor version when troubleshooting
+# BiocManager::install(version = "3.21")
+
+BiocManager::install(c(
+  "BiocGenerics", "DelayedArray", "DelayedMatrixStats",
+  "limma", "lme4", "S4Vectors", "SingleCellExperiment",
+  "SummarizedExperiment", "batchelor", "HDF5Array",
+  "ggrastr"
+))
+
+if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
+}
+remotes::install_github("bnprks/BPCells/r")
+
 BiocManager::install("monocle3")
 ```
 
-If installation fails, you can continue using non-trajectory GLEAM workflows.
+Notes:
+
+- `BiocManager::install(version = "3.21")` is a troubleshooting option, not a mandatory fixed version.
+- If installation fails, you can continue using non-trajectory GLEAM workflows.
+- The maintainer helper script `scripts/install_monocle3_optional.R` automates this optional path.
