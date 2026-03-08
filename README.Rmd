@@ -19,7 +19,8 @@ GLEAM provides pathway/signature scoring, cell-state exploration, differential a
 
 ```r
 # Core install
-install.packages("GLEAM")
+if (!requireNamespace("devtools", quietly = TRUE)) install.packages("devtools")
+devtools::install_github("JamesWu7/GLEAM")
 ```
 
 ```r
@@ -36,7 +37,7 @@ remotes::install_github("bnprks/BPCells/r", upgrade = "never")
 devtools::install_github("cole-trapnell-lab/monocle3", upgrade = "never")
 ```
 
-**Navigation:** [Documentation](https://JamesWu7.github.io/GLEAM/) | [Reference](https://JamesWu7.github.io/GLEAM/reference/) | [Tutorials](https://JamesWu7.github.io/GLEAM/articles/) | [Citation](https://JamesWu7.github.io/GLEAM/articles/GLEAM_citation.html)
+**Navigation:** [Documentation](https://JamesWu7.github.io/GLEAM/) | [Reference](https://JamesWu7.github.io/GLEAM/reference/) | [Tutorials](https://JamesWu7.github.io/GLEAM/articles/) | [Citation](#citation)
 
 ## Workflow highlights
 
@@ -57,38 +58,24 @@ Figures below are generated from `vignettes/GLEAM_homepage_showcase.Rmd` via `sc
 library(GLEAM)
 
 hallmark_gs <- get_geneset("hallmark", source = "builtin", species = "human")
-kegg_gs <- get_geneset(NULL, source = "kegg", species = "human")
 
-sc <- score_signature(
-  object = seu,
-  geneset = hallmark_gs,
-  geneset_source = "list",
-  seurat = TRUE,
-  assay = "RNA",
-  layer = "data",
-  slot = "data",
-  method = "ensemble"
-)
+sc <- score_signature(object = seu, geneset = hallmark_gs, geneset_source = "list", seurat = TRUE, method = "ensemble")
 res <- test_signature(sc, group = "group", sample = "sample", celltype = "celltype", level = "pseudobulk")
 top_pw <- res$table$pathway[order(res$table$p_adj)][1]
-# Ensure embedding reductions exist before FeaturePlot-like visualization.
 if (!"pca" %in% names(seu@reductions)) seu <- Seurat::RunPCA(seu)
 if (!"umap" %in% names(seu@reductions)) seu <- Seurat::RunUMAP(seu, dims = 1:20)
-if (!"tsne" %in% names(seu@reductions)) seu <- Seurat::RunTSNE(seu, dims = 1:20)
 plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "umap")
-plot_dot_bar(sc, by = c("group", "celltype"))
 plot_violin(sc, pathway = rownames(sc$score)[1], group = "group")
-plot_ridge(sc, pathway = rownames(sc$score)[1], group = "celltype")
-plot_volcano(res)
-
-sc_kegg <- score_signature(object = seu, geneset = kegg_gs, geneset_source = "list", seurat = TRUE, method = "rank")
 ```
+
+<p align="center">
+  <img src="assets/figures/embedding_signature_feature.png" alt="scRNA quick start embedding visualization" width="78%"/>
+</p>
 
 ## Quick start (Seurat spatial)
 
 ```r
 sp <- score_signature(object = sp_seu, geneset = hallmark_gs, geneset_source = "list", seurat = TRUE, assay = "Spatial")
-# Require explicit spatial coordinates in metadata for plotting.
 stopifnot(all(c("x", "y") %in% colnames(sp_seu@meta.data)))
 coords <- data.frame(
   x = sp_seu@meta.data$x,
@@ -100,8 +87,11 @@ plot_spatial_score(sp, pathway = rownames(sp$score)[1], coords = coords, image =
 sp_res <- test_signature(sp, region = "region", group = "group", sample = "sample", level = "sample_region")
 top_sp_pw <- sp_res$table$pathway[order(sp_res$table$p_adj)][1]
 plot_spatial_score(sp, pathway = top_sp_pw, coords = coords, image = img, split.by = "region")
-plot_spatial_compare(sp_res)
 ```
+
+<p align="center">
+  <img src="assets/figures/spatial_slice_signature.png" alt="Spatial quick start slice visualization" width="78%"/>
+</p>
 
 ## Custom gene-set example (concise)
 
@@ -152,38 +142,11 @@ plot_dot(sc_custom, by = c("group", "celltype"))
 - Full scRNA workflow: [GLEAM_full_scrna_workflow](https://JamesWu7.github.io/GLEAM/articles/GLEAM_full_scrna_workflow.html)
 - Full spatial workflow: [GLEAM_full_spatial_workflow](https://JamesWu7.github.io/GLEAM/articles/GLEAM_full_spatial_workflow.html)
 
-## Installation tiers
-
-- Core: matrix-native scoring/testing/plotting (`install.packages("GLEAM")`).
-- Recommended: add `Seurat`, `SeuratObject`, and `msigdbr` for richer Seurat + curated geneset workflows.
-- Optional trajectory backends: `monocle3`, `monocle`, `slingshot`, `tradeSeq` (installed separately).
-
-## FAQ
-
-- Why is Monocle3 not installed automatically?
-  Monocle3 is an optional backend for trajectory workflows; core GLEAM workflows do not require it.
-- Do I need Monocle3 for non-trajectory analysis?
-  No. Signature scoring, differential analysis, and standard plotting run without Monocle3.
-- Why do trajectory functions ask for Monocle3 sometimes?
-  Only Monocle3-specific backend paths require it, and functions will provide install guidance.
-- Why do pathway and signature names both exist?
-  In v0.2+ the public API is signature-first; pathway-era entrypoints were removed from exports.
-- Which names should new users use?
-  Use `score_signature()`, `test_signature()`, and related `*_signature*` functions.
-
-## API naming
-
-- Canonical API is signature-first: `score_signature()`, `test_signature()`, `test_signature_spatial()`, `test_signature_trajectory()`.
-- Main workflow entry point: `run_gleam()`.
-- Migration notes are documented in `API_MIGRATION.md`.
-
-## Example data layout
-
-- Packaged lightweight data: `data/*.rda`
-- Full Seurat demo objects: `inst/extdata/full_examples/*.rds`
-- Optional Seurat subset generator: `data-raw/derive_test_subsets.R`
-
 ## Citation
 
-- R-native: `citation("GLEAM")`
-- Citation guide: [GLEAM citation](https://JamesWu7.github.io/GLEAM/articles/GLEAM_citation.html)
+- GitHub repository: <https://github.com/JamesWu7/GLEAM>
+- R-native citation: `citation("GLEAM")`
+
+Suggested text for manuscripts:
+
+> GLEAM: Gene-set and cell-state exploration across space and time in R. R package (v0.2.0). Available at: https://github.com/JamesWu7/GLEAM.
