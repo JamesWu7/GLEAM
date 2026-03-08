@@ -16,7 +16,7 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: any::BiocManager, any::testthat, local::.
-          dependencies: '"hard"'
+          dependencies: "hard"
       - name: Install monocle3 (optional backend)
         run: |
           if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")

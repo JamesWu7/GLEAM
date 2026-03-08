@@ -16,7 +16,7 @@ jobs:
         with:
           extra-packages: any::pkgdown, local::.
           needs: website
-          dependencies: '"hard"'
+          dependencies: "hard"
       - name: Generate homepage figures from package workflows
         run: source("scripts/generate_homepage_figures.R")
         shell: Rscript {0}
