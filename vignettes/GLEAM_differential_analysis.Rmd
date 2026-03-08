@@ -15,7 +15,22 @@ library(Seurat)
 ifnb_path <- system.file("extdata", "full_examples", "ifnb_seurat.rds", package = "GLEAM")
 if (ifnb_path == "") ifnb_path <- file.path("inst", "extdata", "full_examples", "ifnb_seurat.rds")
 seu <- readRDS(ifnb_path)
-if (ncol(seu) > 5000) seu <- subset(seu, cells = colnames(seu)[1:5000])
+stratified_keep <- function(meta, n_target, strata_candidates = character()) {
+  if (nrow(meta) <= n_target) return(rownames(meta))
+  strata <- intersect(strata_candidates, colnames(meta))
+  all_ids <- rownames(meta)
+  if (length(strata) == 0L) return(all_ids[seq_len(n_target)])
+  key <- interaction(meta[, strata, drop = FALSE], drop = TRUE, lex.order = TRUE)
+  groups <- split(all_ids, key)
+  per_group <- max(1L, floor(n_target / max(1L, length(groups))))
+  keep <- unlist(lapply(groups, function(ids) head(sort(ids), per_group)), use.names = FALSE)
+  if (length(keep) < n_target) keep <- c(keep, head(setdiff(all_ids, keep), n_target - length(keep)))
+  unique(keep)[seq_len(min(n_target, length(unique(keep))))]
+}
+if (ncol(seu) > 5000) {
+  keep <- stratified_keep(seu@meta.data, 5000, c("orig.ident", "stim", "seurat_annotations", "seurat_clusters"))
+  seu <- subset(seu, cells = keep)
+}
 
 expr_ifnb <- tryCatch(
   Seurat::GetAssayData(seu, assay = DefaultAssay(seu), layer = "counts"),
@@ -23,8 +38,11 @@ expr_ifnb <- tryCatch(
 )
 meta_ifnb <- seu@meta.data
 if (!"sample" %in% colnames(meta_ifnb)) meta_ifnb$sample <- if ("orig.ident" %in% colnames(meta_ifnb)) as.character(meta_ifnb$orig.ident) else "sample_1"
-if (!"group" %in% colnames(meta_ifnb)) meta_ifnb$group <- if ("stim" %in% colnames(meta_ifnb)) as.character(meta_ifnb$stim) else ifelse(seq_len(nrow(meta_ifnb)) <= nrow(meta_ifnb)/2, "A", "B")
-if (!"celltype" %in% colnames(meta_ifnb)) meta_ifnb$celltype <- if ("seurat_clusters" %in% colnames(meta_ifnb)) paste0("cluster_", meta_ifnb$seurat_clusters) else as.character(Idents(seu))
+group_col <- if ("stim" %in% colnames(meta_ifnb)) "stim" else if ("group" %in% colnames(meta_ifnb)) "group" else "group"
+celltype_col <- if ("seurat_annotations" %in% colnames(meta_ifnb)) "seurat_annotations" else if ("celltype" %in% colnames(meta_ifnb)) "celltype" else if ("seurat_clusters" %in% colnames(meta_ifnb)) "seurat_clusters" else "celltype"
+if (!group_col %in% colnames(meta_ifnb)) meta_ifnb$group <- ifelse(seq_len(nrow(meta_ifnb)) <= nrow(meta_ifnb)/2, "A", "B")
+if (!celltype_col %in% colnames(meta_ifnb)) meta_ifnb$celltype <- as.character(Idents(seu))
+if (celltype_col == "seurat_clusters") meta_ifnb$celltype <- paste0("cluster_", meta_ifnb$seurat_clusters)
 
 sc <- score_signature(
   expr = expr_ifnb,
@@ -55,17 +73,17 @@ sc <- score_signature(
 ## Common patterns
 
 ```{r, eval=FALSE}
-res_cell <- test_signature(sc, group = "group", level = "cell", method = "wilcox")
-res_sample <- test_signature(sc, group = "group", sample = "sample", level = "sample", method = "wilcox")
-res_celltype <- test_signature(sc, celltype = "celltype", group = "group", level = "celltype", method = "wilcox")
-res_sample_celltype <- test_signature(sc, group = "group", sample = "sample", celltype = "celltype", level = "sample_celltype")
-res_pb <- test_signature(sc, group = "group", sample = "sample", celltype = "celltype", level = "pseudobulk")
+res_cell <- test_signature(sc, group = group_col, level = "cell", method = "wilcox")
+res_sample <- test_signature(sc, group = group_col, sample = "sample", level = "sample", method = "wilcox")
+res_celltype <- test_signature(sc, celltype = celltype_col, group = group_col, level = "celltype", method = "wilcox")
+res_sample_celltype <- test_signature(sc, group = group_col, sample = "sample", celltype = celltype_col, level = "sample_celltype")
+res_pb <- test_signature(sc, group = group_col, sample = "sample", celltype = celltype_col, level = "pseudobulk")
 
 res_wct <- test_signature(
   score = sc,
-  group = "group",
+  group = group_col,
   sample = "sample",
-  celltype = "celltype",
+  celltype = celltype_col,
   target_celltype = "CD8_T",
   level = "sample"
 )

@@ -1,0 +1,18 @@
+# Changelog
+
+## GLEAM 0.2.0
+
+- Renamed package from scPathway to GLEAM.
+- Added unified branding: “GLEAM: Gene-set and cell-state exploration
+  across space and time in R”.
+- Added Seurat v4/v5 compatibility helpers and embedding/spatial
+  extraction interfaces.
+- Expanded geneset architecture with source-aware loaders and metadata.
+- Added scoring method registry and expanded native scoring methods.
+- Added optional scoring wrapper interfaces (dependency-gated).
+- Added pseudobulk/region/trajectory differential interfaces.
+- Added trajectory and spatial plotting interfaces.
+- Added palette utilities and score export/method comparison helpers.
+- Added medium-size matrix and spatial example datasets.
+- Added scripts for optional dependency checks, data refresh, Seurat
+  example building, and tutorial HTML rendering.

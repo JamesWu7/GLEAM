@@ -1,10 +1,10 @@
-out_dir <- file.path("assets", "figures")
+out_dir <- file.path("man", "figures")
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 
-if (requireNamespace("GLEAM", quietly = TRUE)) {
-  library(GLEAM)
-} else if (requireNamespace("pkgload", quietly = TRUE)) {
+if (requireNamespace("pkgload", quietly = TRUE) && file.exists("DESCRIPTION")) {
   pkgload::load_all(".", export_all = FALSE, quiet = TRUE)
+} else if (requireNamespace("GLEAM", quietly = TRUE)) {
+  library(GLEAM)
 } else {
   stop("Either installed package 'GLEAM' or package 'pkgload' is required.")
 }
@@ -28,6 +28,32 @@ map_geneset_to_expr <- function(gs, expr_genes) {
     unique(expr_genes[idx[idx > 0L]])
   })
   mapped[vapply(mapped, length, integer(1)) > 0L]
+}
+
+pick_first_col <- function(candidates, cols) {
+  hit <- candidates[candidates %in% cols]
+  if (length(hit) == 0L) return(NULL)
+  hit[[1]]
+}
+
+stratified_keep <- function(meta, n_target, strata_candidates = character()) {
+  if (nrow(meta) <= n_target) return(rownames(meta))
+  strata <- intersect(strata_candidates, colnames(meta))
+  all_ids <- rownames(meta)
+  if (length(strata) == 0L) return(all_ids[seq_len(n_target)])
+
+  key <- interaction(meta[, strata, drop = FALSE], drop = TRUE, lex.order = TRUE)
+  groups <- split(all_ids, key)
+  per_group <- max(1L, floor(n_target / max(1L, length(groups))))
+  keep <- unlist(lapply(groups, function(ids) {
+    ids <- sort(ids)
+    head(ids, per_group)
+  }), use.names = FALSE)
+
+  if (length(keep) < n_target) {
+    keep <- c(keep, head(setdiff(all_ids, keep), n_target - length(keep)))
+  }
+  unique(keep)[seq_len(min(n_target, length(unique(keep))))]
 }
 
 fallback_signatures <- function(expr_genes) {
@@ -75,11 +101,41 @@ generate_from_full_examples <- function() {
   p1_path <- find_full_example("stxBrain_posterior1_seurat.rds")
 
   seu <- readRDS(ifnb_path)
-  if (ncol(seu) > 5000) seu <- subset(seu, cells = colnames(seu)[1:5000])
+  md0 <- seu@meta.data
+  if (ncol(seu) > 5000) {
+    keep <- stratified_keep(
+      meta = md0,
+      n_target = 5000,
+      strata_candidates = c("orig.ident", "stim", "seurat_annotations", "seurat_clusters")
+    )
+    seu <- subset(seu, cells = keep)
+  }
   md <- seu@meta.data
-  if (!"sample" %in% colnames(md)) md$sample <- if ("orig.ident" %in% colnames(md)) as.character(md$orig.ident) else "sample_1"
-  if (!"group" %in% colnames(md)) md$group <- if ("stim" %in% colnames(md)) as.character(md$stim) else ifelse(seq_len(nrow(md)) <= nrow(md) / 2, "A", "B")
-  if (!"celltype" %in% colnames(md)) md$celltype <- if ("seurat_clusters" %in% colnames(md)) paste0("cluster_", md$seurat_clusters) else as.character(Idents(seu))
+  sample_col <- pick_first_col(c("sample", "orig.ident"), colnames(md))
+  if (is.null(sample_col)) {
+    md$sample <- "sample_1"
+    sample_col <- "sample"
+  } else if (sample_col != "sample") {
+    md$sample <- as.character(md[[sample_col]])
+  }
+
+  group_col <- pick_first_col(c("stim", "group"), colnames(md))
+  if (is.null(group_col)) {
+    md$group <- ifelse(seq_len(nrow(md)) <= nrow(md) / 2, "A", "B")
+    group_col <- "group"
+  } else if (group_col != "group") {
+    md$group <- as.character(md[[group_col]])
+  }
+
+  celltype_col <- pick_first_col(c("seurat_annotations", "celltype", "seurat_clusters"), colnames(md))
+  if (is.null(celltype_col)) {
+    md$celltype <- as.character(Idents(seu))
+    celltype_col <- "celltype"
+  } else if (celltype_col == "seurat_clusters") {
+    md$celltype <- paste0("cluster_", md$seurat_clusters)
+  } else if (celltype_col != "celltype") {
+    md$celltype <- as.character(md[[celltype_col]])
+  }
   seu@meta.data <- md
 
   if (!"pca" %in% names(seu@reductions)) {
@@ -95,7 +151,7 @@ generate_from_full_examples <- function() {
   }
   md <- seu@meta.data
   md$pseudotime <- rank(Embeddings(seu, "pca")[, 1], ties.method = "average") / ncol(seu)
-  md$lineage <- md$celltype
+  md$lineage <- as.character(md[[celltype_col]])
   seu@meta.data <- md
 
   hallmark_gs <- NULL
@@ -190,16 +246,20 @@ generate_from_full_examples <- function() {
   )
   sp_md <- sp_md[colnames(sp_expr), , drop = FALSE]
 
-  if (ncol(sp_expr) > 6000) {
-    keep <- colnames(sp_expr)[1:6000]
-    sp_expr <- sp_expr[, keep, drop = FALSE]
-    sp_md <- sp_md[keep, , drop = FALSE]
-  }
-
   if (!"sample" %in% colnames(sp_md)) sp_md$sample <- "sample_1"
   if (!"group" %in% colnames(sp_md)) sp_md$group <- ifelse(grepl("anterior", sp_md$sample, ignore.case = TRUE), "anterior", "posterior")
   if (!"region" %in% colnames(sp_md)) sp_md$region <- if ("seurat_clusters" %in% colnames(sp_md)) paste0("cluster_", sp_md$seurat_clusters) else sp_md$group
   if (!"section" %in% colnames(sp_md)) sp_md$section <- sp_md$sample
+
+  if (ncol(sp_expr) > 6000) {
+    keep <- stratified_keep(
+      meta = sp_md,
+      n_target = 6000,
+      strata_candidates = c("sample", "section", "group", "region", "seurat_clusters")
+    )
+    sp_expr <- sp_expr[, keep, drop = FALSE]
+    sp_md <- sp_md[keep, , drop = FALSE]
+  }
   if (!all(c("x", "y") %in% colnames(sp_md))) {
     if (all(c("array_col", "array_row") %in% colnames(sp_md))) {
       sp_md$x <- sp_md$array_col
@@ -244,7 +304,7 @@ generate_from_full_examples <- function() {
     ggplot2::labs(title = "Signature score on spatial slice")
   ggplot2::ggsave(file.path(out_dir, "spatial_slice_signature.png"), p2, width = 8.0, height = 5.6, dpi = 160)
 
-  p3 <- plot_dot_bar(sc, by = c("group", "celltype"), pathway = rownames(sc$score)[1:5]) +
+  p3 <- plot_dot_bar(sc, by = c(group_col, celltype_col), pathway = rownames(sc$score)[1:5]) +
     ggplot2::labs(title = "Dot-bar signature comparison")
   ggplot2::ggsave(file.path(out_dir, "signature_dotbar_compare.png"), p3, width = 8.0, height = 5.4, dpi = 160)
 

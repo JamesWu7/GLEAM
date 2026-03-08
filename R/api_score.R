@@ -28,6 +28,7 @@
 #'
 #' @return An object of class `gleam_score`.
 #' @keywords internal
+#' @noRd
 score_pathway <- function(
   object = NULL,
   expr = NULL,

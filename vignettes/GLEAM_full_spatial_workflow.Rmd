@@ -87,6 +87,25 @@ prep_spatial_object <- function(obj, sample_label) {
   list(expr = expr, meta = md)
 }
 
+stratified_keep <- function(meta, n_target, strata_candidates = character()) {
+  if (nrow(meta) <= n_target) return(rownames(meta))
+  strata <- intersect(strata_candidates, colnames(meta))
+  all_ids <- rownames(meta)
+  if (length(strata) == 0L) return(all_ids[seq_len(n_target)])
+
+  key <- interaction(meta[, strata, drop = FALSE], drop = TRUE, lex.order = TRUE)
+  groups <- split(all_ids, key)
+  per_group <- max(1L, floor(n_target / max(1L, length(groups))))
+  keep <- unlist(lapply(groups, function(ids) {
+    ids <- sort(ids)
+    head(ids, per_group)
+  }), use.names = FALSE)
+  if (length(keep) < n_target) {
+    keep <- c(keep, head(setdiff(all_ids, keep), n_target - length(keep)))
+  }
+  unique(keep)[seq_len(min(n_target, length(unique(keep))))]
+}
+
 sp1 <- prep_spatial_object(sp_a1, "anterior")
 sp2 <- prep_spatial_object(sp_p1, "posterior")
 common_genes <- intersect(rownames(sp1$expr), rownames(sp2$expr))
@@ -94,7 +113,11 @@ sp_expr <- cbind(sp1$expr[common_genes, , drop = FALSE], sp2$expr[common_genes, 
 sp_md <- rbind(sp1$meta[colnames(sp1$expr), , drop = FALSE], sp2$meta[colnames(sp2$expr), , drop = FALSE])
 sp_md <- sp_md[colnames(sp_expr), , drop = FALSE]
 if (ncol(sp_expr) > 8000) {
-  keep <- colnames(sp_expr)[1:8000]
+  keep <- stratified_keep(
+    meta = sp_md,
+    n_target = 8000,
+    strata_candidates = c("sample", "section", "group", "region", "seurat_clusters")
+  )
   sp_expr <- sp_expr[, keep, drop = FALSE]
   sp_md <- sp_md[keep, , drop = FALSE]
 }

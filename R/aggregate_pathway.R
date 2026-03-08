@@ -8,6 +8,7 @@
 #'
 #' @return Aggregated table (long) or pathway-by-group matrix (wide).
 #' @keywords internal
+#' @noRd
 aggregate_pathway <- function(score, by, fun = c("mean", "median", "fraction", "sum"), threshold = 0, long = TRUE) {
   check_score_object(score)
   fun_name <- NULL

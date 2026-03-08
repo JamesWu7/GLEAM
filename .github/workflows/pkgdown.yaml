@@ -33,8 +33,13 @@ jobs:
         run: |
           mkdir -p docs/assets
           cp -R assets/. docs/assets/
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
+      - name: Validate tutorial entry pages for branch-based Pages
+        run: |
+          test -f docs/index.html
+          test -f docs/articles/index.html
+          test -f docs/articles/GLEAM_quickstart_scrna.html
+          test -f docs/articles/GLEAM_quickstart_spatial.html
+          test -f docs/articles/GLEAM_full_scrna_workflow.html
+          test -f docs/articles/GLEAM_full_spatial_workflow.html
+          test -f docs/reference/index.html
+          test -f docs/.nojekyll

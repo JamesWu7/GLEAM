@@ -80,6 +80,7 @@ join_score_spatial <- function(score, coords, meta = NULL) {
 #'
 #' @return `gleam_test` object.
 #' @keywords internal
+#' @noRd
 test_pathway_spatial <- function(
   score,
   region,

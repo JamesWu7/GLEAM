@@ -23,6 +23,7 @@
 #'
 #' @return An object of class `gleam_test`.
 #' @keywords internal
+#' @noRd
 test_pathway <- function(
   score,
   group = NULL,
@@ -231,6 +232,7 @@ test_pathway <- function(
 #'
 #' @return An object of class `gleam_test`.
 #' @keywords internal
+#' @noRd
 compare_celltypes <- function(
   score,
   celltype,
@@ -271,6 +273,7 @@ compare_celltypes <- function(
 #'
 #' @return An object of class `gleam_test`.
 #' @keywords internal
+#' @noRd
 compare_groups_within_celltype <- function(
   score,
   group,

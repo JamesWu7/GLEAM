@@ -44,7 +44,15 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
   if (!is.null(group_col) && group_col %in% colnames(mean_df)) {
     g_levels <- unique(as.character(mean_df[[group_col]]))
     if (length(g_levels) >= 2L) {
-      agg <- stats::aggregate(value ~ signature + group, data = mean_df, FUN = function(x) mean(x, na.rm = TRUE))
+      agg <- stats::aggregate(
+        x = mean_df$value,
+        by = list(
+          signature = mean_df$signature,
+          group = as.character(mean_df[[group_col]])
+        ),
+        FUN = function(x) mean(x, na.rm = TRUE)
+      )
+      colnames(agg)[colnames(agg) == "x"] <- "value"
       wide <- stats::reshape(
         agg,
         idvar = "signature",

@@ -33,7 +33,7 @@
 
 <div id="gleam-api-migration-pathway---signature-breaking-cleanup" class="section level1">
 
-<p>GLEAM now uses <strong>signature</strong> as the canonical umbrella term in the public API. Legacy <code>*_pathway*</code> names are no longer exported in v0.2+.</p>
+<p>GLEAM now uses <strong>signature</strong> as the canonical umbrella term in the public API. Legacy <code>*_pathway*</code> names are no longer exported in v0.2+. Internal compatibility wrappers remain in code for controlled migration, but are removed from public reference pages.</p>
 <div class="section level2">
 <h2 id="canonical-names">Canonical names<a class="anchor" aria-label="anchor" href="#canonical-names"></a></h2>
 <ul><li><code><a href="reference/score_signature.html">score_signature()</a></code></li>
@@ -45,6 +45,59 @@
 <div class="section level2">
 <h2 id="workflow-entry-points">Workflow entry points<a class="anchor" aria-label="anchor" href="#workflow-entry-points"></a></h2>
 <ul><li><code><a href="reference/run_gleam.html">run_gleam()</a></code></li>
+</ul></div>
+<div class="section level2">
+<h2 id="public-api-classification-v020">Public API classification (v0.2.0)<a class="anchor" aria-label="anchor" href="#public-api-classification-v020"></a></h2>
+<ul><li>Core analysis API:
+<ul><li><code><a href="reference/score_signature.html">score_signature()</a></code></li>
+<li><code><a href="reference/aggregate_signature.html">aggregate_signature()</a></code></li>
+<li><code><a href="reference/test_signature.html">test_signature()</a></code></li>
+<li><code><a href="reference/run_gleam.html">run_gleam()</a></code></li>
+</ul></li>
+<li>Scenario-specific testing:
+<ul><li><code><a href="reference/test_signature_spatial.html">test_signature_spatial()</a></code></li>
+<li><code><a href="reference/test_signature_trajectory.html">test_signature_trajectory()</a></code></li>
+</ul></li>
+<li>Trajectory/spatial utilities:
+<ul><li>
+<code><a href="reference/as_trajectory_data.html">as_trajectory_data()</a></code>, <code><a href="reference/extract_pseudotime.html">extract_pseudotime()</a></code>, <code><a href="reference/extract_lineage.html">extract_lineage()</a></code>
+</li>
+<li>
+<code><a href="reference/join_score_trajectory.html">join_score_trajectory()</a></code>, <code><a href="reference/map_scores_to_trajectory.html">map_scores_to_trajectory()</a></code>, <code><a href="reference/join_score_spatial.html">join_score_spatial()</a></code>
+</li>
+</ul></li>
+<li>Visualization API (kept separate by design):
+<ul><li>
+<code><a href="reference/plot_embedding_score.html">plot_embedding_score()</a></code>, <code><a href="reference/plot_spatial_score.html">plot_spatial_score()</a></code>, <code><a href="reference/plot_spatial_multi.html">plot_spatial_multi()</a></code>, <code><a href="reference/plot_spatial_compare.html">plot_spatial_compare()</a></code>
+</li>
+<li>
+<code><a href="reference/plot_dot.html">plot_dot()</a></code>, <code><a href="reference/plot_dot_bar.html">plot_dot_bar()</a></code>, <code><a href="reference/plot_violin.html">plot_violin()</a></code>, <code><a href="reference/plot_split_violin.html">plot_split_violin()</a></code>, <code><a href="reference/plot_ridge.html">plot_ridge()</a></code>
+</li>
+<li>
+<code><a href="reference/plot_box.html">plot_box()</a></code>, <code><a href="reference/plot_heatmap.html">plot_heatmap()</a></code>, <code><a href="reference/plot_volcano.html">plot_volcano()</a></code>, <code><a href="reference/plot_pseudotime_score.html">plot_pseudotime_score()</a></code>, <code><a href="reference/plot_trajectory_score.html">plot_trajectory_score()</a></code>
+</li>
+<li>
+<code><a href="reference/plot_celltype_compare.html">plot_celltype_compare()</a></code>, <code><a href="reference/plot_group_in_celltype.html">plot_group_in_celltype()</a></code>, <code><a href="reference/plot_pseudobulk_box.html">plot_pseudobulk_box()</a></code>
+</li>
+</ul></li>
+<li>Geneset/signature management:
+<ul><li>
+<code><a href="reference/get_geneset.html">get_geneset()</a></code>, <code><a href="reference/list_geneset_sources.html">list_geneset_sources()</a></code>, <code><a href="reference/search_geneset.html">search_geneset()</a></code>
+</li>
+<li>
+<code><a href="reference/as_geneset.html">as_geneset()</a></code>, <code><a href="reference/read_gmt.html">read_gmt()</a></code>, <code><a href="reference/check_geneset.html">check_geneset()</a></code>, <code><a href="reference/match_geneset.html">match_geneset()</a></code>
+</li>
+</ul></li>
+<li>Export/summary/comparison:
+<ul><li>
+<code><a href="reference/collect_scores.html">collect_scores()</a></code>, <code><a href="reference/summarize_scores.html">summarize_scores()</a></code>, <code><a href="reference/pivot_scores_long.html">pivot_scores_long()</a></code>, <code><a href="reference/export_scores.html">export_scores()</a></code>, <code><a href="reference/compare_scoring_methods.html">compare_scoring_methods()</a></code>
+</li>
+</ul></li>
+<li>Theme/palette helpers:
+<ul><li>
+<code><a href="reference/gleam_theme.html">gleam_theme()</a></code>, <code><a href="reference/apply_gleam_theme.html">apply_gleam_theme()</a></code>, <code><a href="reference/get_palette.html">get_palette()</a></code>, <code><a href="reference/list_palettes.html">list_palettes()</a></code>, <code><a href="reference/scale_gleam_color.html">scale_gleam_color()</a></code>, <code><a href="reference/scale_gleam_fill.html">scale_gleam_fill()</a></code>
+</li>
+</ul></li>
 </ul></div>
 <div class="section level2">
 <h2 id="notes">Notes<a class="anchor" aria-label="anchor" href="#notes"></a></h2>

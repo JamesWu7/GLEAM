@@ -88,11 +88,26 @@ get_palette <- function(name = "gleam_discrete", n = 8, continuous = FALSE, reve
 #' @return A ggplot2 scale object.
 #' @export
 scale_gleam_color <- function(palette = "gleam_discrete", continuous = FALSE) {
-  cols <- if (is.character(palette) && length(palette) == 1L) get_palette(palette, n = 9, continuous = continuous) else palette
   if (continuous) {
+    cols <- if (is.character(palette) && length(palette) == 1L) get_palette(palette, n = 256, continuous = TRUE) else as.character(palette)
     ggplot2::scale_color_gradientn(colors = cols)
   } else {
-    ggplot2::scale_color_manual(values = cols)
+    if (is.character(palette) && length(palette) == 1L) {
+      ggplot2::discrete_scale(
+        aesthetics = "colour",
+        scale_name = "gleam_color",
+        palette = function(n) get_palette(name = palette, n = n, continuous = FALSE)
+      )
+    } else {
+      pal <- as.character(palette)
+      ggplot2::discrete_scale(
+        aesthetics = "colour",
+        scale_name = "gleam_color",
+        palette = function(n) {
+          if (length(pal) >= n) pal[seq_len(n)] else grDevices::colorRampPalette(pal)(n)
+        }
+      )
+    }
   }
 }
 
@@ -102,10 +117,25 @@ scale_gleam_color <- function(palette = "gleam_discrete", continuous = FALSE) {
 #' @return A ggplot2 scale object.
 #' @export
 scale_gleam_fill <- function(palette = "gleam_discrete", continuous = FALSE) {
-  cols <- if (is.character(palette) && length(palette) == 1L) get_palette(palette, n = 9, continuous = continuous) else palette
   if (continuous) {
+    cols <- if (is.character(palette) && length(palette) == 1L) get_palette(palette, n = 256, continuous = TRUE) else as.character(palette)
     ggplot2::scale_fill_gradientn(colors = cols)
   } else {
-    ggplot2::scale_fill_manual(values = cols)
+    if (is.character(palette) && length(palette) == 1L) {
+      ggplot2::discrete_scale(
+        aesthetics = "fill",
+        scale_name = "gleam_fill",
+        palette = function(n) get_palette(name = palette, n = n, continuous = FALSE)
+      )
+    } else {
+      pal <- as.character(palette)
+      ggplot2::discrete_scale(
+        aesthetics = "fill",
+        scale_name = "gleam_fill",
+        palette = function(n) {
+          if (length(pal) >= n) pal[seq_len(n)] else grDevices::colorRampPalette(pal)(n)
+        }
+      )
+    }
   }
 }

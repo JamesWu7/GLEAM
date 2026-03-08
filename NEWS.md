@@ -1,5 +1,3 @@
-# GLEAM news
-
 ## GLEAM 0.2.0
 - Renamed package from scPathway to GLEAM.
 - Added unified branding: "GLEAM: Gene-set and cell-state exploration across space and time in R".
