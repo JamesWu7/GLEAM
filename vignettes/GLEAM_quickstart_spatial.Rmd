@@ -72,7 +72,8 @@ sp <- score_signature(
   assay = "RNA",
   layer = "data",
   slot = "data",
-  method = "rank"
+  method = "rank",
+  min_genes = 3
 )
 ```
 

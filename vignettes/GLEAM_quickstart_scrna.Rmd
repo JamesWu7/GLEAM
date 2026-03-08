@@ -90,7 +90,8 @@ sc <- score_signature(
   assay = "RNA",
   layer = "data",
   slot = "data",
-  method = "ensemble"
+  method = "ensemble",
+  min_genes = 3
 )
 ```
 

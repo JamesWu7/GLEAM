@@ -74,11 +74,12 @@ sc <- score_signature(
   assay = "RNA",
   layer = "data",
   slot = "data",
-  method = "ensemble"
+  method = "ensemble",
+  min_genes = 3
 )
 
-custom <- list(IFN_custom = c("STAT1", "IRF1", "ISG15", "IFIT3"))
-sc_custom <- score_signature(object = seu, geneset = custom, geneset_source = "list", seurat = TRUE, method = "mean")
+custom <- list(IFN_custom = c("STAT1", "IRF1", "ISG15", "IFIT3", "CXCL10"))
+sc_custom <- score_signature(object = seu, geneset = custom, geneset_source = "list", seurat = TRUE, method = "mean", min_genes = 2)
 ```
 
 ## 3) Differential analysis after scoring

@@ -65,7 +65,8 @@ sc_v5 <- score_signature(
   assay = "RNA",
   layer = "data",
   slot = "data",
-  method = "rank"
+  method = "rank",
+  min_genes = 3
 )
 ```
 
@@ -81,7 +82,8 @@ sc_v4 <- score_signature(
   assay = "RNA",
   layer = NULL,
   slot = "data",
-  method = "rank"
+  method = "rank",
+  min_genes = 3
 )
 ```
 
