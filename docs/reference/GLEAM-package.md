@@ -16,4 +16,4 @@ Useful links:
 
 ## Author
 
-**Maintainer**: James Woo <james@example.com>
+**Maintainer**: Xinjie Wu <james@example.com>

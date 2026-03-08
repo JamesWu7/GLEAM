@@ -330,3 +330,15 @@ plot_dot(sc_custom, by = c("group", "celltype"))
 Suggested text for manuscripts:
 
 > GLEAM: Gene-set and cell-state exploration across space and time in R. R package (v0.2.0). Available at: https://github.com/JamesWu7/GLEAM.
+
+BibTeX:
+
+```bibtex
+@Manual{GLEAM,
+  title   = {GLEAM: Gene-set and cell-state exploration across space and time in R},
+  author  = {Xinjie Wu},
+  year    = {2026},
+  note    = {R package version 0.2.0},
+  url     = {https://github.com/JamesWu7/GLEAM}
+}
+```

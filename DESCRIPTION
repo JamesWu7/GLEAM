@@ -2,9 +2,9 @@ Package: GLEAM
 Type: Package
 Title: Gene-Set and Cell-State Exploration Across Space and Time in R
 Version: 0.2.0
-Authors@R: person("James", "Woo", email = "james@example.com", role = c("aut", "cre"))
-Author: James Woo [aut, cre]
-Maintainer: James Woo <james@example.com>
+Authors@R: person("Xinjie", "Wu", email = "james@example.com", role = c("aut", "cre"))
+Author: Xinjie Wu [aut, cre]
+Maintainer: Xinjie Wu <james@example.com>
 Description: Provides matrix-native signature and cell-state analysis workflows
     across single-cell and spatial transcriptomics. It supports Seurat v4/v5
     compatibility, trajectory-aware mapping, pseudobulk comparisons, and

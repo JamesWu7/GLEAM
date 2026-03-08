@@ -20,7 +20,7 @@ Useful links:
 
 }
 \author{
-\strong{Maintainer}: James Woo \email{james@example.com}
+\strong{Maintainer}: Xinjie Wu \email{james@example.com}
 
 }
 \keyword{internal}
