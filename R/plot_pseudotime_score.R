@@ -1,7 +1,7 @@
-#' Plot pathway score over pseudotime
+#' Plot signature score over pseudotime
 #'
 #' @param score `gleam_score` object.
-#' @param pathway Pathway name.
+#' @param pathway Signature name (legacy argument name).
 #' @param pseudotime Pseudotime source.
 #' @param lineage Optional lineage source for coloring.
 #' @param smooth Add smoothing line.
@@ -24,7 +24,7 @@ plot_pseudotime_score <- function(
   theme_params = list()
 ) {
   check_score_object(score)
-  if (!pathway %in% rownames(score$score)) stop("`pathway` not found in score matrix.", call. = FALSE)
+  if (!pathway %in% rownames(score$score)) stop("`signature` not found in score matrix.", call. = FALSE)
   pt <- extract_pseudotime(score, pseudotime = pseudotime)
   ln <- extract_lineage(score, lineage = lineage)
 
@@ -39,7 +39,7 @@ plot_pseudotime_score <- function(
   p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$pseudotime, y = .data$score, color = .data$lineage)) +
     ggplot2::geom_point(alpha = alpha, size = point_size) +
     scale_gleam_color(palette = palette, continuous = FALSE) +
-    ggplot2::labs(title = paste("Pseudotime score:", pathway), x = "Pseudotime", y = "Pathway score") +
+    ggplot2::labs(title = paste("Pseudotime signature:", pathway), x = "Pseudotime", y = "Signature score") +
     do.call(gleam_theme, tp)
 
   if (smooth) {

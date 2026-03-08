@@ -1,7 +1,7 @@
 #' Plot spatial comparison result
 #'
 #' @param x `gleam_test` object or result table.
-#' @param top_n Number of pathways to display.
+#' @param top_n Number of signatures to display.
 #' @param alpha Bar alpha.
 #' @param theme_params Optional list passed to [gleam_theme()].
 #'
@@ -19,6 +19,6 @@ plot_spatial_compare <- function(x, top_n = 20, alpha = 0.85, theme_params = lis
   ggplot2::ggplot(sel, ggplot2::aes(x = .data$pathway, y = .data$effect_size, fill = .data$direction)) +
     ggplot2::geom_col(alpha = alpha) +
     ggplot2::coord_flip() +
-    ggplot2::labs(title = "Spatial differential pathways", x = "Pathway", y = "Effect size") +
+    ggplot2::labs(title = "Spatial differential signatures", x = "Signature", y = "Effect size") +
     do.call(gleam_theme, tp)
 }

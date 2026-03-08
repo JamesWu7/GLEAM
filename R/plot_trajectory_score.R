@@ -1,7 +1,7 @@
-#' Plot pathway score on trajectory embedding
+#' Plot signature score on trajectory embedding
 #'
 #' @param score `gleam_score` object.
-#' @param pathway Pathway name.
+#' @param pathway Signature name (legacy argument name).
 #' @param embeddings Embedding matrix with at least 2 columns.
 #' @param reduction Reduction name for Seurat extraction when `embeddings` is NULL.
 #' @param object Optional Seurat object for reduction extraction.
@@ -24,7 +24,7 @@ plot_trajectory_score <- function(
   theme_params = list()
 ) {
   check_score_object(score)
-  if (!pathway %in% rownames(score$score)) stop("`pathway` not found in score matrix.", call. = FALSE)
+  if (!pathway %in% rownames(score$score)) stop("`signature` not found in score matrix.", call. = FALSE)
 
   emb <- if (!is.null(embeddings)) {
     as.matrix(embeddings)
@@ -53,9 +53,20 @@ plot_trajectory_score <- function(
   )
   tp <- resolve_text_params(theme_params)
 
-  ggplot2::ggplot(df, ggplot2::aes(x = .data$dim1, y = .data$dim2, color = .data$score)) +
+  df <- df[order(df$score), , drop = FALSE]
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$dim1, y = .data$dim2, color = .data$score)) +
     ggplot2::geom_point(size = point_size, alpha = alpha) +
     scale_gleam_color(palette = palette, continuous = TRUE) +
-    ggplot2::labs(title = paste("Trajectory map:", pathway), x = colnames(emb)[1], y = colnames(emb)[2]) +
+    ggplot2::labs(title = paste("Trajectory signature map:", pathway), x = colnames(emb)[1], y = colnames(emb)[2], color = "Signature score") +
     do.call(gleam_theme, tp)
+
+  if (tolower(reduction) %in% c("umap", "tsne")) {
+    p <- p + ggplot2::theme(
+      axis.title = ggplot2::element_blank(),
+      axis.text = ggplot2::element_blank(),
+      axis.ticks = ggplot2::element_blank(),
+      panel.grid = ggplot2::element_blank()
+    )
+  }
+  p
 }

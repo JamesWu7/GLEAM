@@ -1,7 +1,7 @@
-#' Violin plot of pathway scores
+#' Violin plot of signature scores
 #'
 #' @param score `gleam_score` object.
-#' @param pathway Pathway name.
+#' @param pathway Signature name (legacy argument name).
 #' @param group Group variable (metadata column name or vector).
 #' @param celltype Optional celltype filter (single label or vector).
 #' @param trim Passed to `geom_violin()`.
@@ -25,7 +25,7 @@ plot_violin <- function(
 ) {
   check_score_object(score)
   if (!pathway %in% rownames(score$score)) {
-    stop("`pathway` not found in score matrix.", call. = FALSE)
+    stop("`signature` not found in score matrix.", call. = FALSE)
   }
 
   meta <- score$meta
@@ -57,6 +57,6 @@ plot_violin <- function(
     ggplot2::geom_boxplot(width = 0.12, outlier.shape = NA, fill = "white", alpha = 0.8, linewidth = 0.3) +
     ggplot2::geom_jitter(width = 0.08, size = point_size, alpha = min(1, alpha + 0.1), color = "#111827") +
     scale_gleam_fill(palette = palette, continuous = FALSE) +
-    ggplot2::labs(x = "Group", y = pathway, title = paste("Pathway score:", pathway)) +
+    ggplot2::labs(x = "Group", y = "Signature score", title = paste("Signature score:", pathway)) +
     do.call(gleam_theme, tp)
 }

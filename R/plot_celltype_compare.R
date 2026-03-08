@@ -1,7 +1,7 @@
 #' Plot celltype comparison result
 #'
 #' @param x `gleam_test` object or result table.
-#' @param top_n Number of pathways to display.
+#' @param top_n Number of signatures to display.
 #' @param point_size Point size.
 #' @param theme_params Optional list passed to [gleam_theme()].
 #'
@@ -19,6 +19,6 @@ plot_celltype_compare <- function(x, top_n = 20, point_size = 2.5, theme_params 
   ggplot2::ggplot(sel, ggplot2::aes(x = .data$pathway, y = .data$effect_size, color = .data$p_adj)) +
     ggplot2::geom_point(size = point_size) +
     ggplot2::coord_flip() +
-    ggplot2::labs(x = "Pathway", y = "Effect size", title = "Celltype pathway comparison") +
+    ggplot2::labs(x = "Signature", y = "Effect size", title = "Celltype signature comparison") +
     do.call(gleam_theme, tp)
 }

@@ -1,7 +1,7 @@
-#' Ridge plot for pathway score distributions
+#' Ridge plot for signature score distributions
 #'
 #' @param score `gleam_score` object.
-#' @param pathway Pathway name.
+#' @param pathway Signature name (legacy argument name).
 #' @param group Group variable.
 #' @param palette Discrete palette name or custom colors.
 #' @param alpha Transparency of ridges.
@@ -12,7 +12,7 @@
 plot_ridge <- function(score, pathway, group, palette = "gleam_discrete", alpha = 0.75, theme_params = list()) {
   check_score_object(score)
   check_plot_dependency("plot_ridge", "ggridges")
-  if (!pathway %in% rownames(score$score)) stop("`pathway` not found in score matrix.", call. = FALSE)
+  if (!pathway %in% rownames(score$score)) stop("`signature` not found in score matrix.", call. = FALSE)
 
   g <- resolve_meta_var(score$meta, group, "group")
   df <- data.frame(group = as.factor(g), value = as.numeric(score$score[pathway, ]), stringsAsFactors = FALSE)
@@ -21,6 +21,6 @@ plot_ridge <- function(score, pathway, group, palette = "gleam_discrete", alpha 
   ggplot2::ggplot(df, ggplot2::aes(x = .data$value, y = .data$group, fill = .data$group)) +
     ggridges::geom_density_ridges(alpha = alpha, scale = 1.2, color = "#1f2937", linewidth = 0.25) +
     scale_gleam_fill(palette = palette, continuous = FALSE) +
-    ggplot2::labs(title = paste("Ridge plot:", pathway), x = "Pathway score", y = "Group") +
+    ggplot2::labs(title = paste("Ridge plot:", pathway), x = "Signature score", y = "Group") +
     do.call(gleam_theme, tp)
 }
