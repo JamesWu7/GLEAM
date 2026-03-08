@@ -88,6 +88,17 @@ reference:
       - summarize_scores
       - pivot_scores_long
       - export_scores
+  - title: Example data
+    contents:
+      - hallmark
+      - immune_small
+      - pbmc_medium_matrix
+      - pbmc_medium_meta
+      - pbmc_small
+      - spatial_medium_coords
+      - spatial_medium_expr
+      - spatial_medium_meta
+      - toy_expr
 
 articles:
   - title: Quick starts
