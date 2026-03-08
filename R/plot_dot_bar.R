@@ -71,7 +71,7 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
 
   group_vals_raw <- mean_df[[group_col]]
   g_levels <- if (is.factor(group_vals_raw)) {
-    levels(stats::droplevels(group_vals_raw))
+    levels(droplevels(group_vals_raw))
   } else {
     unique(as.character(group_vals_raw))
   }
@@ -117,11 +117,13 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
   }
   bar_df$signature <- factor(as.character(bar_df$signature), levels = unique(as.character(mean_df$signature)))
   bar_df$celltype_plot <- factor(as.character(bar_df$celltype), levels = levels(mean_df$celltype_plot))
+  bar_df$direction <- ifelse(bar_df$delta >= 0, "increase", "decrease")
+  bar_df$direction <- factor(bar_df$direction, levels = c("decrease", "increase"))
 
   bar <- ggplot2::ggplot(bar_df, ggplot2::aes(x = .data$delta, y = .data$celltype_plot)) +
-    ggplot2::geom_col(ggplot2::aes(fill = .data$delta >= 0), width = 0.65, color = NA) +
+    ggplot2::geom_col(ggplot2::aes(fill = .data$direction), width = 0.65, color = NA) +
     ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "grey35", linewidth = 0.35) +
-    ggplot2::scale_fill_manual(values = c(`TRUE` = "#D73027", `FALSE` = "#2B83BA"), guide = "none") +
+    scale_gleam_fill(palette = c("#2B83BA", "#D73027"), continuous = FALSE) +
     ggplot2::facet_wrap(~signature, scales = "free_x", ncol = ncol_facet) +
     ggplot2::labs(
       title = paste0("Group difference (", g2, " - ", g1, ")"),
