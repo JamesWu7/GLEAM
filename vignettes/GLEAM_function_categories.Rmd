@@ -35,7 +35,6 @@ vignette: >
 ## 4) Differential analysis
 
 - `test_signature()`
-- `differential_signature()`
 - `compare_celltypes()`
 - `compare_groups_within_celltype()`
 - `test_signature_spatial()`
@@ -73,4 +72,4 @@ vignette: >
 - `summarize_scores()`
 - `pivot_scores_long()`
 - `export_scores()`
-- `compare_methods()`
+- `compare_scoring_methods()`

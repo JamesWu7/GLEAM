@@ -2,7 +2,7 @@ test_that("rank scoring returns pathway by cell matrix", {
   data("toy_expr", package = "GLEAM")
   data("immune_small", package = "GLEAM")
 
-  sc <- score_pathway(
+  sc <- score_signature(
     expr = toy_expr$expr,
     meta = toy_expr$meta,
     geneset = immune_small,

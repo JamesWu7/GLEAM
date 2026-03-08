@@ -10,7 +10,7 @@ test_that("new native scoring methods run", {
   data("toy_expr", package = "GLEAM")
   meths <- c("mean", "scaled_mean", "robust", "singscore_like", "ssgsea_like")
   for (m in meths) {
-    sc <- score_pathway(
+    sc <- score_signature(
       expr = toy_expr$expr,
       meta = toy_expr$meta,
       geneset = "immune_small",

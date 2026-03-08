@@ -1,6 +1,6 @@
 test_that("cell-level testing returns required fields", {
   data("toy_expr", package = "GLEAM")
-  sc <- score_pathway(
+  sc <- score_signature(
     expr = toy_expr$expr,
     meta = toy_expr$meta,
     geneset = "immune_small",
@@ -10,7 +10,7 @@ test_that("cell-level testing returns required fields", {
     verbose = FALSE
   )
 
-  tt <- test_pathway(sc, group = "group", level = "cell", method = "wilcox", verbose = FALSE)
+  tt <- test_signature(sc, group = "group", level = "cell", method = "wilcox", verbose = FALSE)
   expect_s3_class(tt, "gleam_test")
 
   req <- c(

@@ -35,7 +35,7 @@ resolve_meta_var <- function(meta, x, arg_name) {
 #' @keywords internal
 check_score_object <- function(score) {
   if (!inherits(score, "gleam_score") && !inherits(score, "scpathway_score")) {
-    stop("`score` must be an object returned by score_pathway().", call. = FALSE)
+    stop("`score` must be an object returned by score_signature().", call. = FALSE)
   }
 }
 

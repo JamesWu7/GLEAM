@@ -1,6 +1,6 @@
 test_that("within-celltype comparison runs", {
   data("toy_expr", package = "GLEAM")
-  sc <- score_pathway(
+  sc <- score_signature(
     expr = toy_expr$expr,
     meta = toy_expr$meta,
     geneset = "immune_small",

@@ -27,7 +27,7 @@
 #' @param verbose Whether to print messages.
 #'
 #' @return An object of class `gleam_score`.
-#' @export
+#' @keywords internal
 score_pathway <- function(
   object = NULL,
   expr = NULL,

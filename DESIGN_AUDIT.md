@@ -3,6 +3,9 @@
 Date: 2026-03-08
 Repository: `JamesWu7/GLEAM`
 
+> Note: this is the Phase A baseline design record. The current API has since been tightened:
+> legacy `*_pathway*` and `run_scpathway` are no longer exported, and duplicated `differential_*`/`compare_methods` entrypoints were merged into canonical interfaces.
+
 ## 1) Gap analysis
 
 ### Already present

@@ -1,37 +1,33 @@
-test_that("signature aliases are available and compatible with pathway APIs", {
-  data("toy_expr", package = "GLEAM")
+test_that("public API keeps canonical signature entrypoints", {
+  ns <- getNamespaceExports("GLEAM")
 
-  sc_sig <- score_signature(
-    expr = toy_expr$expr,
-    meta = toy_expr$meta,
-    geneset = "immune_small",
-    seurat = FALSE,
-    method = "rank",
-    min_genes = 3,
-    verbose = FALSE
-  )
-  sc_old <- score_pathway(
-    expr = toy_expr$expr,
-    meta = toy_expr$meta,
-    geneset = "immune_small",
-    seurat = FALSE,
-    method = "rank",
-    min_genes = 3,
-    verbose = FALSE
-  )
-
-  expect_s3_class(sc_sig, "gleam_score")
-  expect_equal(dim(sc_sig$score), dim(sc_old$score))
-
-  tt_sig <- test_signature(sc_sig, group = "group", level = "cell", verbose = FALSE)
-  tt_old <- test_pathway(sc_old, group = "group", level = "cell", verbose = FALSE)
-  expect_s3_class(tt_sig, "gleam_test")
-  expect_equal(colnames(tt_sig$table), colnames(tt_old$table))
+  expect_true(all(c(
+    "run_gleam",
+    "score_signature",
+    "aggregate_signature",
+    "test_signature",
+    "test_signature_spatial",
+    "test_signature_trajectory",
+    "compare_scoring_methods"
+  ) %in% ns))
 })
 
-test_that("legacy wrappers remain available", {
-  expect_true(is.function(compare_methods))
-  expect_true(is.function(run_scpathway))
-  expect_true(is.function(score_pathway))
-  expect_true(is.function(test_pathway))
+test_that("legacy and duplicate entrypoints are no longer exported", {
+  ns <- getNamespaceExports("GLEAM")
+
+  expect_false(any(c(
+    "run_scpathway",
+    "score_pathway",
+    "aggregate_pathway",
+    "test_pathway",
+    "test_pathway_spatial",
+    "test_pathway_trajectory",
+    "differential_pathway",
+    "differential_pathway_spatial",
+    "differential_pathway_trajectory",
+    "differential_signature",
+    "differential_signature_spatial",
+    "differential_signature_trajectory",
+    "compare_methods"
+  ) %in% ns))
 })

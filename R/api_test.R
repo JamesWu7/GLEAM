@@ -21,7 +21,7 @@
 #' @param verbose Print messages.
 #'
 #' @return An object of class `gleam_test`.
-#' @export
+#' @keywords internal
 test_pathway <- function(
   score,
   group = NULL,

@@ -47,7 +47,7 @@ join_score_spatial <- function(score, coords, meta = NULL) {
 #' @param level Region level (`region` or `sample_region`).
 #'
 #' @return `gleam_test` object.
-#' @export
+#' @keywords internal
 test_pathway_spatial <- function(
   score,
   region,

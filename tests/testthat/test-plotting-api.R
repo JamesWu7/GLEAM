@@ -1,6 +1,6 @@
 test_that("additional plotting APIs return ggplot", {
   data("toy_expr", package = "GLEAM")
-  sc <- score_pathway(expr = toy_expr$expr, meta = toy_expr$meta, geneset = "immune_small", seurat = FALSE, method = "rank", min_genes = 3, verbose = FALSE)
+  sc <- score_signature(expr = toy_expr$expr, meta = toy_expr$meta, geneset = "immune_small", seurat = FALSE, method = "rank", min_genes = 3, verbose = FALSE)
 
   p1 <- plot_split_violin(sc, pathway = rownames(sc$score)[1], x = "celltype", split.by = "group")
   expect_s3_class(p1, "ggplot")

@@ -2,7 +2,7 @@ test_that("pseudobulk level works", {
   data("pbmc_medium_matrix", package = "GLEAM")
   data("pbmc_medium_meta", package = "GLEAM")
 
-  sc <- score_pathway(
+  sc <- score_signature(
     expr = pbmc_medium_matrix,
     meta = pbmc_medium_meta,
     geneset = "immune_small",
@@ -12,7 +12,7 @@ test_that("pseudobulk level works", {
     verbose = FALSE
   )
 
-  res <- test_pathway(
+  res <- test_signature(
     score = sc,
     group = "group",
     sample = "sample",
