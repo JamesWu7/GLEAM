@@ -20,6 +20,8 @@ if (!has_bioc) {
   cat("Hint: install.packages('BiocManager')\n")
 }
 if (!has_m3) {
-  cat("Hint: BiocManager::install('monocle3')\n")
+  cat("Hint: source('scripts/install_monocle3_optional.R')\n")
+  cat("Hint (manual): BiocManager::install('monocle3')\n")
+  cat("Optional troubleshooting: Sys.setenv(GLEAM_BIOC_VERSION = '3.21') before running install script.\n")
   cat("Note: monocle3 is optional and only needed for trajectory workflows.\n")
 }
