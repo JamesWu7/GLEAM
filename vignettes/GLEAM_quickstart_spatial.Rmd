@@ -25,16 +25,15 @@ library(GLEAM)
 This quick start demonstrates:
 
 1. Spatial Seurat input
-2. Standard preprocessing (normalization, HVG, PCA, neighbors, clustering, UMAP)
-3. Signature scoring on merged `stxBrain_anterior1` + `stxBrain_posterior1`
+2. Robust extraction from `stxBrain_anterior1` + `stxBrain_posterior1` without fragile image-slot merge
+3. Signature scoring on combined spatial expression/meta table
 4. Region/sample-aware differential testing
 5. Spatial score mapping with explicit slice/tissue context
 
 ## 1) Load/create spatial-capable Seurat object
 
-We keep the same conventional preprocessing logic used in scRNA analysis
-(normalization, PCA, neighbors, clustering, UMAP) so spatial signature patterns
-can be interpreted together with inferred spot states.
+To avoid Seurat image-slot version breakpoints (`VisiumV2` compatibility issues),
+we load Seurat spatial objects, then combine expression/metadata at matrix level.
 
 ```{r spatial-seurat-object, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.5, fig.height=5.4, out.width="90%"}
 library(Seurat)
@@ -46,40 +45,94 @@ if (p1_path == "") p1_path <- file.path("inst", "extdata", "full_examples", "stx
 
 sp_a1 <- readRDS(a1_path)
 sp_p1 <- readRDS(p1_path)
-sp_seu <- merge(sp_a1, y = sp_p1, add.cell.ids = c("anterior", "posterior"))
-if (ncol(sp_seu) > 6000) sp_seu <- subset(sp_seu, cells = colnames(sp_seu)[1:6000])
 
-sp_md <- sp_seu@meta.data
-if (!"sample" %in% colnames(sp_md)) sp_md$sample <- if ("orig.ident" %in% colnames(sp_md)) as.character(sp_md$orig.ident) else "sample_1"
+resolve_expr <- function(obj) {
+  assay_candidates <- unique(c(
+    tryCatch(SeuratObject::DefaultAssay(obj), error = function(e) NULL),
+    "Spatial",
+    "RNA"
+  ))
+  assay_candidates <- assay_candidates[!is.na(assay_candidates) & nzchar(assay_candidates)]
+
+  get_if_nonempty <- function(expr) {
+    m <- tryCatch(eval.parent(substitute(expr)), error = function(e) NULL)
+    if (!is.null(m) && nrow(m) > 0L && ncol(m) > 0L) return(m)
+    NULL
+  }
+
+  for (assay in assay_candidates) {
+    m <- get_if_nonempty(SeuratObject::LayerData(object = obj, assay = assay, layer = "data"))
+    if (!is.null(m)) return(m)
+    m <- get_if_nonempty(SeuratObject::LayerData(object = obj, assay = assay, layer = "counts"))
+    if (!is.null(m)) return(m)
+    m <- get_if_nonempty(SeuratObject::GetAssayData(object = obj, assay = assay, slot = "data"))
+    if (!is.null(m)) return(m)
+    m <- get_if_nonempty(SeuratObject::GetAssayData(object = obj, assay = assay, slot = "counts"))
+    if (!is.null(m)) return(m)
+  }
+
+  stop("Failed to extract non-empty expression matrix from Seurat spatial object.")
+}
+
+prep_spatial_object <- function(obj, sample_label) {
+  expr <- resolve_expr(obj)
+  md <- as.data.frame(obj[[]], stringsAsFactors = FALSE)
+  if (is.null(rownames(md))) rownames(md) <- colnames(expr)
+  md <- md[colnames(expr), , drop = FALSE]
+  if (!"sample" %in% colnames(md)) md$sample <- sample_label
+  if (!all(c("x", "y") %in% colnames(md))) {
+    if (all(c("imagecol", "imagerow") %in% colnames(md))) {
+      md$x <- md$imagecol
+      md$y <- md$imagerow
+    } else if (all(c("col", "row") %in% colnames(md))) {
+      md$x <- md$col
+      md$y <- md$row
+    }
+  }
+  prefixed_ids <- make.unique(paste0(sample_label, "_", colnames(expr)), sep = "_dup")
+  colnames(expr) <- prefixed_ids
+  rownames(md) <- prefixed_ids
+  list(expr = expr, meta = md)
+}
+
+sp1 <- prep_spatial_object(sp_a1, "anterior")
+sp2 <- prep_spatial_object(sp_p1, "posterior")
+common_genes <- intersect(rownames(sp1$expr), rownames(sp2$expr))
+sp_expr <- cbind(sp1$expr[common_genes, , drop = FALSE], sp2$expr[common_genes, , drop = FALSE])
+sp_md <- rbind(sp1$meta[colnames(sp1$expr), , drop = FALSE], sp2$meta[colnames(sp2$expr), , drop = FALSE])
+sp_md <- sp_md[colnames(sp_expr), , drop = FALSE]
+if (ncol(sp_expr) > 6000) {
+  keep <- colnames(sp_expr)[1:6000]
+  sp_expr <- sp_expr[, keep, drop = FALSE]
+  sp_md <- sp_md[keep, , drop = FALSE]
+}
 if (!"group" %in% colnames(sp_md)) sp_md$group <- ifelse(grepl("anterior", sp_md$sample, ignore.case = TRUE), "anterior", "posterior")
 if (!"region" %in% colnames(sp_md)) sp_md$region <- if ("seurat_clusters" %in% colnames(sp_md)) paste0("cluster_", sp_md$seurat_clusters) else sp_md$group
-sp_seu@meta.data <- sp_md
-
-if (!"pca" %in% names(sp_seu@reductions)) {
-  sp_seu <- NormalizeData(sp_seu)
-  sp_seu <- FindVariableFeatures(sp_seu)
-  sp_seu <- ScaleData(sp_seu)
-  sp_seu <- RunPCA(sp_seu)
-}
-if (!"umap" %in% names(sp_seu@reductions)) {
-  sp_seu <- FindNeighbors(sp_seu, dims = 1:20)
-  sp_seu <- FindClusters(sp_seu, resolution = 0.4)
-  sp_seu <- RunUMAP(sp_seu, dims = 1:20)
+if (!all(c("x", "y") %in% colnames(sp_md))) {
+  if (all(c("array_col", "array_row") %in% colnames(sp_md))) {
+    sp_md$x <- sp_md$array_col
+    sp_md$y <- sp_md$array_row
+  } else {
+    n <- nrow(sp_md)
+    sp_md$x <- seq_len(n)
+    sample_vec <- if ("sample" %in% colnames(sp_md)) sp_md$sample else rep("sample_1", n)
+    sp_md$y <- as.numeric(as.factor(sample_vec))
+  }
 }
 
 # Show object context early
-dim(sp_seu)
-sp_seu
-head(sp_seu@meta.data[, intersect(c("sample", "group", "region", "x", "y", "imagecol", "imagerow"), colnames(sp_seu@meta.data))])
-table(Idents(sp_seu))
-DimPlot(sp_seu, reduction = "umap", group.by = "seurat_clusters", label = TRUE, repel = TRUE, pt.size = 0.45)
-DimPlot(sp_seu, reduction = "umap", group.by = "region", pt.size = 0.45)
+dim(sp_a1); sp_a1
+dim(sp_p1); sp_p1
+head(sp_md[, intersect(c("sample", "group", "region", "x", "y", "imagecol", "imagerow"), colnames(sp_md))])
+if ("umap" %in% names(sp_a1@reductions)) {
+  DimPlot(sp_a1, reduction = "umap", group.by = "orig.ident", pt.size = 0.45)
+}
 ```
 
 ## 2) Score signatures
 
 ```{r spatial-signature-score, eval=requireNamespace("Seurat", quietly = TRUE)}
-sp_genes <- rownames(sp_seu)
+sp_genes <- rownames(sp_expr)
 half_n <- max(30, floor(length(sp_genes) / 2))
 idx_a <- seq_len(min(half_n, length(sp_genes)))
 idx_b <- seq(from = min(half_n + 1, length(sp_genes)), to = length(sp_genes))
@@ -88,13 +141,11 @@ gs <- list(
   Spatial_signature_B = unique(sp_genes[idx_b])[1:min(30, length(unique(sp_genes[idx_b])))]
 )
 sp <- score_signature(
-  object = sp_seu,
+  expr = sp_expr,
+  meta = sp_md,
   geneset = gs,
   geneset_source = "list",
-  seurat = TRUE,
-  assay = "RNA",
-  layer = "data",
-  slot = "data",
+  seurat = FALSE,
   method = "rank",
   min_genes = 3
 )
@@ -103,14 +154,7 @@ sp <- score_signature(
 ## 3) Spatial score plots (slice + coordinates)
 
 ```{r spatial-slice-view, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.5, fig.height=5.4, out.width="90%"}
-coords <- if (all(c("x", "y") %in% colnames(sp_seu@meta.data))) {
-  data.frame(x = sp_seu@meta.data$x, y = sp_seu@meta.data$y, row.names = rownames(sp_seu@meta.data))
-} else if (all(c("imagecol", "imagerow") %in% colnames(sp_seu@meta.data))) {
-  data.frame(x = sp_seu@meta.data$imagecol, y = sp_seu@meta.data$imagerow, row.names = rownames(sp_seu@meta.data))
-} else {
-  emb <- Embeddings(sp_seu, reduction = "pca")[, 1:2, drop = FALSE]
-  data.frame(x = emb[, 1], y = emb[, 2], row.names = rownames(emb))
-}
+coords <- data.frame(x = sp_md$x, y = sp_md$y, row.names = rownames(sp_md))
 
 # Simulated tissue-like background for slice-context demonstration
 tissue_bg <- as.raster(matrix(colorRampPalette(c("#f7f3e8", "#eadfca", "#d9c7a4"))(256), nrow = 16))

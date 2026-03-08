@@ -26,6 +26,24 @@ plot_trajectory_score <- function(
   check_score_object(score)
   if (!pathway %in% rownames(score$score)) stop("`signature` not found in score matrix.", call. = FALSE)
 
+  # Reuse Seurat FeaturePlot-style path for consistency with embedding score views.
+  if (is.null(embeddings) && !is.null(object) && is_seurat_object(object)) {
+    return(
+      plot_embedding_score(
+        score = score,
+        pathway = pathway,
+        embedding = NULL,
+        object = object,
+        reduction = reduction,
+        split.by = NULL,
+        point_size = point_size,
+        alpha = alpha,
+        palette = palette,
+        theme_params = theme_params
+      )
+    )
+  }
+
   emb <- if (!is.null(embeddings)) {
     as.matrix(embeddings)
   } else {

@@ -10,25 +10,57 @@ join_score_spatial <- function(score, coords, meta = NULL) {
   check_score_object(score)
   coords <- as.data.frame(coords)
   check_required_columns(coords, c("x", "y"))
+  score_ids <- colnames(score$score)
+
+  if (anyDuplicated(score_ids)) {
+    dup_ids <- unique(score_ids[duplicated(score_ids)])
+    stop(
+      "`score` contains duplicated cell IDs (e.g. ",
+      paste(utils::head(dup_ids, 5), collapse = ", "),
+      "). Ensure unique cell IDs before spatial joins.",
+      call. = FALSE
+    )
+  }
 
   if (is.null(rownames(coords))) {
     if (nrow(coords) != ncol(score$score)) {
       stop("If coordinates have no rownames, nrow(coords) must equal ncol(score).", call. = FALSE)
     }
-    rownames(coords) <- colnames(score$score)
+    rownames(coords) <- score_ids
+  }
+
+  if (anyDuplicated(rownames(coords))) {
+    dup_coords <- unique(rownames(coords)[duplicated(rownames(coords))])
+    stop(
+      "`coords` contains duplicated rownames (e.g. ",
+      paste(utils::head(dup_coords, 5), collapse = ", "),
+      "). Provide unique coordinate rownames matching score cell IDs.",
+      call. = FALSE
+    )
+  }
+  if (!all(score_ids %in% rownames(coords))) {
+    miss <- setdiff(score_ids, rownames(coords))
+    stop(
+      "Missing coordinates for ",
+      length(miss),
+      " score cell IDs (e.g. ",
+      paste(utils::head(miss, 5), collapse = ", "),
+      ").",
+      call. = FALSE
+    )
   }
 
   out <- data.frame(
-    cell_id = colnames(score$score),
-    x = coords[colnames(score$score), "x"],
-    y = coords[colnames(score$score), "y"],
+    cell_id = score_ids,
+    x = coords[score_ids, "x"],
+    y = coords[score_ids, "y"],
     stringsAsFactors = FALSE,
-    row.names = colnames(score$score)
+    row.names = score_ids
   )
 
   meta_use <- if (is.null(meta)) score$meta else as.data.frame(meta, stringsAsFactors = FALSE)
   if (!is.null(rownames(meta_use))) {
-    meta_use <- meta_use[colnames(score$score), , drop = FALSE]
+    meta_use <- meta_use[score_ids, , drop = FALSE]
   }
   # Avoid duplicate columns (`cell_id`, `x`, `y`) when metadata already carries spatial fields.
   meta_use <- meta_use[, setdiff(colnames(meta_use), c("cell_id", "x", "y")), drop = FALSE]

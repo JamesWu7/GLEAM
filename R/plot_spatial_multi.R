@@ -44,22 +44,43 @@ plot_spatial_multi <- function(
       feat_names[[i]] <- sig_col
     }
 
-    cols <- if (is.character(palette) && length(palette) == 1L) get_palette(palette, n = 128, continuous = TRUE) else palette
-    img <- tryCatch(names(object@images)[[1]], error = function(e) NULL)
-    p <- Seurat::SpatialFeaturePlot(
-      object = object,
-      features = feat_names,
-      images = img,
-      pt.size.factor = point_size,
-      alpha = c(0.05, alpha),
-      cols = cols
-    )
-    if ("patchwork" %in% class(p) && requireNamespace("patchwork", quietly = TRUE)) {
-      p <- p & do.call(gleam_theme, tp)
-    } else if (inherits(p, "ggplot")) {
-      p <- p + do.call(gleam_theme, tp)
+    p <- tryCatch({
+      cols <- if (is.character(palette) && length(palette) == 1L) get_palette(palette, n = 128, continuous = TRUE) else palette
+      img <- tryCatch(names(object@images)[[1]], error = function(e) NULL)
+      Seurat::SpatialFeaturePlot(
+        object = object,
+        features = feat_names,
+        images = img,
+        pt.size.factor = point_size,
+        alpha = c(0.05, alpha),
+        cols = cols
+      )
+    }, error = function(e) {
+      warning(
+        sprintf("Seurat SpatialFeaturePlot failed (%s). Falling back to coordinate scatter mode.", e$message),
+        call. = FALSE
+      )
+      NULL
+    })
+    if (!is.null(p)) {
+      if ("patchwork" %in% class(p) && requireNamespace("patchwork", quietly = TRUE)) {
+        p <- p & do.call(gleam_theme, tp)
+      } else if (inherits(p, "ggplot")) {
+        p <- p + do.call(gleam_theme, tp)
+      }
+      return(p)
     }
-    return(p)
+
+    md <- tryCatch(extract_meta(object = object, seurat = TRUE), error = function(e) NULL)
+    if (!is.null(md)) {
+      if (all(c("x", "y") %in% colnames(md))) {
+        coords <- data.frame(x = md$x, y = md$y, row.names = rownames(md))
+      } else if (all(c("imagecol", "imagerow") %in% colnames(md))) {
+        coords <- data.frame(x = md$imagecol, y = md$imagerow, row.names = rownames(md))
+      } else if (all(c("col", "row") %in% colnames(md))) {
+        coords <- data.frame(x = md$col, y = md$row, row.names = rownames(md))
+      }
+    }
   }
 
   if (is.null(coords)) {
