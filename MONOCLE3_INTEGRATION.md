@@ -36,7 +36,7 @@ if (!requireNamespace("remotes", quietly = TRUE)) {
 }
 remotes::install_github("bnprks/BPCells/r")
 
-BiocManager::install("monocle3")
+devtools::install_github('cole-trapnell-lab/monocle3')
 ```
 
 Notes:
