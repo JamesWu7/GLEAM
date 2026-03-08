@@ -17,7 +17,7 @@ jobs:
         with:
           extra-packages: any::rcmdcheck
           needs: check
-          dependencies: '"hard"'
+          dependencies: "hard"
       - uses: r-lib/actions/check-r-package@v2
         env:
           _R_CHECK_FORCE_SUGGESTS_: false
