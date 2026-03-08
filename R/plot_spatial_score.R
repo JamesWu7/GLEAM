@@ -30,7 +30,7 @@ plot_spatial_score <- function(
   dat$pathway_score <- as.numeric(score$score[pathway, dat$cell_id])
   tp <- resolve_text_params(theme_params)
 
-  p <- ggplot2::ggplot(dat, ggplot2::aes(x = ggplot2::.data$x, y = ggplot2::.data$y, color = ggplot2::.data$pathway_score))
+  p <- ggplot2::ggplot(dat, ggplot2::aes(x = .data$x, y = .data$y, color = .data$pathway_score))
   if (!is.null(image)) {
     p <- p + ggplot2::annotation_raster(image, xmin = min(dat$x), xmax = max(dat$x), ymin = min(dat$y), ymax = max(dat$y))
   }
@@ -45,7 +45,7 @@ plot_spatial_score <- function(
   if (!is.null(split.by)) {
     sp <- resolve_meta_var(score$meta, split.by, "split.by")
     dat$split <- as.factor(sp)
-    p <- ggplot2::ggplot(dat, ggplot2::aes(x = ggplot2::.data$x, y = ggplot2::.data$y, color = ggplot2::.data$pathway_score))
+    p <- ggplot2::ggplot(dat, ggplot2::aes(x = .data$x, y = .data$y, color = .data$pathway_score))
     if (!is.null(image)) {
       p <- p + ggplot2::annotation_raster(image, xmin = min(dat$x), xmax = max(dat$x), ymin = min(dat$y), ymax = max(dat$y))
     }

@@ -4,7 +4,12 @@
 \alias{join_score_trajectory}
 \title{Join score matrix and trajectory metadata}
 \usage{
-join_score_trajectory(score, pseudotime = NULL, lineage = NULL)
+join_score_trajectory(
+  score,
+  pseudotime = NULL,
+  lineage = NULL,
+  backend = c("auto", "internal", "monocle3", "monocle", "slingshot")
+)
 }
 \arguments{
 \item{score}{\code{gleam_score} object.}
@@ -12,6 +17,8 @@ join_score_trajectory(score, pseudotime = NULL, lineage = NULL)
 \item{pseudotime}{Pseudotime source.}
 
 \item{lineage}{Lineage source.}
+
+\item{backend}{Trajectory backend. \code{auto} detects from provided inputs.}
 }
 \value{
 Long-format data.frame.

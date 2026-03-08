@@ -42,7 +42,7 @@ plot_pseudobulk_box <- function(
   pb$group_celltype <- interaction(pb$group, pb$celltype, drop = TRUE)
   tp <- resolve_text_params(theme_params)
 
-  ggplot2::ggplot(pb, ggplot2::aes(x = ggplot2::.data$group_celltype, y = ggplot2::.data$value, fill = ggplot2::.data$group)) +
+  ggplot2::ggplot(pb, ggplot2::aes(x = .data$group_celltype, y = .data$value, fill = .data$group)) +
     ggplot2::geom_boxplot(outlier.shape = NA, alpha = alpha) +
     ggplot2::geom_jitter(width = 0.12, size = point_size, alpha = min(1, alpha + 0.15)) +
     scale_gleam_fill(palette = palette, continuous = FALSE) +

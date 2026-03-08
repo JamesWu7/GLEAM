@@ -31,7 +31,7 @@ plot_heatmap <- function(
   agg$pathway <- factor(agg$pathway, levels = rev(unique(agg$pathway)))
   tp <- resolve_text_params(theme_params)
 
-  ggplot2::ggplot(agg, ggplot2::aes(x = ggplot2::.data$group_key, y = ggplot2::.data$pathway, fill = ggplot2::.data$value)) +
+  ggplot2::ggplot(agg, ggplot2::aes(x = .data$group_key, y = .data$pathway, fill = .data$value)) +
     ggplot2::geom_tile() +
     scale_gleam_fill(palette = palette, continuous = TRUE) +
     ggplot2::labs(x = paste(by, collapse = ":"), y = "Pathway", title = "Pathway heatmap") +

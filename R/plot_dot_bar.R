@@ -23,8 +23,8 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
   mean_df$fraction <- frac_map[key]
   tp <- resolve_text_params(theme_params)
 
-  ggplot2::ggplot(mean_df, ggplot2::aes(x = ggplot2::.data$group_key, y = ggplot2::.data$pathway)) +
-    ggplot2::geom_point(ggplot2::aes(size = ggplot2::.data$fraction, color = ggplot2::.data$value), alpha = 0.9) +
+  ggplot2::ggplot(mean_df, ggplot2::aes(x = .data$group_key, y = .data$pathway)) +
+    ggplot2::geom_point(ggplot2::aes(size = .data$fraction, color = .data$value), alpha = 0.9) +
     ggplot2::scale_size_continuous(range = c(1, 8)) +
     scale_gleam_color(color_palette, continuous = TRUE) +
     ggplot2::labs(title = "Dot-bar summary", x = paste(by, collapse = ":"), y = "Pathway") +

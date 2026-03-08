@@ -118,18 +118,24 @@ extract_lineage <- function(score, lineage = NULL, object = NULL) {
 #' @param pseudotime Pseudotime source.
 #' @param lineage Lineage source.
 #' @param embeddings Optional embedding matrix.
+#' @param backend Trajectory backend. `auto` detects from provided inputs.
 #'
 #' @return Data.frame with `cell_id`, `pseudotime`, `lineage`, and embedding columns.
 #' @export
-as_trajectory_data <- function(score, pseudotime = NULL, lineage = NULL, embeddings = NULL) {
+as_trajectory_data <- function(
+  score,
+  pseudotime = NULL,
+  lineage = NULL,
+  embeddings = NULL,
+  backend = c("auto", "internal", "monocle3", "monocle", "slingshot")
+) {
   check_score_object(score)
-  pt <- extract_pseudotime(score, pseudotime = pseudotime)
-  ln <- extract_lineage(score, lineage = lineage)
+  tr <- as_trajectory_result(score = score, pseudotime = pseudotime, lineage = lineage, backend = backend)
 
   df <- data.frame(
     cell_id = colnames(score$score),
-    pseudotime = pt,
-    lineage = ln,
+    pseudotime = tr$pseudotime,
+    lineage = tr$lineage,
     stringsAsFactors = FALSE,
     row.names = colnames(score$score)
   )
@@ -150,12 +156,13 @@ as_trajectory_data <- function(score, pseudotime = NULL, lineage = NULL, embeddi
 #' @param score `gleam_score` object.
 #' @param pseudotime Pseudotime source.
 #' @param lineage Lineage source.
+#' @param backend Trajectory backend. `auto` detects from provided inputs.
 #'
 #' @return Long-format data.frame.
 #' @export
-join_score_trajectory <- function(score, pseudotime = NULL, lineage = NULL) {
+join_score_trajectory <- function(score, pseudotime = NULL, lineage = NULL, backend = c("auto", "internal", "monocle3", "monocle", "slingshot")) {
   check_score_object(score)
-  tr <- as_trajectory_data(score, pseudotime = pseudotime, lineage = lineage)
+  tr <- as_trajectory_data(score, pseudotime = pseudotime, lineage = lineage, backend = backend)
   long <- pivot_scores_long(score)
   merge(long, tr, by = "cell_id", all.x = TRUE)
 }
@@ -165,11 +172,12 @@ join_score_trajectory <- function(score, pseudotime = NULL, lineage = NULL) {
 #' @param score `gleam_score` object.
 #' @param pseudotime Pseudotime source.
 #' @param lineage Lineage source.
+#' @param backend Trajectory backend. `auto` detects from provided inputs.
 #'
 #' @return Long-format data.frame.
 #' @export
-map_scores_to_trajectory <- function(score, pseudotime = NULL, lineage = NULL) {
-  join_score_trajectory(score, pseudotime = pseudotime, lineage = lineage)
+map_scores_to_trajectory <- function(score, pseudotime = NULL, lineage = NULL, backend = c("auto", "internal", "monocle3", "monocle", "slingshot")) {
+  join_score_trajectory(score, pseudotime = pseudotime, lineage = lineage, backend = backend)
 }
 
 #' Test pathway association with trajectory
@@ -181,6 +189,7 @@ map_scores_to_trajectory <- function(score, pseudotime = NULL, lineage = NULL) {
 #' @param method One of `spearman`, `lm`, `tradeSeq`.
 #' @param adjust_method P-value adjustment method.
 #' @param verbose Print messages.
+#' @param backend Trajectory backend. `auto` detects from provided inputs.
 #'
 #' @return `gleam_test` object.
 #' @export
@@ -191,12 +200,15 @@ test_pathway_trajectory <- function(
   lineage = NULL,
   method = c("spearman", "lm", "tradeSeq"),
   adjust_method = "BH",
-  verbose = TRUE
+  verbose = TRUE,
+  backend = c("auto", "internal", "monocle3", "monocle", "slingshot")
 ) {
   check_score_object(score)
   method <- match.arg(method)
-  pt <- extract_pseudotime(score, pseudotime = pseudotime)
-  ln <- extract_lineage(score, lineage = lineage)
+  backend <- match.arg(backend)
+  tr <- as_trajectory_result(score = score, pseudotime = pseudotime, lineage = lineage, backend = backend)
+  pt <- tr$pseudotime
+  ln <- tr$lineage
   mat <- score$score
 
   if (!is.null(pathway)) {
@@ -277,7 +289,7 @@ test_pathway_trajectory <- function(
     table = tbl,
     level = "trajectory",
     method = method,
-    comparison = list(type = "trajectory"),
-    params = list(adjust_method = adjust_method)
+    comparison = list(type = "trajectory", backend = tr$backend, trajectory = tr),
+    params = list(adjust_method = adjust_method, backend = tr$backend, trajectory_version = tr$version_info)
   )
 }

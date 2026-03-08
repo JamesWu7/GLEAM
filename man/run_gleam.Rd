@@ -24,6 +24,7 @@ run_gleam(
   pseudotime = NULL,
   lineage = NULL,
   region = NULL,
+  backend = c("auto", "internal", "monocle3", "monocle", "slingshot"),
   top_n = 20,
   verbose = TRUE
 )
@@ -66,6 +67,8 @@ run_gleam(
 \item{lineage}{Lineage vector or metadata column name.}
 
 \item{region}{Spatial region/domain column name or vector.}
+
+\item{backend}{Trajectory backend used when \code{comparison = 'trajectory'}.}
 
 \item{top_n}{Number of top pathways.}
 

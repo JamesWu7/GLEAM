@@ -1,8 +1,8 @@
 test_that("detect_seurat_version is robust", {
-  expect_true(is.na(detect_seurat_version(NULL)))
+  expect_true(is.na(GLEAM:::detect_seurat_version(NULL)))
 
   fake <- structure(list(), class = "Seurat")
-  v <- detect_seurat_version(fake)
+  v <- GLEAM:::detect_seurat_version(fake)
   expect_true(is.na(v) || is.numeric(v))
 })
 

@@ -2,8 +2,20 @@
 % Please edit documentation in R/trajectory_utils.R
 \name{test_pathway_trajectory}
 \alias{test_pathway_trajectory}
+\alias{test_signature_trajectory}
 \title{Test pathway association with trajectory}
 \usage{
+test_signature_trajectory(
+  score,
+  pathway = NULL,
+  pseudotime = NULL,
+  lineage = NULL,
+  method = c("spearman", "lm", "tradeSeq"),
+  adjust_method = "BH",
+  verbose = TRUE,
+  backend = c("auto", "internal", "monocle3", "monocle", "slingshot")
+)
+
 test_pathway_trajectory(
   score,
   pathway = NULL,
@@ -11,7 +23,8 @@ test_pathway_trajectory(
   lineage = NULL,
   method = c("spearman", "lm", "tradeSeq"),
   adjust_method = "BH",
-  verbose = TRUE
+  verbose = TRUE,
+  backend = c("auto", "internal", "monocle3", "monocle", "slingshot")
 )
 }
 \arguments{
@@ -28,6 +41,8 @@ test_pathway_trajectory(
 \item{adjust_method}{P-value adjustment method.}
 
 \item{verbose}{Print messages.}
+
+\item{backend}{Trajectory backend. \code{auto} detects from provided inputs.}
 }
 \value{
 \code{gleam_test} object.

@@ -9,7 +9,7 @@ vignette: >
 
 ## 1) Input and data extraction
 
-- `score_pathway()`
+- `score_signature()`
 - `seurat_mode()`
 - `extract_embedding()`
 - `spatial_table()`
@@ -27,19 +27,19 @@ vignette: >
 
 ## 3) Scoring
 
-- `score_pathway()`
+- `score_signature()`
 - `list_scoring_methods()`
 - `compare_scoring_methods()`
 - `run_gleam()`
 
 ## 4) Differential analysis
 
-- `test_pathway()`
-- `differential_pathway()`
+- `test_signature()`
+- `differential_signature()`
 - `compare_celltypes()`
 - `compare_groups_within_celltype()`
-- `test_pathway_spatial()`
-- `test_pathway_trajectory()`
+- `test_signature_spatial()`
+- `test_signature_trajectory()`
 
 ## 5) Trajectory analysis
 
@@ -74,4 +74,3 @@ vignette: >
 - `pivot_scores_long()`
 - `export_scores()`
 - `compare_methods()`
-

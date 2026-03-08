@@ -8,11 +8,11 @@ citEntry(
   ),
   year = "2026",
   note = "R package version 0.2.0",
-  url = "https://github.com/jameswoo/GLEAM",
+  url = "https://github.com/JamesWu7/GLEAM",
   textVersion = paste(
     "Woo J (2026).",
     "GLEAM: Gene-set and cell-state exploration across space and time in R.",
     "R package version 0.2.0.",
-    "https://github.com/jameswoo/GLEAM"
+    "https://github.com/JamesWu7/GLEAM"
   )
 )

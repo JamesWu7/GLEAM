@@ -4,7 +4,12 @@
 \alias{map_scores_to_trajectory}
 \title{Map scores to trajectory table}
 \usage{
-map_scores_to_trajectory(score, pseudotime = NULL, lineage = NULL)
+map_scores_to_trajectory(
+  score,
+  pseudotime = NULL,
+  lineage = NULL,
+  backend = c("auto", "internal", "monocle3", "monocle", "slingshot")
+)
 }
 \arguments{
 \item{score}{\code{gleam_score} object.}
@@ -12,6 +17,8 @@ map_scores_to_trajectory(score, pseudotime = NULL, lineage = NULL)
 \item{pseudotime}{Pseudotime source.}
 
 \item{lineage}{Lineage source.}
+
+\item{backend}{Trajectory backend. \code{auto} detects from provided inputs.}
 }
 \value{
 Long-format data.frame.

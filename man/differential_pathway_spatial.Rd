@@ -2,8 +2,11 @@
 % Please edit documentation in R/differential_spatial.R
 \name{differential_pathway_spatial}
 \alias{differential_pathway_spatial}
+\alias{differential_signature_spatial}
 \title{Differential pathway for spatial metadata groups}
 \usage{
+differential_signature_spatial(...)
+
 differential_pathway_spatial(...)
 }
 \arguments{

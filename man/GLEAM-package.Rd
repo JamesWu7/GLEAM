@@ -6,15 +6,15 @@
 \alias{GLEAM-package}
 \title{GLEAM: Gene-set and cell-state exploration across space and time in R}
 \description{
-Matrix-native pathway and cell-state analysis toolkit for single-cell and
+Matrix-native signature and cell-state analysis toolkit for single-cell and
 spatial transcriptomics, with optional Seurat v4/v5, trajectory, and
 ecosystem integrations. Use \code{citation("GLEAM")} for citation metadata.
 }
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/jameswoo/GLEAM}
-  \item Report bugs at \url{https://github.com/jameswoo/GLEAM/issues}
+  \item \url{https://github.com/JamesWu7/GLEAM}
+  \item Report bugs at \url{https://github.com/JamesWu7/GLEAM/issues}
 }
 
 }

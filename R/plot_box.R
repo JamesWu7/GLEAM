@@ -35,7 +35,7 @@ plot_box <- function(
   samp <- stats::aggregate(score ~ sample + group, data = df, FUN = mean)
   tp <- resolve_text_params(theme_params)
 
-  ggplot2::ggplot(samp, ggplot2::aes(x = ggplot2::.data$group, y = ggplot2::.data$score, fill = ggplot2::.data$group)) +
+  ggplot2::ggplot(samp, ggplot2::aes(x = .data$group, y = .data$score, fill = .data$group)) +
     ggplot2::geom_boxplot(alpha = alpha, outlier.shape = NA) +
     ggplot2::geom_jitter(width = 0.12, size = point_size, alpha = min(1, alpha + 0.1)) +
     scale_gleam_fill(palette = palette, continuous = FALSE) +

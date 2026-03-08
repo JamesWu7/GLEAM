@@ -1,0 +1,35 @@
+name: optional-monocle3
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  trajectory-monocle3:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::BiocManager, any::testthat, local::.
+          dependencies: '"hard"'
+      - name: Install monocle3 (optional backend)
+        run: |
+          if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+          ok <- FALSE
+          try({
+            BiocManager::install("monocle3", ask = FALSE, update = FALSE)
+            ok <- requireNamespace("monocle3", quietly = TRUE)
+          }, silent = TRUE)
+          if (!ok) {
+            message("monocle3 install unavailable on this runner; proceeding with dependency-gated tests.")
+          }
+        shell: Rscript {0}
+      - name: Run optional trajectory tests
+        run: |
+          testthat::test_dir("tests/testthat", reporter = "summary", filter = "trajectory-monocle3|trajectory-optional-deps")
+        shell: Rscript {0}

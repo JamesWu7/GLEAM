@@ -30,6 +30,8 @@ join_score_spatial <- function(score, coords, meta = NULL) {
   if (!is.null(rownames(meta_use))) {
     meta_use <- meta_use[colnames(score$score), , drop = FALSE]
   }
+  # Avoid duplicate columns (`cell_id`, `x`, `y`) when metadata already carries spatial fields.
+  meta_use <- meta_use[, setdiff(colnames(meta_use), c("cell_id", "x", "y")), drop = FALSE]
 
   cbind(out, meta_use)
 }

@@ -41,23 +41,10 @@ check_score_object <- function(score) {
 
 #' @keywords internal
 require_optional_package <- function(pkg, feature = NULL) {
-  if (!requireNamespace(pkg, quietly = TRUE)) {
-    bioc_pkgs <- c("AUCell", "GSVA", "slingshot", "tradeSeq", "DESeq2", "edgeR", "limma", "clusterProfiler", "ReactomePA", "monocle3")
-    install_hint <- if (pkg %in% bioc_pkgs) {
-      sprintf("Install with BiocManager::install('%s').", pkg)
-    } else if (identical(pkg, "monocle")) {
-      "Install with BiocManager::install('monocle')."
-    } else {
-      sprintf("Install with install.packages('%s').", pkg)
-    }
-    msg <- if (is.null(feature)) {
-      sprintf("Optional package '%s' is required.", pkg)
-    } else {
-      sprintf("Optional package '%s' is required for %s.", pkg, feature)
-    }
-    stop(paste0(msg, " ", install_hint), call. = FALSE)
+  if (identical(pkg, "monocle3")) {
+    return(.assert_monocle3(feature = feature %||% "trajectory analysis"))
   }
-  invisible(TRUE)
+  .assert_pkg(pkg = pkg, feature = feature)
 }
 
 #' @keywords internal

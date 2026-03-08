@@ -27,7 +27,7 @@ plot_split_violin <- function(
   df <- data.frame(x = as.factor(xv), split = as.factor(sv), value = as.numeric(score$score[pathway, ]), stringsAsFactors = FALSE)
   tp <- resolve_text_params(theme_params)
 
-  ggplot2::ggplot(df, ggplot2::aes(x = ggplot2::.data$x, y = ggplot2::.data$value, fill = ggplot2::.data$split)) +
+  ggplot2::ggplot(df, ggplot2::aes(x = .data$x, y = .data$value, fill = .data$split)) +
     ggplot2::geom_violin(position = ggplot2::position_dodge(width = 0.85), alpha = alpha, trim = TRUE) +
     ggplot2::geom_boxplot(width = 0.15, outlier.shape = NA, position = ggplot2::position_dodge(width = 0.85)) +
     scale_gleam_fill(palette = palette, continuous = FALSE) +

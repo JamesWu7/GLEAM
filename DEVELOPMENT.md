@@ -5,6 +5,7 @@
 source("scripts/setup_dev.R")
 source("scripts/check_env.R")
 source("scripts/check_optional_deps.R")
+source("scripts/check_monocle3.R")
 ```
 
 ## Core development commands
@@ -25,12 +26,17 @@ source("scripts/refresh_example_data.R")
 source("scripts/build_example_seurat.R")
 ```
 
-## Render tutorials to HTML
+## Generate homepage workflow figures
 ```r
-source("scripts/render_examples.R")
+source("scripts/generate_homepage_figures.R")
 ```
 
-Rendered files are placed in `docs/tutorial_html/`.
+Generated figures are placed in `docs/assets/figures/` for README/pkgdown reuse.
+
+## Optional Monocle3 helper
+```r
+source("scripts/install_monocle3_optional.R")
+```
 
 ## Build pkgdown site
 ```r

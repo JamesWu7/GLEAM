@@ -36,7 +36,7 @@ plot_spatial_multi <- function(
   }))
   tp <- resolve_text_params(theme_params)
 
-  ggplot2::ggplot(long, ggplot2::aes(x = ggplot2::.data$x, y = ggplot2::.data$y, color = ggplot2::.data$value)) +
+  ggplot2::ggplot(long, ggplot2::aes(x = .data$x, y = .data$y, color = .data$value)) +
     ggplot2::geom_point(size = point_size, alpha = alpha) +
     scale_gleam_color(palette = palette, continuous = TRUE) +
     ggplot2::facet_wrap(~ pathway) +

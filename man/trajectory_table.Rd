@@ -4,7 +4,13 @@
 \alias{trajectory_table}
 \title{Build trajectory table from score object}
 \usage{
-trajectory_table(score, pseudotime = NULL, lineage = NULL, embeddings = NULL)
+trajectory_table(
+  score,
+  pseudotime = NULL,
+  lineage = NULL,
+  embeddings = NULL,
+  backend = c("auto", "internal", "monocle3", "monocle", "slingshot")
+)
 }
 \arguments{
 \item{score}{\code{gleam_score} object.}
@@ -14,6 +20,8 @@ trajectory_table(score, pseudotime = NULL, lineage = NULL, embeddings = NULL)
 \item{lineage}{Lineage source.}
 
 \item{embeddings}{Optional embedding matrix.}
+
+\item{backend}{Trajectory backend. \code{auto} detects from provided inputs.}
 }
 \value{
 Data.frame.

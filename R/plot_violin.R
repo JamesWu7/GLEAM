@@ -52,7 +52,7 @@ plot_violin <- function(
   df <- data.frame(group = as.factor(g[keep]), score = y[keep], stringsAsFactors = FALSE)
   tp <- resolve_text_params(theme_params)
 
-  ggplot2::ggplot(df, ggplot2::aes(x = ggplot2::.data$group, y = ggplot2::.data$score, fill = ggplot2::.data$group)) +
+  ggplot2::ggplot(df, ggplot2::aes(x = .data$group, y = .data$score, fill = .data$group)) +
     ggplot2::geom_violin(trim = trim, alpha = alpha, color = NA) +
     ggplot2::geom_boxplot(width = 0.12, outlier.shape = NA, fill = "white", alpha = 0.8, linewidth = 0.3) +
     ggplot2::geom_jitter(width = 0.08, size = point_size, alpha = min(1, alpha + 0.1), color = "#111827") +

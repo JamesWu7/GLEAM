@@ -2,8 +2,11 @@
 % Please edit documentation in R/differential_trajectory.R
 \name{differential_pathway_trajectory}
 \alias{differential_pathway_trajectory}
+\alias{differential_signature_trajectory}
 \title{Differential pathway along trajectory}
 \usage{
+differential_signature_trajectory(...)
+
 differential_pathway_trajectory(...)
 }
 \arguments{

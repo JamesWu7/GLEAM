@@ -9,7 +9,7 @@ vignette: >
 
 ```{r, eval=FALSE}
 # Seurat v5 layer path or v4 slot fallback
-sc <- score_pathway(
+sc <- score_signature(
   object = seu,
   geneset = "hallmark",
   seurat = TRUE,

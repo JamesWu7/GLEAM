@@ -2,8 +2,17 @@
 % Please edit documentation in R/aggregate_pathway.R
 \name{aggregate_pathway}
 \alias{aggregate_pathway}
+\alias{aggregate_signature}
 \title{Aggregate pathway scores}
 \usage{
+aggregate_signature(
+  score,
+  by,
+  fun = c("mean", "median", "fraction", "sum"),
+  threshold = 0,
+  long = TRUE
+)
+
 aggregate_pathway(
   score,
   by,

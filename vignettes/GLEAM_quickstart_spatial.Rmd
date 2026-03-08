@@ -8,7 +8,15 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.align = "center",
+  fig.width = 7.2,
+  fig.height = 5.2,
+  out.width = "85%",
+  dpi = 120
+)
 library(GLEAM)
 ```
 
@@ -23,7 +31,7 @@ This quick start demonstrates:
 
 ## 1) Load/create spatial-capable Seurat object
 
-```{r, eval=FALSE}
+```{r spatial-seurat-object, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.5, fig.height=5.4, out.width="90%"}
 library(Seurat)
 data("spatial_medium_expr", package = "GLEAM")
 data("spatial_medium_meta", package = "GLEAM")
@@ -35,13 +43,19 @@ sp_seu <- FindVariableFeatures(sp_seu)
 sp_seu <- ScaleData(sp_seu)
 sp_seu <- RunPCA(sp_seu)
 sp_seu <- RunUMAP(sp_seu, dims = 1:20)
+
+# Show object context early
+dim(sp_seu)
+sp_seu
+head(sp_seu@meta.data[, c("sample", "group", "region", "x", "y")])
+DimPlot(sp_seu, reduction = "umap", group.by = "region", pt.size = 0.45)
 ```
 
-## 2) Score pathways
+## 2) Score signatures
 
-```{r, eval=FALSE}
+```{r spatial-signature-score, eval=requireNamespace("Seurat", quietly = TRUE)}
 gs <- get_geneset("hallmark", source = "builtin", species = "human")
-sp <- score_pathway(
+sp <- score_signature(
   object = sp_seu,
   geneset = gs,
   geneset_source = "list",
@@ -55,7 +69,7 @@ sp <- score_pathway(
 
 ## 3) Spatial score plots (slice + coordinates)
 
-```{r, eval=FALSE}
+```{r spatial-slice-view, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.5, fig.height=5.4, out.width="90%"}
 coords <- data.frame(
   x = sp_seu@meta.data$x,
   y = sp_seu@meta.data$y,
@@ -76,8 +90,8 @@ plot_spatial_score(
 
 ## 4) Spatial differential testing
 
-```{r, eval=FALSE}
-sp_res <- test_pathway(
+```{r spatial-differential, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.5, fig.height=5.4, out.width="90%"}
+sp_res <- test_signature(
   score = sp,
   region = "region",
   group = "group",

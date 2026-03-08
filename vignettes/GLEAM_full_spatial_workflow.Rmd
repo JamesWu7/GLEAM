@@ -8,13 +8,21 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.align = "center",
+  fig.width = 7.4,
+  fig.height = 5.3,
+  out.width = "88%",
+  dpi = 120
+)
 library(GLEAM)
 ```
 
 ## 1) Spatial object construction
 
-```{r, eval=FALSE}
+```{r full-spatial-object, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.6, fig.height=5.6, out.width="92%"}
 library(Seurat)
 data("spatial_medium_expr", package = "GLEAM")
 data("spatial_medium_meta", package = "GLEAM")
@@ -26,14 +34,20 @@ sp_seu <- FindVariableFeatures(sp_seu)
 sp_seu <- ScaleData(sp_seu)
 sp_seu <- RunPCA(sp_seu)
 sp_seu <- RunUMAP(sp_seu, dims = 1:20)
+
+# Show object context before scoring
+dim(sp_seu)
+sp_seu
+head(sp_seu@meta.data[, c("sample", "group", "region", "section", "x", "y")])
+DimPlot(sp_seu, reduction = "umap", group.by = "region", pt.size = 0.35)
 ```
 
 ## 2) Geneset scoring in spatial context
 
-```{r, eval=FALSE}
+```{r full-spatial-score, eval=requireNamespace("Seurat", quietly = TRUE)}
 gs <- get_geneset("hallmark", source = "builtin", species = "human")
 
-sp <- score_pathway(
+sp <- score_signature(
   object = sp_seu,
   geneset = gs,
   geneset_source = "list",
@@ -47,7 +61,7 @@ sp <- score_pathway(
 
 ## 3) Spatial visualization (true spatial context)
 
-```{r, eval=FALSE}
+```{r full-spatial-map, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.6, fig.height=5.6, out.width="92%"}
 coords <- data.frame(
   x = sp_seu@meta.data$x,
   y = sp_seu@meta.data$y,
@@ -64,12 +78,12 @@ plot_spatial_multi(sp, pathways = rownames(sp$score)[1:4], coords = coords)
 
 ## 4) Spatial differential analysis
 
-```{r, eval=FALSE}
+```{r full-spatial-diff, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.6, fig.height=5.6, out.width="92%"}
 # region vs region
-res_region <- test_pathway(sp, region = "region", level = "region", method = "wilcox")
+res_region <- test_signature(sp, region = "region", level = "region", method = "wilcox")
 
 # group vs group within region
-res_group_region <- test_pathway(
+res_group_region <- test_signature(
   sp,
   region = "region",
   group = "group",
@@ -85,7 +99,7 @@ plot_spatial_compare(res_group_region)
 
 ## 5) Optional embedding linkage and trajectory-like display
 
-```{r, eval=FALSE}
+```{r full-spatial-embedding-link, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.6, fig.height=5.6, out.width="92%"}
 plot_embedding_score(sp, pathway = rownames(sp$score)[1], object = sp_seu, reduction = "umap")
 plot_pseudotime_score(sp, pathway = rownames(sp$score)[1], pseudotime = "pseudotime", lineage = "lineage")
 ```

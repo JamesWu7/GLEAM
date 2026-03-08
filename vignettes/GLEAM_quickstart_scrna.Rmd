@@ -8,7 +8,15 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.align = "center",
+  fig.width = 7.2,
+  fig.height = 5.2,
+  out.width = "85%",
+  dpi = 120
+)
 library(GLEAM)
 ```
 
@@ -18,13 +26,13 @@ This quick start demonstrates a practical Seurat-first scRNA workflow:
 
 1. Start from a Seurat object
 2. Load Hallmark and KEGG gene sets
-3. Score pathway activity
+3. Score signature activity
 4. Run differential analysis after scoring
 5. Visualize scores and differential outputs with Seurat-style displays
 
 ## 1) Prepare Seurat object
 
-```{r, eval=FALSE}
+```{r seurat-object, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.5, fig.height=5.4, out.width="90%"}
 library(Seurat)
 
 # Build a lightweight demo object from bundled matrix+metadata
@@ -38,6 +46,12 @@ seu <- ScaleData(seu)
 seu <- RunPCA(seu)
 seu <- RunUMAP(seu, dims = 1:20)
 seu <- RunTSNE(seu, dims = 1:20)
+
+# Show object context early
+dim(seu)
+seu
+head(seu@meta.data[, c("sample", "group", "celltype")])
+DimPlot(seu, reduction = "umap", group.by = "celltype", pt.size = 0.4)
 ```
 
 ## 2) Load built-in and curated genesets
@@ -47,10 +61,10 @@ gs_hallmark <- get_geneset("hallmark", source = "builtin", species = "human")
 gs_kegg <- get_geneset(NULL, source = "kegg", species = "human") # msigdbr optional
 ```
 
-## 3) Score pathways
+## 3) Score signatures
 
-```{r, eval=FALSE}
-sc <- score_pathway(
+```{r score-signature, eval=requireNamespace("Seurat", quietly = TRUE)}
+sc <- score_signature(
   object = seu,
   geneset = gs_hallmark,
   geneset_source = "list",
@@ -64,8 +78,8 @@ sc <- score_pathway(
 
 ## 4) Differential analysis after scoring
 
-```{r, eval=FALSE}
-res <- test_pathway(
+```{r signature-differential, eval=requireNamespace("Seurat", quietly = TRUE)}
+res <- test_signature(
   score = sc,
   group = "group",
   sample = "sample",
@@ -77,7 +91,7 @@ res <- test_pathway(
 
 ## 5) Core visualizations
 
-```{r, eval=FALSE}
+```{r quickstart-scrna-plots, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.5, fig.height=5.4, out.width="90%"}
 # FeaturePlot-like embedding displays
 top_pw <- res$table$pathway[order(res$table$p_adj)][1]
 plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "umap")

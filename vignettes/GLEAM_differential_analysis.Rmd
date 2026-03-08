@@ -12,7 +12,7 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(GLEAM)
 data("pbmc_medium_matrix", package = "GLEAM")
 data("pbmc_medium_meta", package = "GLEAM")
-sc <- score_pathway(
+sc <- score_signature(
   expr = pbmc_medium_matrix,
   meta = pbmc_medium_meta,
   geneset = "immune_small",
@@ -27,7 +27,7 @@ sc <- score_pathway(
 
 ## Comparison levels
 
-`test_pathway()` supports multiple levels:
+`test_signature()` supports multiple levels:
 
 - `cell` (exploratory)
 - `sample`
@@ -41,11 +41,11 @@ sc <- score_pathway(
 ## Common patterns
 
 ```{r, eval=FALSE}
-res_cell <- test_pathway(sc, group = "group", level = "cell", method = "wilcox")
-res_sample <- test_pathway(sc, group = "group", sample = "sample", level = "sample", method = "wilcox")
-res_celltype <- test_pathway(sc, celltype = "celltype", group = "group", level = "celltype", method = "wilcox")
-res_sample_celltype <- test_pathway(sc, group = "group", sample = "sample", celltype = "celltype", level = "sample_celltype")
-res_pb <- test_pathway(sc, group = "group", sample = "sample", celltype = "celltype", level = "pseudobulk")
+res_cell <- test_signature(sc, group = "group", level = "cell", method = "wilcox")
+res_sample <- test_signature(sc, group = "group", sample = "sample", level = "sample", method = "wilcox")
+res_celltype <- test_signature(sc, celltype = "celltype", group = "group", level = "celltype", method = "wilcox")
+res_sample_celltype <- test_signature(sc, group = "group", sample = "sample", celltype = "celltype", level = "sample_celltype")
+res_pb <- test_signature(sc, group = "group", sample = "sample", celltype = "celltype", level = "pseudobulk")
 
 res_wct <- compare_groups_within_celltype(
   score = sc,

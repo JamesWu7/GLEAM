@@ -1,4 +1,4 @@
-url: https://jameswoo.github.io/GLEAM
+url: https://jameswu7.github.io/GLEAM
 template:
   bootstrap: 5
 
@@ -24,7 +24,7 @@ navbar:
 reference:
   - title: Input and data extraction
     contents:
-      - score_pathway
+      - score_signature
       - seurat_mode
       - extract_embedding
       - spatial_table
@@ -40,20 +40,20 @@ reference:
       - match_geneset
   - title: Scoring
     contents:
-      - aggregate_pathway
+      - aggregate_signature
       - list_scoring_methods
       - compare_scoring_methods
       - run_gleam
   - title: Differential analysis
     contents:
-      - test_pathway
-      - differential_pathway
+      - test_signature
+      - differential_signature
       - compare_celltypes
       - compare_groups_within_celltype
-      - test_pathway_spatial
-      - differential_pathway_spatial
-      - test_pathway_trajectory
-      - differential_pathway_trajectory
+      - test_signature_spatial
+      - differential_signature_spatial
+      - test_signature_trajectory
+      - differential_signature_trajectory
   - title: Trajectory analysis
     contents:
       - extract_pseudotime
@@ -98,6 +98,14 @@ reference:
       - compare_methods
   - title: Backward compatibility
     contents:
+      - score_pathway
+      - aggregate_pathway
+      - test_pathway
+      - differential_pathway
+      - test_pathway_spatial
+      - differential_pathway_spatial
+      - test_pathway_trajectory
+      - differential_pathway_trajectory
       - run_scpathway
 
 articles:

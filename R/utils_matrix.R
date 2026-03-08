@@ -18,6 +18,17 @@ as_dense_matrix <- function(x) {
 }
 
 #' @keywords internal
+col_means_by_idx <- function(expr, idx) {
+  if (length(idx) == 0L) {
+    return(rep(NA_real_, ncol(expr)))
+  }
+  if (inherits(expr, "dgCMatrix")) {
+    return(as.numeric(Matrix::colMeans(expr[idx, , drop = FALSE], na.rm = TRUE)))
+  }
+  as.numeric(colMeans(expr[idx, , drop = FALSE], na.rm = TRUE))
+}
+
+#' @keywords internal
 col_ranks_desc <- function(expr) {
   dense <- as_dense_matrix(expr)
   out <- apply(dense, 2, function(v) rank(-v, ties.method = "average"))

@@ -2,8 +2,19 @@
 % Please edit documentation in R/spatial_utils.R
 \name{test_pathway_spatial}
 \alias{test_pathway_spatial}
+\alias{test_signature_spatial}
 \title{Test spatial region/domain pathway differences}
 \usage{
+test_signature_spatial(
+  score,
+  region,
+  group = NULL,
+  sample = NULL,
+  method = c("wilcox", "t"),
+  adjust_method = "BH",
+  level = c("region", "sample_region")
+)
+
 test_pathway_spatial(
   score,
   region,

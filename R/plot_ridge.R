@@ -18,7 +18,7 @@ plot_ridge <- function(score, pathway, group, palette = "gleam_discrete", alpha 
   df <- data.frame(group = as.factor(g), value = as.numeric(score$score[pathway, ]), stringsAsFactors = FALSE)
   tp <- resolve_text_params(theme_params)
 
-  ggplot2::ggplot(df, ggplot2::aes(x = ggplot2::.data$value, y = ggplot2::.data$group, fill = ggplot2::.data$group)) +
+  ggplot2::ggplot(df, ggplot2::aes(x = .data$value, y = .data$group, fill = .data$group)) +
     ggridges::geom_density_ridges(alpha = alpha, scale = 1.2, color = "#1f2937", linewidth = 0.25) +
     scale_gleam_fill(palette = palette, continuous = FALSE) +
     ggplot2::labs(title = paste("Ridge plot:", pathway), x = "Pathway score", y = "Group") +

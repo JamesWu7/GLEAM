@@ -4,6 +4,18 @@
 #'
 #' @return Data.frame.
 #' @export
-trajectory_table <- function(score, pseudotime = NULL, lineage = NULL, embeddings = NULL) {
-  as_trajectory_data(score = score, pseudotime = pseudotime, lineage = lineage, embeddings = embeddings)
+trajectory_table <- function(
+  score,
+  pseudotime = NULL,
+  lineage = NULL,
+  embeddings = NULL,
+  backend = c("auto", "internal", "monocle3", "monocle", "slingshot")
+) {
+  as_trajectory_data(
+    score = score,
+    pseudotime = pseudotime,
+    lineage = lineage,
+    embeddings = embeddings,
+    backend = backend
+  )
 }

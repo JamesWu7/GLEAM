@@ -11,7 +11,7 @@ vignette: >
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 library(GLEAM)
 data("toy_expr", package = "GLEAM")
-sc <- score_pathway(
+sc <- score_signature(
   expr = toy_expr$expr,
   meta = toy_expr$meta,
   geneset = "immune_small",
@@ -34,7 +34,7 @@ head(traj_tbl)
 ## Trajectory differential testing
 
 ```{r}
-tr <- test_pathway_trajectory(sc, pseudotime = "pseudotime", lineage = "lineage", method = "spearman", verbose = FALSE)
+tr <- test_signature_trajectory(sc, pseudotime = "pseudotime", lineage = "lineage", method = "spearman", verbose = FALSE)
 head(tr$table)
 ```
 
@@ -48,12 +48,12 @@ plot_pseudotime_score(sc, pathway = rownames(sc$score)[1], pseudotime = "pseudot
 
 ```{r, eval=FALSE}
 # Monocle2 (monocle package)
-# tr_m2 <- test_pathway_trajectory(sc, pseudotime = cds_monocle2, lineage = cds_monocle2, method = "spearman")
+# tr_m2 <- test_signature_trajectory(sc, pseudotime = cds_monocle2, lineage = cds_monocle2, method = "spearman")
 
 # Monocle3
-# tr_m3 <- test_pathway_trajectory(sc, pseudotime = cds_monocle3, lineage = "lineage", method = "spearman")
+# tr_m3 <- test_signature_trajectory(sc, pseudotime = cds_monocle3, lineage = "lineage", method = "spearman")
 
 # slingshot
-# tr_sl <- test_pathway_trajectory(sc, pseudotime = sds, lineage = sds, method = "spearman")
+# tr_sl <- test_signature_trajectory(sc, pseudotime = sds, lineage = sds, method = "spearman")
 ```
 

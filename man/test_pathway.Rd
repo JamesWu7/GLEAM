@@ -2,8 +2,32 @@
 % Please edit documentation in R/api_test.R
 \name{test_pathway}
 \alias{test_pathway}
+\alias{test_signature}
 \title{Test pathway differences}
 \usage{
+test_signature(
+  score,
+  group = NULL,
+  sample = NULL,
+  celltype = NULL,
+  region = NULL,
+  pseudotime = NULL,
+  lineage = NULL,
+  level = c("cell", "sample", "celltype", "sample_celltype", "pseudobulk", "region",
+    "sample_region", "trajectory"),
+  method = c("wilcox", "t", "lm", "limma", "edgeR", "DESeq2", "spearman", "tradeSeq"),
+  ref_group = NULL,
+  paired = FALSE,
+  covariates = NULL,
+  adjust_method = "BH",
+  min_cells = 10,
+  min_samples = 2,
+  aggregation = c("mean", "median", "fraction", "sum"),
+  threshold = 0,
+  backend = c("auto", "internal", "monocle3", "monocle", "slingshot"),
+  verbose = TRUE
+)
+
 test_pathway(
   score,
   group = NULL,
@@ -23,6 +47,7 @@ test_pathway(
   min_samples = 2,
   aggregation = c("mean", "median", "fraction", "sum"),
   threshold = 0,
+  backend = c("auto", "internal", "monocle3", "monocle", "slingshot"),
   verbose = TRUE
 )
 }
@@ -60,6 +85,8 @@ test_pathway(
 \item{aggregation}{Aggregation summary used by pseudobulk levels.}
 
 \item{threshold}{Threshold used when \code{aggregation = 'fraction'}.}
+
+\item{backend}{Trajectory backend used when \code{level = 'trajectory'}.}
 
 \item{verbose}{Print messages.}
 }

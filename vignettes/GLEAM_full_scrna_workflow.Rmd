@@ -8,13 +8,21 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.align = "center",
+  fig.width = 7.4,
+  fig.height = 5.3,
+  out.width = "88%",
+  dpi = 120
+)
 library(GLEAM)
 ```
 
 ## 1) Build a Seurat object
 
-```{r, eval=FALSE}
+```{r full-scrna-object, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.6, fig.height=5.6, out.width="92%"}
 library(Seurat)
 data("pbmc_medium_matrix", package = "GLEAM")
 data("pbmc_medium_meta", package = "GLEAM")
@@ -26,14 +34,20 @@ seu <- ScaleData(seu)
 seu <- RunPCA(seu)
 seu <- RunUMAP(seu, dims = 1:20)
 seu <- RunTSNE(seu, dims = 1:20)
+
+# Show object context before downstream analysis
+dim(seu)
+seu
+head(seu@meta.data[, c("sample", "group", "celltype", "pseudotime", "lineage")])
+DimPlot(seu, reduction = "umap", group.by = "celltype", pt.size = 0.35)
 ```
 
 ## 2) Built-in geneset scoring + optional custom scoring
 
-```{r, eval=FALSE}
+```{r full-scrna-score, eval=requireNamespace("Seurat", quietly = TRUE)}
 gs_h <- get_geneset("hallmark", source = "builtin", species = "human")
 
-sc <- score_pathway(
+sc <- score_signature(
   object = seu,
   geneset = gs_h,
   geneset_source = "list",
@@ -45,20 +59,20 @@ sc <- score_pathway(
 )
 
 custom <- list(IFN_custom = c("STAT1", "IRF1", "ISG15", "IFIT3"))
-sc_custom <- score_pathway(object = seu, geneset = custom, geneset_source = "list", seurat = TRUE, method = "mean")
+sc_custom <- score_signature(object = seu, geneset = custom, geneset_source = "list", seurat = TRUE, method = "mean")
 ```
 
 ## 3) Differential analysis after scoring
 
-```{r, eval=FALSE}
+```{r full-scrna-diff, eval=requireNamespace("Seurat", quietly = TRUE)}
 # cell-level exploratory
-res_cell <- test_pathway(sc, group = "group", level = "cell", method = "wilcox")
+res_cell <- test_signature(sc, group = "group", level = "cell", method = "wilcox")
 
 # sample-level
-res_sample <- test_pathway(sc, group = "group", sample = "sample", level = "sample", method = "wilcox")
+res_sample <- test_signature(sc, group = "group", sample = "sample", level = "sample", method = "wilcox")
 
 # pseudobulk sample + celltype
-res_pb <- test_pathway(sc, group = "group", sample = "sample", celltype = "celltype", level = "pseudobulk", method = "wilcox")
+res_pb <- test_signature(sc, group = "group", sample = "sample", celltype = "celltype", level = "pseudobulk", method = "wilcox")
 
 # within-celltype
 res_wct <- compare_groups_within_celltype(sc, group = "group", celltype = "celltype", target_celltype = "CD8_T", sample = "sample", level = "sample")
@@ -66,7 +80,7 @@ res_wct <- compare_groups_within_celltype(sc, group = "group", celltype = "cellt
 
 ## 4) Embedding and Seurat-style visualizations
 
-```{r, eval=FALSE}
+```{r full-scrna-plots, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.6, fig.height=5.6, out.width="92%"}
 top_pw <- res_pb$table$pathway[order(res_pb$table$p_adj)][1]
 plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "umap")
 plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "pca")
@@ -83,9 +97,9 @@ plot_volcano(res_pb)
 
 ## 5) Trajectory / pseudotime integration
 
-```{r, eval=FALSE}
+```{r full-scrna-trajectory, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.6, fig.height=5.6, out.width="92%"}
 # Generic metadata-driven trajectory fields
-traj_res <- test_pathway_trajectory(sc, pseudotime = "pseudotime", lineage = "lineage", method = "spearman")
+traj_res <- test_signature_trajectory(sc, pseudotime = "pseudotime", lineage = "lineage", method = "spearman")
 plot_pseudotime_score(sc, pathway = rownames(sc$score)[1], pseudotime = "pseudotime", lineage = "lineage")
 plot_trajectory_score(sc, pathway = rownames(sc$score)[1], object = seu, reduction = "umap")
 ```
@@ -94,18 +108,18 @@ plot_trajectory_score(sc, pathway = rownames(sc$score)[1], object = seu, reducti
 
 ```{r, eval=FALSE}
 # Monocle2 object (package monocle)
-# traj_res_m2 <- test_pathway_trajectory(sc, pseudotime = cds_monocle2, lineage = cds_monocle2, method = "spearman")
+# traj_res_m2 <- test_signature_trajectory(sc, pseudotime = cds_monocle2, lineage = cds_monocle2, method = "spearman")
 
 # Monocle3 object (package monocle3)
-# traj_res_m3 <- test_pathway_trajectory(sc, pseudotime = cds_monocle3, lineage = "lineage", method = "spearman")
+# traj_res_m3 <- test_signature_trajectory(sc, pseudotime = cds_monocle3, lineage = "lineage", method = "spearman")
 
 # slingshot object
-# traj_res_sl <- test_pathway_trajectory(sc, pseudotime = sds, lineage = sds, method = "spearman")
+# traj_res_sl <- test_signature_trajectory(sc, pseudotime = sds, lineage = sds, method = "spearman")
 ```
 
 ## 6) Export score tables and compare methods
 
-```{r, eval=FALSE}
+```{r full-scrna-export, eval=requireNamespace("Seurat", quietly = TRUE)}
 long_tbl <- pivot_scores_long(sc)
 sum_tbl <- summarize_scores(sc, by = c("sample", "group"), fun = "mean")
 export_scores(sc, "gleam_scores_scrna.csv", format = "csv", include_meta = TRUE)

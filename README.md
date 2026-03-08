@@ -1,28 +1,38 @@
 <p align="center">
-  <img src="man/figures/GLEAM_LOG.jpg" alt="GLEAM logo" width="220"/>
+  <img src="docs/assets/GLEAM_LOG.jpg" alt="GLEAM logo" width="280"/>
 </p>
 
 # GLEAM
 
 GLEAM: Gene-set and cell-state exploration across space and time in R
 
-[![R-CMD-check](https://github.com/jameswoo/GLEAM/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jameswoo/GLEAM/actions/workflows/R-CMD-check.yaml)
-[![pkgdown](https://github.com/jameswoo/GLEAM/actions/workflows/pkgdown.yaml/badge.svg)](https://github.com/jameswoo/GLEAM/actions/workflows/pkgdown.yaml)
+![R-CMD-check](https://github.com/JamesWu7/GLEAM/actions/workflows/R-CMD-check.yaml/badge.svg)
+![pkgdown](https://github.com/JamesWu7/GLEAM/actions/workflows/pkgdown.yaml/badge.svg)
 
-**Navigation:** [Documentation](https://jameswoo.github.io/GLEAM/) | [Reference](https://jameswoo.github.io/GLEAM/reference/) | [Tutorials](https://jameswoo.github.io/GLEAM/articles/) | [Citation](https://jameswoo.github.io/GLEAM/articles/GLEAM_citation.html)
+**Navigation:** [Documentation](https://jameswu7.github.io/GLEAM/) | [Reference](https://jameswu7.github.io/GLEAM/reference/) | [Tutorials](https://jameswu7.github.io/GLEAM/articles/) | [Citation](https://jameswu7.github.io/GLEAM/articles/GLEAM_citation.html)
 
-GLEAM provides pathway and cell-state analysis workflows across scRNA-seq, spatial transcriptomics, and pseudotime/trajectory settings. It supports matrix-native and Seurat-based analysis, unified pathway scoring, differential testing after scoring, trajectory/spatial mapping, publication-ready plots, and tutorial-first onboarding. Built-in workflows focus on **human** and **mouse** gene sets, while custom gene sets remain open for other species.
+GLEAM provides pathway/signature scoring, cell-state exploration, differential analysis after scoring, trajectory-aware mapping, and spatial transcriptomics analysis for both matrix-native and Seurat workflows. Built-in geneset examples focus on human and mouse, and custom genesets remain fully supported for other species.
+
+## Workflow snapshots
+
+<p align="center">
+  <img src="docs/assets/figures/scrna_embedding_signature.png" alt="scRNA signature embedding view" width="46%"/>
+  <img src="docs/assets/figures/spatial_signature_map.png" alt="Spatial signature map view" width="46%"/>
+</p>
+<p align="center">
+  <img src="docs/assets/figures/scrna_dotbar_signature.png" alt="Dot-bar signature comparison" width="46%"/>
+  <img src="docs/assets/figures/trajectory_signature_trend.png" alt="Trajectory signature trend" width="46%"/>
+</p>
 
 ## Quick start (Seurat scRNA-seq)
 
 ```r
 library(GLEAM)
 
-# seu: preprocessed Seurat object (v4/v5)
 hallmark_gs <- get_geneset("hallmark", source = "builtin", species = "human")
-kegg_gs <- get_geneset(NULL, source = "kegg", species = "human")  # optional msigdbr backend
+kegg_gs <- get_geneset(NULL, source = "kegg", species = "human")
 
-sc_h <- score_pathway(
+sc <- score_signature(
   object = seu,
   geneset = hallmark_gs,
   geneset_source = "list",
@@ -32,50 +42,21 @@ sc_h <- score_pathway(
   slot = "data",
   method = "ensemble"
 )
+res <- test_signature(sc, group = "group", sample = "sample", celltype = "celltype", level = "pseudobulk")
+top_pw <- res$table$pathway[order(res$table$p_adj)][1]
+plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "umap")
+plot_dot_bar(sc, by = c("group", "celltype"))
+plot_violin(sc, pathway = rownames(sc$score)[1], group = "group")
+plot_ridge(sc, pathway = rownames(sc$score)[1], group = "celltype")
+plot_volcano(res)
 
-res_h <- test_pathway(
-  score = sc_h,
-  group = "group",
-  sample = "sample",
-  celltype = "celltype",
-  level = "pseudobulk",
-  method = "wilcox"
-)
-
-# Seurat-style practical displays
-top_pw <- res_h$table$pathway[order(res_h$table$p_adj)][1]
-plot_embedding_score(sc_h, pathway = top_pw, object = seu, reduction = "umap")
-plot_embedding_score(sc_h, pathway = top_pw, object = seu, reduction = "pca")
-plot_embedding_score(sc_h, pathway = top_pw, object = seu, reduction = "tsne")
-plot_dot_bar(sc_h, by = c("group", "celltype"))
-plot_violin(sc_h, pathway = rownames(sc_h$score)[1], group = "group")
-plot_ridge(sc_h, pathway = rownames(sc_h$score)[1], group = "celltype")
-plot_volcano(res_h)
-
-# Optional KEGG run
-sc_k <- score_pathway(object = seu, geneset = kegg_gs, geneset_source = "list", seurat = TRUE, method = "rank")
+sc_kegg <- score_signature(object = seu, geneset = kegg_gs, geneset_source = "list", seurat = TRUE, method = "rank")
 ```
 
-## Quick start (Seurat spatial transcriptomics)
+## Quick start (Seurat spatial)
 
 ```r
-library(GLEAM)
-
-# sp_seu: Seurat spatial object with coordinates and image when available
-gs <- get_geneset("hallmark", source = "builtin", species = "human")
-
-sp <- score_pathway(
-  object = sp_seu,
-  geneset = gs,
-  geneset_source = "list",
-  seurat = TRUE,
-  assay = "Spatial",
-  layer = "data",
-  slot = "data",
-  method = "rank"
-)
-
-# Slice/tissue view when image exists
+sp <- score_signature(object = sp_seu, geneset = hallmark_gs, geneset_source = "list", seurat = TRUE, assay = "Spatial")
 coords <- data.frame(
   x = sp_seu@meta.data$x,
   y = sp_seu@meta.data$y,
@@ -83,15 +64,7 @@ coords <- data.frame(
 )
 img <- as.raster(matrix(colorRampPalette(c("#f7f3e8", "#eadfca", "#d9c7a4"))(256), nrow = 16))
 plot_spatial_score(sp, pathway = rownames(sp$score)[1], coords = coords, image = img, split.by = "sample")
-
-sp_res <- test_pathway(
-  score = sp,
-  region = "region",
-  group = "group",
-  sample = "sample",
-  level = "sample_region",
-  method = "wilcox"
-)
+sp_res <- test_signature(sp, region = "region", group = "group", sample = "sample", level = "sample_region")
 top_sp_pw <- sp_res$table$pathway[order(sp_res$table$p_adj)][1]
 plot_spatial_score(sp, pathway = top_sp_pw, coords = coords, image = img, split.by = "region")
 plot_spatial_compare(sp_res)
@@ -105,59 +78,80 @@ custom_gs <- list(
   CYT_custom = c("NKG7", "PRF1", "GZMB", "GNLY")
 )
 
-sc_custom <- score_pathway(object = seu, geneset = custom_gs, geneset_source = "list", seurat = TRUE, method = "mean")
+sc_custom <- score_signature(
+  object = seu,
+  geneset = custom_gs,
+  geneset_source = "list",
+  seurat = TRUE,
+  method = "mean"
+)
 plot_dot(sc_custom, by = c("group", "celltype"))
 ```
 
 ## Supported gene-set sources
 
-- `builtin` (human/mouse focus): Hallmark-like and immune sets shipped in package.
-- `list`: named list input.
-- `gmt`: GMT file parser.
-- `data.frame`: `pathway` + `gene` columns.
-- `msigdb`, `go`, `kegg`, `reactome`: optional `msigdbr` backend, explicitly dependency-gated.
+- `builtin`: in-package Hallmark-like and immune collections (human/mouse focus).
+- `list`: user-provided named list.
+- `gmt`: GMT file input via `read_gmt()`.
+- `data.frame`: tabular input with `pathway` + `gene` columns.
+- `msigdb`, `go`, `kegg`, `reactome`: optional curated sources (dependency-gated, no silent internet-only behavior).
 
-## Visualization parameters
+## Visualization parameter guide
 
-All plotting functions return `ggplot` and support shared readability controls through `gleam_theme()`:
-
-- Text/font: `base_size`, `title_size`, `axis_text_size`, `legend_text_size`, `font_family`, `font_face`.
-- Text colors: `title_color`, `axis_text_color`, `legend_title_color`, `text_color`.
-- Palette/color: `palette` arguments in plot functions plus `get_palette()`, `scale_gleam_color()`, `scale_gleam_fill()`.
-- Common chart controls: `point_size`, `alpha`, `split.by`, `reduction`, and spatial image vs coordinate-only displays.
-
-Example:
-
-```r
-p <- plot_violin(sc_h, pathway = rownames(sc_h$score)[1], group = "group")
-apply_gleam_theme(p, base_size = 14, title_size = 18, axis_text_size = 12, font_family = "sans")
-```
+- Grouping/faceting: `group`, `group.by`, `split.by`, `region`, `sample`, `celltype`.
+- Embeddings: `reduction = "umap"|"pca"|"tsne"` in embedding/trajectory plots.
+- Spatial display: `coords` with optional `image` for slice-style overlays.
+- Style controls through theme helpers: `base_size`, `title_size`, `axis_text_size`, `legend_text_size`, `font_family`, `font_face`, `title_color`, `text_color`.
+- Palette controls: plot-level `palette` plus `get_palette()`, `scale_gleam_color()`, `scale_gleam_fill()`.
 
 ## Detailed tutorials by function category
 
-- Input and extraction: `score_pathway()`, `extract_embedding()`, `seurat_mode()`, `spatial_table()`.
-- Genesets: `get_geneset()`, `list_geneset_sources()`, `search_geneset()`, `as_geneset()`, `read_gmt()`.
-- Scoring: `score_pathway()`, `list_scoring_methods()`, `compare_scoring_methods()`.
-- Differential analysis: `test_pathway()`, `compare_celltypes()`, `compare_groups_within_celltype()`.
-- Trajectory: `test_pathway_trajectory()`, `plot_pseudotime_score()`, `plot_trajectory_score()`.
-- Spatial: `test_pathway_spatial()`, `plot_spatial_score()`, `plot_spatial_compare()`, `plot_spatial_multi()`.
-- Visualization: `plot_dot_bar()`, `plot_violin()`, `plot_ridge()`, `plot_embedding_score()`, `plot_volcano()`.
-- Export/comparison: `collect_scores()`, `summarize_scores()`, `pivot_scores_long()`, `export_scores()`.
+- Input/extraction: [Seurat v4/v5 input guide](https://jameswu7.github.io/GLEAM/articles/GLEAM_seurat_v4_v5_input.html)
+- Geneset management: [Supported genesets](https://jameswu7.github.io/GLEAM/articles/GLEAM_supported_genesets.html)
+- Scoring/methods: [Scoring method comparison](https://jameswu7.github.io/GLEAM/articles/GLEAM_scoring_method_comparison.html)
+- Differential analysis: [Differential analysis tutorial](https://jameswu7.github.io/GLEAM/articles/GLEAM_differential_analysis.html)
+- Trajectory analysis: [Trajectory mapping tutorial](https://jameswu7.github.io/GLEAM/articles/GLEAM_trajectory_mapping.html)
+- Spatial analysis: [Spatial full workflow](https://jameswu7.github.io/GLEAM/articles/GLEAM_full_spatial_workflow.html)
+- Function categories overview: [Function categories](https://jameswu7.github.io/GLEAM/articles/GLEAM_function_categories.html)
 
 ## Full workflow tutorials
 
-- Full scRNA-seq workflow: [GLEAM_full_scrna_workflow](https://jameswoo.github.io/GLEAM/articles/GLEAM_full_scrna_workflow.html)
-- Full spatial workflow: [GLEAM_full_spatial_workflow](https://jameswoo.github.io/GLEAM/articles/GLEAM_full_spatial_workflow.html)
+- Full scRNA workflow: [GLEAM_full_scrna_workflow](https://jameswu7.github.io/GLEAM/articles/GLEAM_full_scrna_workflow.html)
+- Full spatial workflow: [GLEAM_full_spatial_workflow](https://jameswu7.github.io/GLEAM/articles/GLEAM_full_spatial_workflow.html)
+
+## Installation tiers
+
+- Core: matrix-native scoring/testing/plotting (`install.packages("GLEAM")`).
+- Recommended: add `Seurat`, `SeuratObject`, and `msigdbr` for richer Seurat + curated geneset workflows.
+- Optional trajectory backends: `monocle3`, `monocle`, `slingshot`, `tradeSeq` (installed separately).
+
+## FAQ
+
+- Why is Monocle3 not installed automatically?
+  Monocle3 is an optional backend for trajectory workflows; core GLEAM workflows do not require it.
+- Do I need Monocle3 for non-trajectory analysis?
+  No. Signature scoring, differential analysis, and standard plotting run without Monocle3.
+- Why do trajectory functions ask for Monocle3 sometimes?
+  Only Monocle3-specific backend paths require it, and functions will provide install guidance.
+- Why do pathway and signature names both exist?
+  `signature` is the canonical naming family; `pathway` names are retained as compatibility wrappers.
+- Which names should new users use?
+  Use `score_signature()`, `test_signature()`, and related `*_signature*` functions.
+
+## API naming
+
+- Canonical API is signature-first: `score_signature()`, `test_signature()`, `test_signature_spatial()`, `test_signature_trajectory()`.
+- Pathway names remain as compatibility wrappers.
+- Main workflow entry point: `run_gleam()`.
+- Legacy aliases and migration notes are documented in `API_MIGRATION.md`.
+
+## Example data layout
+
+- Packaged lightweight data: `data/*.rda`
+- Full Seurat demo objects: `inst/extdata/full_examples/*.rds`
+- Optional Seurat subset generator: `data-raw/derive_test_subsets.R`
 
 ## Citation
 
-- R-native citation: `citation("GLEAM")`
-- Citation page: [GLEAM citation guide](https://jameswoo.github.io/GLEAM/articles/GLEAM_citation.html)
-
-## Local tutorial rendering
-
-```r
-source("scripts/render_examples.R")
-```
-
-Rendered HTML output directory: `docs/tutorial_html/`.
+- R-native: `citation("GLEAM")`
+- Citation guide: [GLEAM citation](https://jameswu7.github.io/GLEAM/articles/GLEAM_citation.html)

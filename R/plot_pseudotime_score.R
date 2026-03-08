@@ -36,7 +36,7 @@ plot_pseudotime_score <- function(
   )
   tp <- resolve_text_params(theme_params)
 
-  p <- ggplot2::ggplot(df, ggplot2::aes(x = ggplot2::.data$pseudotime, y = ggplot2::.data$score, color = ggplot2::.data$lineage)) +
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$pseudotime, y = .data$score, color = .data$lineage)) +
     ggplot2::geom_point(alpha = alpha, size = point_size) +
     scale_gleam_color(palette = palette, continuous = FALSE) +
     ggplot2::labs(title = paste("Pseudotime score:", pathway), x = "Pseudotime", y = "Pathway score") +

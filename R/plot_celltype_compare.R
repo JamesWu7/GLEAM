@@ -16,7 +16,7 @@ plot_celltype_compare <- function(x, top_n = 20, point_size = 2.5, theme_params 
   sel$pathway <- factor(sel$pathway, levels = rev(sel$pathway))
   tp <- resolve_text_params(theme_params)
 
-  ggplot2::ggplot(sel, ggplot2::aes(x = ggplot2::.data$pathway, y = ggplot2::.data$effect_size, color = ggplot2::.data$p_adj)) +
+  ggplot2::ggplot(sel, ggplot2::aes(x = .data$pathway, y = .data$effect_size, color = .data$p_adj)) +
     ggplot2::geom_point(size = point_size) +
     ggplot2::coord_flip() +
     ggplot2::labs(x = "Pathway", y = "Effect size", title = "Celltype pathway comparison") +

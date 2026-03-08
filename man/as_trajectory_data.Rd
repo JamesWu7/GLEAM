@@ -4,7 +4,13 @@
 \alias{as_trajectory_data}
 \title{Convert trajectory inputs to a unified data.frame}
 \usage{
-as_trajectory_data(score, pseudotime = NULL, lineage = NULL, embeddings = NULL)
+as_trajectory_data(
+  score,
+  pseudotime = NULL,
+  lineage = NULL,
+  embeddings = NULL,
+  backend = c("auto", "internal", "monocle3", "monocle", "slingshot")
+)
 }
 \arguments{
 \item{score}{\code{gleam_score} object.}
@@ -14,6 +20,8 @@ as_trajectory_data(score, pseudotime = NULL, lineage = NULL, embeddings = NULL)
 \item{lineage}{Lineage source.}
 
 \item{embeddings}{Optional embedding matrix.}
+
+\item{backend}{Trajectory backend. \code{auto} detects from provided inputs.}
 }
 \value{
 Data.frame with \code{cell_id}, \code{pseudotime}, \code{lineage}, and embedding columns.

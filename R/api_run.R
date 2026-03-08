@@ -19,6 +19,7 @@
 #' @param pseudotime Pseudotime vector or metadata column name.
 #' @param lineage Lineage vector or metadata column name.
 #' @param region Spatial region/domain column name or vector.
+#' @param backend Trajectory backend used when `comparison = 'trajectory'`.
 #' @param top_n Number of top pathways.
 #' @param verbose Print messages.
 #'
@@ -44,10 +45,12 @@ run_gleam <- function(
   pseudotime = NULL,
   lineage = NULL,
   region = NULL,
+  backend = c("auto", "internal", "monocle3", "monocle", "slingshot"),
   top_n = 20,
   verbose = TRUE
 ) {
   comparison <- match.arg(comparison)
+  backend <- match.arg(backend)
 
   sc <- score_pathway(
     object = object,
@@ -80,7 +83,7 @@ run_gleam <- function(
       )
     },
     trajectory = {
-      test_pathway_trajectory(sc, pathway = NULL, pseudotime = pseudotime, lineage = lineage, verbose = verbose)
+      test_pathway_trajectory(sc, pathway = NULL, pseudotime = pseudotime, lineage = lineage, backend = backend, verbose = verbose)
     },
     spatial = {
       if (is.null(region)) stop("`region` is required when comparison = 'spatial'.", call. = FALSE)

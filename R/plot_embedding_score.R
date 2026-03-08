@@ -60,7 +60,7 @@ plot_embedding_score <- function(
   }
   tp <- resolve_text_params(theme_params)
 
-  p <- ggplot2::ggplot(df, ggplot2::aes(x = ggplot2::.data$dim1, y = ggplot2::.data$dim2, color = ggplot2::.data$value)) +
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$dim1, y = .data$dim2, color = .data$value)) +
     ggplot2::geom_point(size = point_size, alpha = alpha) +
     scale_gleam_color(palette = palette, continuous = TRUE) +
     ggplot2::labs(x = colnames(emb)[1], y = colnames(emb)[2], color = pathway) +

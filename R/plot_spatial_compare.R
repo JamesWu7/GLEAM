@@ -16,7 +16,7 @@ plot_spatial_compare <- function(x, top_n = 20, alpha = 0.85, theme_params = lis
   sel$pathway <- factor(sel$pathway, levels = rev(sel$pathway))
   tp <- resolve_text_params(theme_params)
 
-  ggplot2::ggplot(sel, ggplot2::aes(x = ggplot2::.data$pathway, y = ggplot2::.data$effect_size, fill = ggplot2::.data$direction)) +
+  ggplot2::ggplot(sel, ggplot2::aes(x = .data$pathway, y = .data$effect_size, fill = .data$direction)) +
     ggplot2::geom_col(alpha = alpha) +
     ggplot2::coord_flip() +
     ggplot2::labs(title = "Spatial differential pathways", x = "Pathway", y = "Effect size") +

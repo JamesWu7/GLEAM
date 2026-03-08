@@ -2,8 +2,11 @@
 % Please edit documentation in R/differential_core.R
 \name{differential_pathway}
 \alias{differential_pathway}
+\alias{differential_signature}
 \title{Unified differential pathway interface}
 \usage{
+differential_signature(...)
+
 differential_pathway(...)
 }
 \arguments{

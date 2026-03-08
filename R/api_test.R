@@ -17,6 +17,7 @@
 #' @param min_samples Minimum samples per group.
 #' @param aggregation Aggregation summary used by pseudobulk levels.
 #' @param threshold Threshold used when `aggregation = 'fraction'`.
+#' @param backend Trajectory backend used when `level = 'trajectory'`.
 #' @param verbose Print messages.
 #'
 #' @return An object of class `gleam_test`.
@@ -39,12 +40,14 @@ test_pathway <- function(
   min_samples = 2,
   aggregation = c("mean", "median", "fraction", "sum"),
   threshold = 0,
+  backend = c("auto", "internal", "monocle3", "monocle", "slingshot"),
   verbose = TRUE
 ) {
   check_score_object(score)
   level <- match.arg(level)
   method <- match.arg(method)
   aggregation <- match.arg(aggregation)
+  backend <- match.arg(backend)
 
   meta <- score$meta
   if (is.null(group) && level %in% c("cell", "sample", "sample_celltype", "pseudobulk", "sample_region")) {
@@ -60,6 +63,7 @@ test_pathway <- function(
       lineage = lineage,
       method = if (method %in% c("spearman", "lm", "tradeSeq")) method else "spearman",
       adjust_method = adjust_method,
+      backend = backend,
       verbose = verbose
     )
     return(tst)
@@ -172,7 +176,8 @@ test_pathway <- function(
       min_cells = min_cells,
       min_samples = min_samples,
       aggregation = aggregation,
-      threshold = threshold
+      threshold = threshold,
+      backend = backend
     )
   )
 }
