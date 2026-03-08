@@ -52,7 +52,7 @@ run_gleam <- function(
   comparison <- match.arg(comparison)
   backend <- match.arg(backend)
 
-  sc <- score_pathway(
+  sc <- score_signature(
     object = object,
     expr = expr,
     meta = meta,
@@ -68,7 +68,7 @@ run_gleam <- function(
 
   tst <- switch(
     comparison,
-    group = test_pathway(sc, group = group, sample = sample, celltype = celltype, level = level, verbose = verbose),
+    group = test_signature(sc, group = group, sample = sample, celltype = celltype, level = level, verbose = verbose),
     celltype = compare_celltypes(sc, celltype = celltype, group = group, verbose = verbose),
     within_celltype = {
       if (is.null(target_celltype)) stop("`target_celltype` is required when comparison = 'within_celltype'.", call. = FALSE)
@@ -83,11 +83,11 @@ run_gleam <- function(
       )
     },
     trajectory = {
-      test_pathway_trajectory(sc, pathway = NULL, pseudotime = pseudotime, lineage = lineage, backend = backend, verbose = verbose)
+      test_signature_trajectory(sc, pathway = NULL, pseudotime = pseudotime, lineage = lineage, backend = backend, verbose = verbose)
     },
     spatial = {
       if (is.null(region)) stop("`region` is required when comparison = 'spatial'.", call. = FALSE)
-      test_pathway(sc, group = group, sample = sample, region = region, level = "region", verbose = verbose)
+      test_signature(sc, group = group, sample = sample, region = region, level = "region", verbose = verbose)
     }
   )
 
@@ -96,14 +96,4 @@ run_gleam <- function(
   top_tbl <- tbl[utils::head(ord, min(top_n, nrow(tbl))), , drop = FALSE]
 
   list(score = sc, test = tst, top_table = top_tbl)
-}
-
-#' End-to-end scPathway workflow (deprecated alias)
-#'
-#' @param ... Arguments passed to [run_gleam()].
-#' @return List containing score object and comparison result.
-#' @export
-run_scpathway <- function(...) {
-  warning("`run_scpathway()` is deprecated; use `run_gleam()`.", call. = FALSE)
-  run_gleam(...)
 }

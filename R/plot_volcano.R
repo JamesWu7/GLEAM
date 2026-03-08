@@ -1,4 +1,4 @@
-#' Volcano plot for differential pathways
+#' Volcano plot for differential signatures
 #'
 #' @param x `gleam_test` object or result data.frame.
 #' @param p_col P-value column name.
@@ -44,6 +44,6 @@ plot_volcano <- function(
   ggplot2::ggplot(df, ggplot2::aes(x = .data$effect, y = .data$neglog10, color = .data$significant)) +
     ggplot2::geom_point(alpha = alpha, size = point_size) +
     ggplot2::geom_hline(yintercept = -log10(sig_thresh), linetype = 2, color = "grey40") +
-    ggplot2::labs(x = "Effect size", y = "-log10(adj p)", title = "Differential pathway volcano") +
+    ggplot2::labs(x = "Effect size", y = "-log10(adj p)", title = "Differential signature volcano") +
     do.call(gleam_theme, tp)
 }

@@ -8,7 +8,7 @@ collect_scores <- function(...) {
   xs <- list(...)
   if (length(xs) < 1L) stop("Provide at least one score object.", call. = FALSE)
   ok <- vapply(xs, function(x) inherits(x, "gleam_score") || inherits(x, "scpathway_score"), logical(1))
-  if (!all(ok)) stop("All inputs must be score objects returned by score_pathway().", call. = FALSE)
+  if (!all(ok)) stop("All inputs must be score objects returned by score_signature().", call. = FALSE)
   xs
 }
 

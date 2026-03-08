@@ -7,7 +7,7 @@ test_that("geneset supports data.frame and gmt path", {
     stringsAsFactors = FALSE
   )
 
-  sc1 <- suppressWarnings(score_pathway(
+  sc1 <- suppressWarnings(score_signature(
     expr = toy_expr$expr,
     meta = toy_expr$meta,
     geneset = gs_df,
@@ -19,7 +19,7 @@ test_that("geneset supports data.frame and gmt path", {
   expect_s3_class(sc1, "gleam_score")
 
   gmt <- system.file("extdata", "genesets", "immune_small_example.gmt", package = "GLEAM")
-  sc2 <- score_pathway(
+  sc2 <- score_signature(
     expr = toy_expr$expr,
     meta = toy_expr$meta,
     geneset = gmt,
@@ -34,7 +34,7 @@ test_that("geneset supports data.frame and gmt path", {
 test_that("ensemble scoring works", {
   data("toy_expr", package = "GLEAM")
 
-  sc <- score_pathway(
+  sc <- score_signature(
     expr = toy_expr$expr,
     meta = toy_expr$meta,
     geneset = "immune_small",

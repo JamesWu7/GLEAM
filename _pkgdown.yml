@@ -47,13 +47,10 @@ reference:
   - title: Differential analysis
     contents:
       - test_signature
-      - differential_signature
       - compare_celltypes
       - compare_groups_within_celltype
       - test_signature_spatial
-      - differential_signature_spatial
       - test_signature_trajectory
-      - differential_signature_trajectory
   - title: Trajectory analysis
     contents:
       - extract_pseudotime
@@ -95,18 +92,6 @@ reference:
       - summarize_scores
       - pivot_scores_long
       - export_scores
-      - compare_methods
-  - title: Backward compatibility
-    contents:
-      - score_pathway
-      - aggregate_pathway
-      - test_pathway
-      - differential_pathway
-      - test_pathway_spatial
-      - differential_pathway_spatial
-      - test_pathway_trajectory
-      - differential_pathway_trajectory
-      - run_scpathway
 
 articles:
   - title: Quick starts

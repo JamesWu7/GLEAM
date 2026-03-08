@@ -1,10 +1,10 @@
-#' Heatmap of aggregated pathway scores
+#' Heatmap of aggregated signature scores
 #'
 #' @param score `gleam_score` object.
 #' @param by Grouping metadata columns.
 #' @param fun Aggregation function.
 #' @param threshold Threshold used by `fraction`.
-#' @param top_n Optional top pathways by variance.
+#' @param top_n Optional top signatures by variance.
 #' @param palette Continuous palette name or custom colors.
 #' @param theme_params Optional list passed to [gleam_theme()].
 #'
@@ -20,7 +20,7 @@ plot_heatmap <- function(
   theme_params = list()
 ) {
   fun <- match.arg(fun)
-  agg <- aggregate_pathway(score, by = by, fun = fun, threshold = threshold, long = TRUE)
+  agg <- aggregate_signature(score, by = by, fun = fun, threshold = threshold, long = TRUE)
 
   if (!is.null(top_n) && is.numeric(top_n) && top_n > 0) {
     vv <- tapply(agg$value, agg$pathway, stats::var, na.rm = TRUE)
@@ -34,6 +34,6 @@ plot_heatmap <- function(
   ggplot2::ggplot(agg, ggplot2::aes(x = .data$group_key, y = .data$pathway, fill = .data$value)) +
     ggplot2::geom_tile() +
     scale_gleam_fill(palette = palette, continuous = TRUE) +
-    ggplot2::labs(x = paste(by, collapse = ":"), y = "Pathway", title = "Pathway heatmap") +
+    ggplot2::labs(x = paste(by, collapse = ":"), y = "Signature", title = "Signature heatmap") +
     do.call(gleam_theme, tp)
 }

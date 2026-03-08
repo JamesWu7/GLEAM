@@ -1,7 +1,7 @@
 #' Plot group comparison within a fixed celltype
 #'
 #' @param x `gleam_test` object or result table.
-#' @param top_n Number of pathways to display.
+#' @param top_n Number of signatures to display.
 #' @param alpha Bar alpha.
 #' @param theme_params Optional list passed to [gleam_theme()].
 #'
@@ -19,6 +19,6 @@ plot_group_in_celltype <- function(x, top_n = 20, alpha = 0.85, theme_params = l
   ggplot2::ggplot(sel, ggplot2::aes(x = .data$pathway, y = .data$effect_size, fill = .data$direction)) +
     ggplot2::geom_col(alpha = alpha, width = 0.75) +
     ggplot2::coord_flip() +
-    ggplot2::labs(x = "Pathway", y = "Effect size", title = "Group difference within celltype") +
+    ggplot2::labs(x = "Signature", y = "Effect size", title = "Group difference within celltype") +
     do.call(gleam_theme, tp)
 }

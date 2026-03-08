@@ -1,7 +1,7 @@
-#' Plot pathway score on embedding coordinates
+#' Plot signature score on embedding coordinates
 #'
 #' @param score `gleam_score` object.
-#' @param pathway Pathway name.
+#' @param pathway Signature name (legacy argument name).
 #' @param embedding Embedding matrix with at least 2 columns.
 #' @param object Optional Seurat object.
 #' @param reduction Reduction name used when `embedding` is NULL.
@@ -26,7 +26,39 @@ plot_embedding_score <- function(
   theme_params = list()
 ) {
   check_score_object(score)
-  if (!pathway %in% rownames(score$score)) stop("`pathway` not found in score matrix.", call. = FALSE)
+  if (!pathway %in% rownames(score$score)) stop("`signature` not found in score matrix.", call. = FALSE)
+  tp <- resolve_text_params(theme_params)
+
+  # Seurat FeaturePlot-style rendering when Seurat object is supplied.
+  if (is.null(embedding) && !is.null(object) && is_seurat_object(object) && requireNamespace("Seurat", quietly = TRUE)) {
+    sig_col <- paste0("GLEAM_signature_", gsub("[^A-Za-z0-9_]+", "_", pathway))
+    cells <- intersect(colnames(object), colnames(score$score))
+    if (length(cells) < 1L) {
+      stop("No overlapping cells between `object` and score matrix.", call. = FALSE)
+    }
+    vals <- rep(NA_real_, length(colnames(object)))
+    names(vals) <- colnames(object)
+    vals[cells] <- as.numeric(score$score[pathway, cells])
+    object[[sig_col]] <- vals
+
+    cols <- if (is.character(palette) && length(palette) == 1L) get_palette(palette, n = 128, continuous = TRUE) else palette
+    p <- Seurat::FeaturePlot(
+      object = object,
+      features = sig_col,
+      reduction = reduction,
+      split.by = split.by,
+      pt.size = point_size,
+      cols = cols,
+      order = TRUE
+    )
+    if ("patchwork" %in% class(p) && requireNamespace("patchwork", quietly = TRUE)) {
+      p <- p & do.call(gleam_theme, tp)
+    } else if (inherits(p, "ggplot")) {
+      p <- p + do.call(gleam_theme, tp)
+    }
+    return(p)
+  }
+
   emb <- if (!is.null(embedding)) {
     as.matrix(embedding)
   } else {
@@ -58,16 +90,30 @@ plot_embedding_score <- function(
     grp <- resolve_meta_var(score$meta, split.by, "split.by")
     df$split <- as.factor(grp)
   }
-  tp <- resolve_text_params(theme_params)
+  # draw high-value cells on top to mimic FeaturePlot readability
+  df <- df[order(df$value), , drop = FALSE]
 
   p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$dim1, y = .data$dim2, color = .data$value)) +
     ggplot2::geom_point(size = point_size, alpha = alpha) +
     scale_gleam_color(palette = palette, continuous = TRUE) +
-    ggplot2::labs(x = colnames(emb)[1], y = colnames(emb)[2], color = pathway) +
+    ggplot2::labs(
+      title = paste("Signature:", pathway),
+      x = colnames(emb)[1],
+      y = colnames(emb)[2],
+      color = "Signature score"
+    ) +
     do.call(gleam_theme, tp)
 
   if (!is.null(split.by)) {
     p <- p + ggplot2::facet_wrap(~ split)
+  }
+  if (tolower(reduction) %in% c("umap", "tsne")) {
+    p <- p + ggplot2::theme(
+      axis.title = ggplot2::element_blank(),
+      axis.text = ggplot2::element_blank(),
+      axis.ticks = ggplot2::element_blank(),
+      panel.grid = ggplot2::element_blank()
+    )
   }
   p
 }

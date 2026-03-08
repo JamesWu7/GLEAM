@@ -1,8 +1,9 @@
-#' Plot pathway score on spatial coordinates
+#' Plot signature score on spatial coordinates
 #'
 #' @param score `gleam_score` object.
-#' @param pathway Pathway name.
+#' @param pathway Signature name (legacy argument name).
 #' @param coords Spatial coordinates data.frame with x/y.
+#' @param object Optional Seurat spatial object for in-slice plotting.
 #' @param image Optional raster/image object. If provided, used as background.
 #' @param palette Continuous palette name or colors.
 #' @param split.by Optional metadata split variable.
@@ -15,7 +16,8 @@
 plot_spatial_score <- function(
   score,
   pathway,
-  coords,
+  coords = NULL,
+  object = NULL,
   image = NULL,
   palette = "gleam_continuous",
   split.by = NULL,
@@ -24,11 +26,44 @@ plot_spatial_score <- function(
   theme_params = list()
 ) {
   check_score_object(score)
-  if (!pathway %in% rownames(score$score)) stop("`pathway` not found in score matrix.", call. = FALSE)
+  if (!pathway %in% rownames(score$score)) stop("`signature` not found in score matrix.", call. = FALSE)
+  tp <- resolve_text_params(theme_params)
 
+  # Prefer native Seurat spatial rendering when a spatial Seurat object is available.
+  if (is.null(coords) && !is.null(object) && is_seurat_object(object) && requireNamespace("Seurat", quietly = TRUE)) {
+    sig_col <- paste0("GLEAM_signature_", gsub("[^A-Za-z0-9_]+", "_", pathway))
+    cells <- intersect(colnames(object), colnames(score$score))
+    if (length(cells) < 1L) {
+      stop("No overlapping cells between `object` and score matrix.", call. = FALSE)
+    }
+    vals <- rep(NA_real_, length(colnames(object)))
+    names(vals) <- colnames(object)
+    vals[cells] <- as.numeric(score$score[pathway, cells])
+    object[[sig_col]] <- vals
+
+    cols <- if (is.character(palette) && length(palette) == 1L) get_palette(palette, n = 128, continuous = TRUE) else palette
+    img <- tryCatch(names(object@images)[[1]], error = function(e) NULL)
+    p <- Seurat::SpatialFeaturePlot(
+      object = object,
+      features = sig_col,
+      images = img,
+      pt.size.factor = point_size,
+      alpha = c(0.05, alpha),
+      cols = cols
+    )
+    if ("patchwork" %in% class(p) && requireNamespace("patchwork", quietly = TRUE)) {
+      p <- p & do.call(gleam_theme, tp)
+    } else if (inherits(p, "ggplot")) {
+      p <- p + do.call(gleam_theme, tp)
+    }
+    return(p)
+  }
+
+  if (is.null(coords)) {
+    stop("Provide `coords`, or supply a Seurat spatial `object` for in-slice plotting.", call. = FALSE)
+  }
   dat <- join_score_spatial(score, coords)
   dat$pathway_score <- as.numeric(score$score[pathway, dat$cell_id])
-  tp <- resolve_text_params(theme_params)
 
   p <- ggplot2::ggplot(dat, ggplot2::aes(x = .data$x, y = .data$y, color = .data$pathway_score))
   if (!is.null(image)) {
@@ -39,7 +74,8 @@ plot_spatial_score <- function(
     ggplot2::geom_point(size = point_size, alpha = alpha) +
     scale_gleam_color(palette = palette, continuous = TRUE) +
     ggplot2::coord_fixed() +
-    ggplot2::labs(title = paste("Spatial score:", pathway), x = "x", y = "y", color = pathway) +
+    ggplot2::labs(title = paste("Spatial signature:", pathway), x = NULL, y = NULL, color = "Signature score") +
+    ggplot2::scale_y_reverse() +
     do.call(gleam_theme, tp)
 
   if (!is.null(split.by)) {
@@ -54,7 +90,8 @@ plot_spatial_score <- function(
       scale_gleam_color(palette = palette, continuous = TRUE) +
       ggplot2::coord_fixed() +
       ggplot2::facet_wrap(~ split) +
-      ggplot2::labs(title = paste("Spatial score:", pathway), x = "x", y = "y", color = pathway) +
+      ggplot2::labs(title = paste("Spatial signature:", pathway), x = NULL, y = NULL, color = "Signature score") +
+      ggplot2::scale_y_reverse() +
       do.call(gleam_theme, tp)
   }
 

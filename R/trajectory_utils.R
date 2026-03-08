@@ -192,7 +192,7 @@ map_scores_to_trajectory <- function(score, pseudotime = NULL, lineage = NULL, b
 #' @param backend Trajectory backend. `auto` detects from provided inputs.
 #'
 #' @return `gleam_test` object.
-#' @export
+#' @keywords internal
 test_pathway_trajectory <- function(
   score,
   pathway = NULL,

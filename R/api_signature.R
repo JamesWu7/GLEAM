@@ -1,7 +1,5 @@
 #' Canonical signature scoring interface
 #'
-#' Compatibility note: this is the canonical name for [score_pathway()].
-#'
 #' @inheritParams score_pathway
 #' @return An object of class `gleam_score`.
 #' @export
@@ -58,8 +56,6 @@ score_signature <- function(
 
 #' Canonical signature aggregation interface
 #'
-#' Compatibility note: this is the canonical name for [aggregate_pathway()].
-#'
 #' @inheritParams aggregate_pathway
 #' @return Aggregated table (long) or signature-by-group matrix (wide).
 #' @export
@@ -68,8 +64,6 @@ aggregate_signature <- function(score, by, fun = c("mean", "median", "fraction",
 }
 
 #' Canonical signature testing interface
-#'
-#' Compatibility note: this is the canonical name for [test_pathway()].
 #'
 #' @inheritParams test_pathway
 #' @return An object of class `gleam_test`.
@@ -119,20 +113,7 @@ test_signature <- function(
   )
 }
 
-#' Canonical differential signature interface
-#'
-#' Compatibility note: this is the canonical name for [differential_pathway()].
-#'
-#' @param ... Arguments passed to [test_signature()].
-#' @return An object of class `gleam_test`.
-#' @export
-differential_signature <- function(...) {
-  test_signature(...)
-}
-
 #' Canonical spatial signature testing interface
-#'
-#' Compatibility note: this is the canonical name for [test_pathway_spatial()].
 #'
 #' @inheritParams test_pathway_spatial
 #' @return `gleam_test` object.
@@ -157,20 +138,7 @@ test_signature_spatial <- function(
   )
 }
 
-#' Canonical differential spatial signature interface
-#'
-#' Compatibility note: this is the canonical name for [differential_pathway_spatial()].
-#'
-#' @param ... Arguments passed to [test_signature_spatial()].
-#' @return `gleam_test` object.
-#' @export
-differential_signature_spatial <- function(...) {
-  test_signature_spatial(...)
-}
-
 #' Canonical trajectory signature testing interface
-#'
-#' Compatibility note: this is the canonical name for [test_pathway_trajectory()].
 #'
 #' @inheritParams test_pathway_trajectory
 #' @param backend Trajectory backend to use. `auto` detects from provided inputs.
@@ -197,15 +165,4 @@ test_signature_trajectory <- function(
     verbose = verbose,
     backend = backend
   )
-}
-
-#' Canonical differential trajectory signature interface
-#'
-#' Compatibility note: this is the canonical name for [differential_pathway_trajectory()].
-#'
-#' @param ... Arguments passed to [test_signature_trajectory()].
-#' @return `gleam_test` object.
-#' @export
-differential_signature_trajectory <- function(...) {
-  test_signature_trajectory(...)
 }

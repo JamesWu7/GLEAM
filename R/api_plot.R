@@ -22,14 +22,14 @@
 #' @return A ggplot2 theme object.
 #' @export
 gleam_theme <- function(
-  base_size = 13,
-  title_size = base_size + 2,
-  subtitle_size = base_size,
-  axis_title_size = base_size,
-  axis_text_size = max(8, base_size - 1),
-  legend_title_size = base_size,
-  legend_text_size = max(8, base_size - 1),
-  strip_text_size = base_size,
+  base_size = 14,
+  title_size = base_size + 4,
+  subtitle_size = base_size + 1,
+  axis_title_size = base_size + 1,
+  axis_text_size = max(10, base_size),
+  legend_title_size = base_size + 1,
+  legend_text_size = max(10, base_size - 1),
+  strip_text_size = base_size + 1,
   font_family = "",
   font_face = "plain",
   title_color = "#1F2937",
@@ -44,14 +44,14 @@ gleam_theme <- function(
   ggplot2::theme_bw(base_size = base_size, base_family = font_family) +
     ggplot2::theme(
       text = ggplot2::element_text(color = text_color, face = font_face, family = font_family),
-      plot.title = ggplot2::element_text(size = title_size, color = title_color, face = font_face, family = font_family),
+      plot.title = ggplot2::element_text(size = title_size, color = title_color, face = "bold", family = font_family),
       plot.subtitle = ggplot2::element_text(size = subtitle_size, color = subtitle_color, family = font_family),
-      axis.title = ggplot2::element_text(size = axis_title_size, color = axis_title_color, family = font_family),
+      axis.title = ggplot2::element_text(size = axis_title_size, color = axis_title_color, face = "bold", family = font_family),
       axis.text = ggplot2::element_text(size = axis_text_size, color = axis_text_color, family = font_family),
       axis.text.x = ggplot2::element_text(angle = 30, hjust = 1),
-      legend.title = ggplot2::element_text(size = legend_title_size, color = legend_title_color, family = font_family),
+      legend.title = ggplot2::element_text(size = legend_title_size, color = legend_title_color, face = "bold", family = font_family),
       legend.text = ggplot2::element_text(size = legend_text_size, color = legend_text_color, family = font_family),
-      strip.text = ggplot2::element_text(size = strip_text_size, color = strip_text_color, family = font_family),
+      strip.text = ggplot2::element_text(size = strip_text_size, color = strip_text_color, face = "bold", family = font_family),
       panel.grid.minor = ggplot2::element_blank()
     )
 }
