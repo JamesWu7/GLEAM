@@ -25,12 +25,19 @@ library(GLEAM)
 This quick start demonstrates a practical Seurat-first scRNA workflow:
 
 1. Start from a Seurat object
-2. Load Hallmark and KEGG gene sets
-3. Score signature activity
-4. Run differential analysis after scoring
-5. Visualize scores and differential outputs with Seurat-style displays
+2. Run standard preprocessing (normalization, HVG, PCA, neighbors, clustering, UMAP/tSNE)
+3. Load Hallmark and KEGG gene sets
+4. Score signature activity
+5. Run differential analysis after scoring
+6. Visualize scores and differential outputs with Seurat-style displays
 
-## 1) Prepare Seurat object
+## 1) Prepare Seurat object and run standard preprocessing
+
+Before signature scoring, we run a conventional Seurat preprocessing path so that:
+
+- embeddings (`umap`, `pca`, `tsne`) are available for score visualization;
+- cluster labels are available for state-level interpretation;
+- downstream differential comparisons are based on a well-structured object.
 
 ```{r seurat-object, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.5, fig.height=5.4, out.width="90%"}
 library(Seurat)
@@ -40,10 +47,19 @@ data("pbmc_medium_matrix", package = "GLEAM")
 data("pbmc_medium_meta", package = "GLEAM")
 seu <- CreateSeuratObject(counts = pbmc_medium_matrix, meta.data = pbmc_medium_meta)
 
+# Minimal QC context for a quick start (no aggressive filtering here).
+if (any(grepl("^MT-", rownames(seu)))) {
+  seu[["percent.mt"]] <- PercentageFeatureSet(seu, pattern = "^MT-")
+}
+qc_cols <- intersect(c("nFeature_RNA", "nCount_RNA", "percent.mt"), colnames(seu@meta.data))
+summary(seu@meta.data[, qc_cols, drop = FALSE])
+
 seu <- NormalizeData(seu)
 seu <- FindVariableFeatures(seu)
 seu <- ScaleData(seu)
 seu <- RunPCA(seu)
+seu <- FindNeighbors(seu, dims = 1:20)
+seu <- FindClusters(seu, resolution = 0.4)
 seu <- RunUMAP(seu, dims = 1:20)
 seu <- RunTSNE(seu, dims = 1:20)
 
@@ -51,6 +67,8 @@ seu <- RunTSNE(seu, dims = 1:20)
 dim(seu)
 seu
 head(seu@meta.data[, c("sample", "group", "celltype")])
+table(Idents(seu))
+DimPlot(seu, reduction = "umap", group.by = "seurat_clusters", label = TRUE, repel = TRUE, pt.size = 0.4)
 DimPlot(seu, reduction = "umap", group.by = "celltype", pt.size = 0.4)
 ```
 
