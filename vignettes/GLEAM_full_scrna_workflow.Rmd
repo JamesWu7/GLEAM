@@ -285,8 +285,55 @@ safe_plot("volcano", plot_volcano(res_pb))
 ```{r full-scrna-trajectory, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.6, fig.height=5.6, out.width="92%"}
 # Generic metadata-driven trajectory fields
 traj_res <- test_signature_trajectory(sc, pseudotime = "pseudotime", lineage = "lineage", method = "spearman")
-plot_pseudotime_score(sc, pathway = rownames(sc$score)[1], pseudotime = "pseudotime", lineage = "lineage")
-plot_trajectory_score(sc, pathway = rownames(sc$score)[1], object = seu, reduction = "umap")
+
+if (!exists("make_discrete_palette")) {
+  make_discrete_palette <- function(n) {
+    n <- max(1L, as.integer(n))
+    if (requireNamespace("RColorBrewer", quietly = TRUE)) {
+      base <- RColorBrewer::brewer.pal(9, "Set1")
+      if (n <= length(base)) return(base[seq_len(n)])
+      return(grDevices::colorRampPalette(base)(n))
+    }
+    get_palette("gleam_discrete", n = n)
+  }
+}
+
+if (!exists("safe_plot")) {
+  safe_plot <- function(label, expr) {
+    p <- tryCatch(eval.parent(substitute(expr)), error = function(e) {
+      message("[GLEAM] ", label, " skipped: ", conditionMessage(e))
+      NULL
+    })
+    if (is.null(p)) return(invisible(NULL))
+    tryCatch(print(p), error = function(e) {
+      message("[GLEAM] ", label, " render skipped: ", conditionMessage(e))
+    })
+    invisible(NULL)
+  }
+}
+
+pal_lineage <- make_discrete_palette(length(unique(as.character(sc$meta$lineage))))
+umap_emb <- Seurat::Embeddings(seu, "umap")
+
+safe_plot(
+  "pseudotime",
+  plot_pseudotime_score(
+    sc,
+    pathway = rownames(sc$score)[1],
+    pseudotime = "pseudotime",
+    lineage = "lineage",
+    palette = pal_lineage
+  )
+)
+safe_plot(
+  "trajectory_umap",
+  plot_trajectory_score(
+    sc,
+    pathway = rownames(sc$score)[1],
+    embeddings = umap_emb,
+    reduction = "umap"
+  )
+)
 ```
 
 ### Optional Monocle2 / Monocle3 / slingshot object pathways
