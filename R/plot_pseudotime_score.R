@@ -35,10 +35,26 @@ plot_pseudotime_score <- function(
     stringsAsFactors = FALSE
   )
   tp <- resolve_text_params(theme_params)
+  n_lineage <- length(unique(as.character(df$lineage)))
+  if (n_lineage < 1L) n_lineage <- 1L
+
+  # Build exact-length discrete colors (Seurat-like behavior: enough colors for all groups).
+  lineage_cols <- if (is.character(palette) && length(palette) == 1L) {
+    if (requireNamespace("RColorBrewer", quietly = TRUE)) {
+      base <- RColorBrewer::brewer.pal(9, "Set1")
+      if (n_lineage <= length(base)) base[seq_len(n_lineage)] else grDevices::colorRampPalette(base)(n_lineage)
+    } else {
+      get_palette(name = palette, n = n_lineage, continuous = FALSE)
+    }
+  } else {
+    pal <- as.character(palette)
+    if (length(pal) >= n_lineage) pal[seq_len(n_lineage)] else grDevices::colorRampPalette(pal)(n_lineage)
+  }
+  names(lineage_cols) <- levels(df$lineage)
 
   p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$pseudotime, y = .data$score, color = .data$lineage)) +
     ggplot2::geom_point(alpha = alpha, size = point_size) +
-    scale_gleam_color(palette = palette, continuous = FALSE) +
+    ggplot2::scale_color_manual(values = lineage_cols) +
     ggplot2::labs(title = paste("Pseudotime signature:", pathway), x = "Pseudotime", y = "Signature score") +
     do.call(gleam_theme, tp)
 

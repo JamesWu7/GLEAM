@@ -68,6 +68,16 @@ fallback_signatures <- function(expr_genes) {
   )
 }
 
+make_discrete_palette <- function(n) {
+  n <- max(1L, as.integer(n))
+  if (requireNamespace("RColorBrewer", quietly = TRUE)) {
+    base <- RColorBrewer::brewer.pal(9, "Set1")
+    if (n <= length(base)) return(base[seq_len(n)])
+    return(grDevices::colorRampPalette(base)(n))
+  }
+  get_palette("gleam_discrete", n = n)
+}
+
 find_full_example <- function(file_name) {
   p <- system.file("extdata", "full_examples", file_name, package = "GLEAM")
   if (p == "") p <- file.path("inst", "extdata", "full_examples", file_name)
@@ -308,8 +318,26 @@ generate_from_full_examples <- function() {
     ggplot2::labs(title = "Dot-bar signature comparison")
   ggplot2::ggsave(file.path(out_dir, "signature_dotbar_compare.png"), p3, width = 12.8, height = 8.8, dpi = 220)
 
-  p4 <- plot_pseudotime_score(sc, pathway = rownames(sc$score)[1], pseudotime = "pseudotime", lineage = "lineage") +
-    ggplot2::labs(title = "Trajectory-aware signature trend")
+  pal_lineage <- make_discrete_palette(length(unique(as.character(sc$meta$lineage))))
+  p4 <- tryCatch(
+    plot_pseudotime_score(
+      sc,
+      pathway = rownames(sc$score)[1],
+      pseudotime = "pseudotime",
+      lineage = "lineage",
+      palette = pal_lineage
+    ) + ggplot2::labs(title = "Trajectory-aware signature trend"),
+    error = function(e) {
+      message("[GLEAM] trajectory trend fallback: ", conditionMessage(e))
+      plot_pseudotime_score(
+        sc,
+        pathway = rownames(sc$score)[1],
+        pseudotime = "pseudotime",
+        lineage = NULL,
+        palette = pal_lineage
+      ) + ggplot2::labs(title = "Trajectory-aware signature trend")
+    }
+  )
   ggplot2::ggsave(file.path(out_dir, "trajectory_signature_trend.png"), p4, width = 10.0, height = 6.8, dpi = 220)
 
   TRUE
