@@ -242,17 +242,42 @@ if (!is.na(target_ct)) {
 
 ```{r full-scrna-plots, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.6, fig.height=5.6, out.width="92%"}
 top_pw <- res_pb$table$pathway[order(res_pb$table$p_adj)][1]
-plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "umap")
-plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "pca")
-plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "tsne")
+make_discrete_palette <- function(n) {
+  n <- max(1L, as.integer(n))
+  if (requireNamespace("RColorBrewer", quietly = TRUE)) {
+    base <- RColorBrewer::brewer.pal(9, "Set1")
+    if (n <= length(base)) return(base[seq_len(n)])
+    return(grDevices::colorRampPalette(base)(n))
+  }
+  get_palette("gleam_discrete", n = n)
+}
 
-plot_dot(sc, by = c("group", "celltype"))
-plot_dot_bar(sc, by = c("group", "celltype"))
-plot_violin(sc, pathway = rownames(sc$score)[1], group = group_col)
-plot_split_violin(sc, pathway = rownames(sc$score)[1], x = celltype_col, split.by = group_col)
-plot_ridge(sc, pathway = rownames(sc$score)[1], group = celltype_col)
-plot_pseudobulk_box(sc, pathway = rownames(sc$score)[1], group = group_col, sample = "sample", celltype = celltype_col)
-plot_volcano(res_pb)
+pal_group <- make_discrete_palette(length(unique(as.character(sc$meta[[group_col]]))))
+pal_celltype <- make_discrete_palette(length(unique(as.character(sc$meta[[celltype_col]]))))
+
+safe_plot <- function(label, expr) {
+  p <- tryCatch(eval.parent(substitute(expr)), error = function(e) {
+    message("[GLEAM] ", label, " skipped: ", conditionMessage(e))
+    NULL
+  })
+  if (is.null(p)) return(invisible(NULL))
+  tryCatch(print(p), error = function(e) {
+    message("[GLEAM] ", label, " render skipped: ", conditionMessage(e))
+  })
+  invisible(NULL)
+}
+
+safe_plot("embedding_umap", plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "umap"))
+safe_plot("embedding_pca", plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "pca"))
+safe_plot("embedding_tsne", plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "tsne"))
+
+safe_plot("dot", plot_dot(sc, by = c("group", "celltype")))
+safe_plot("dot_bar", plot_dot_bar(sc, by = c("group", "celltype"), color_palette = pal_group))
+safe_plot("violin", plot_violin(sc, pathway = rownames(sc$score)[1], group = group_col, palette = pal_group))
+safe_plot("split_violin", plot_split_violin(sc, pathway = rownames(sc$score)[1], x = celltype_col, split.by = group_col, palette = pal_group))
+safe_plot("ridge", plot_ridge(sc, pathway = rownames(sc$score)[1], group = celltype_col, palette = pal_celltype))
+safe_plot("pseudobulk_box", plot_pseudobulk_box(sc, pathway = rownames(sc$score)[1], group = group_col, sample = "sample", celltype = celltype_col, palette = pal_group))
+safe_plot("volcano", plot_volcano(res_pb))
 ```
 
 ## 5) Trajectory / pseudotime integration

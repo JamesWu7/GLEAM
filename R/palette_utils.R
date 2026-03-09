@@ -53,11 +53,13 @@ get_palette <- function(name = "gleam_discrete", n = 8, continuous = FALSE, reve
     },
     brewer_set2 = {
       check_plot_dependency("palette brewer_set2", "RColorBrewer")
-      RColorBrewer::brewer.pal(max(3, min(8, n)), "Set2")
+      base <- RColorBrewer::brewer.pal(8, "Set2")
+      if (n <= length(base)) base[seq_len(n)] else grDevices::colorRampPalette(base)(n)
     },
     brewer_dark2 = {
       check_plot_dependency("palette brewer_dark2", "RColorBrewer")
-      RColorBrewer::brewer.pal(max(3, min(8, n)), "Dark2")
+      base <- RColorBrewer::brewer.pal(8, "Dark2")
+      if (n <= length(base)) base[seq_len(n)] else grDevices::colorRampPalette(base)(n)
     },
     {
       if (requireNamespace("paletteer", quietly = TRUE)) {
