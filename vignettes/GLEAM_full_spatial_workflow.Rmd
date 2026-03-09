@@ -172,14 +172,43 @@ sp <- score_signature(
   method = "rank",
   min_genes = 3
 )
+
+map_geneset_to_expr <- function(gs_in, expr_genes) {
+  expr_genes <- as.character(expr_genes)
+  expr_upper <- toupper(expr_genes)
+  mapped <- lapply(gs_in, function(g) {
+    idx <- match(toupper(unique(as.character(g))), expr_upper, nomatch = 0L)
+    unique(expr_genes[idx[idx > 0L]])
+  })
+  mapped[vapply(mapped, length, integer(1)) >= 3L]
+}
+
+gs_slice <- map_geneset_to_expr(gs, rownames(sp_a1))
+if (length(gs_slice) == 0L) {
+  g <- rownames(sp_a1)
+  n_take <- min(30L, length(g))
+  gs_slice <- list(Spatial_signature = unique(g[seq_len(n_take)]))
+}
+
+sp_slice <- score_signature(
+  object = sp_a1,
+  geneset = gs_slice,
+  geneset_source = "list",
+  seurat = TRUE,
+  method = "rank",
+  min_genes = 3
+)
 ```
 
-## 3) Spatial visualization (true spatial context)
+## 3) Spatial visualization (native slice + combined coordinates)
 
 ```{r full-spatial-map, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=11.2, fig.height=8.2, out.width="100%"}
 coords <- data.frame(x = sp_md$x, y = sp_md$y, row.names = rownames(sp_md))
 
-# Slice/tissue-like background (replace with true tissue image when available)
+# Native Seurat slice/tissue rendering (recommended)
+plot_spatial_score(sp_slice, pathway = rownames(sp_slice$score)[1], object = sp_a1)
+
+# Combined-sample coordinate view (for across-slice comparative context)
 tissue_bg <- as.raster(matrix(colorRampPalette(c("#f8f5ea", "#e8dcc4", "#d2b48c"))(256), nrow = 16))
 
 plot_spatial_score(sp, pathway = rownames(sp$score)[1], coords = coords, image = tissue_bg)

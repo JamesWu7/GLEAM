@@ -101,26 +101,11 @@ reference:
       - toy_expr
 
 articles:
-  - title: Quick starts
-    navbar: Tutorials
-    contents:
-      - GLEAM_quickstart_scrna
-      - GLEAM_quickstart_spatial
-      - GLEAM_custom_geneset
   - title: Full workflows
     navbar: Tutorials
     contents:
       - GLEAM_full_scrna_workflow
       - GLEAM_full_spatial_workflow
-      - GLEAM_differential_analysis
-      - GLEAM_trajectory_mapping
-  - title: Guides
-    navbar: Tutorials
+  - title: Citation
     contents:
-      - GLEAM_supported_genesets
-      - GLEAM_visualization_parameters
-      - GLEAM_function_categories
-      - GLEAM_scoring_method_comparison
-      - GLEAM_seurat_v4_v5_input
-      - GLEAM_homepage_showcase
       - GLEAM_citation

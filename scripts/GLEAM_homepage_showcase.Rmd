@@ -34,11 +34,9 @@ library(Seurat)
 
 ifnb_path <- system.file("extdata", "full_examples", "ifnb_seurat.rds", package = "GLEAM")
 a1_path <- system.file("extdata", "full_examples", "stxBrain_anterior1_seurat.rds", package = "GLEAM")
-p1_path <- system.file("extdata", "full_examples", "stxBrain_posterior1_seurat.rds", package = "GLEAM")
 
 if (ifnb_path == "") ifnb_path <- file.path("inst", "extdata", "full_examples", "ifnb_seurat.rds")
 if (a1_path == "") a1_path <- file.path("inst", "extdata", "full_examples", "stxBrain_anterior1_seurat.rds")
-if (p1_path == "") p1_path <- file.path("inst", "extdata", "full_examples", "stxBrain_posterior1_seurat.rds")
 
 seu <- readRDS(ifnb_path)
 pick_first_col <- function(candidates, cols) {
@@ -162,114 +160,49 @@ sc <- score_signature(
   verbose = FALSE
 )
 
-resolve_expr <- function(obj) {
-  assay_candidates <- unique(c(
-    tryCatch(SeuratObject::DefaultAssay(obj), error = function(e) NULL),
-    "Spatial",
-    "RNA"
-  ))
-  assay_candidates <- assay_candidates[!is.na(assay_candidates) & nzchar(assay_candidates)]
-
-  get_if_nonempty <- function(expr) {
-    m <- tryCatch(eval.parent(substitute(expr)), error = function(e) NULL)
-    if (!is.null(m) && nrow(m) > 0L && ncol(m) > 0L) return(m)
-    NULL
-  }
-
-  for (assay in assay_candidates) {
-    m <- get_if_nonempty(SeuratObject::LayerData(object = obj, assay = assay, layer = "data"))
-    if (!is.null(m)) return(m)
-    m <- get_if_nonempty(SeuratObject::LayerData(object = obj, assay = assay, layer = "counts"))
-    if (!is.null(m)) return(m)
-    m <- get_if_nonempty(SeuratObject::GetAssayData(object = obj, assay = assay, slot = "data"))
-    if (!is.null(m)) return(m)
-    m <- get_if_nonempty(SeuratObject::GetAssayData(object = obj, assay = assay, slot = "counts"))
-    if (!is.null(m)) return(m)
-  }
-
-  stop("Failed to extract non-empty expression matrix from Seurat spatial object.")
-}
-
-prep_spatial_object <- function(obj, sample_label) {
-  expr <- resolve_expr(obj)
-  md <- as.data.frame(obj[[]], stringsAsFactors = FALSE)
-  if (is.null(rownames(md))) rownames(md) <- colnames(expr)
-  md <- md[colnames(expr), , drop = FALSE]
-  if (!"sample" %in% colnames(md)) md$sample <- sample_label
-  if (!"section" %in% colnames(md)) md$section <- sample_label
-  if (!all(c("x", "y") %in% colnames(md))) {
-    if (all(c("imagecol", "imagerow") %in% colnames(md))) {
-      md$x <- md$imagecol
-      md$y <- md$imagerow
-    } else if (all(c("col", "row") %in% colnames(md))) {
-      md$x <- md$col
-      md$y <- md$row
-    }
-  }
-  prefixed_ids <- make.unique(paste0(sample_label, "_", colnames(expr)), sep = "_dup")
-  colnames(expr) <- prefixed_ids
-  rownames(md) <- prefixed_ids
-  list(expr = expr, meta = md)
-}
-
-sp_a1 <- prep_spatial_object(readRDS(a1_path), "anterior")
-sp_p1 <- prep_spatial_object(readRDS(p1_path), "posterior")
-
-common_genes <- intersect(rownames(sp_a1$expr), rownames(sp_p1$expr))
-sp_expr <- cbind(
-  sp_a1$expr[common_genes, , drop = FALSE],
-  sp_p1$expr[common_genes, , drop = FALSE]
-)
-sp_md <- rbind(
-  sp_a1$meta[colnames(sp_a1$expr), , drop = FALSE],
-  sp_p1$meta[colnames(sp_p1$expr), , drop = FALSE]
-)
-sp_md <- sp_md[colnames(sp_expr), , drop = FALSE]
-if (!"sample" %in% colnames(sp_md)) sp_md$sample <- "sample_1"
-if (!"group" %in% colnames(sp_md)) sp_md$group <- ifelse(grepl("anterior", sp_md$sample, ignore.case = TRUE), "anterior", "posterior")
-if (!"region" %in% colnames(sp_md)) sp_md$region <- if ("seurat_clusters" %in% colnames(sp_md)) paste0("cluster_", sp_md$seurat_clusters) else sp_md$group
-if (!"section" %in% colnames(sp_md)) sp_md$section <- sp_md$sample
-if (ncol(sp_expr) > 6000) {
+sp_obj <- readRDS(a1_path)
+if (ncol(sp_obj) > 3500) {
   keep <- stratified_keep(
-    meta = sp_md,
-    n_target = 6000,
-    strata_candidates = c("sample", "section", "group", "region", "seurat_clusters")
+    meta = sp_obj@meta.data,
+    n_target = 3500,
+    strata_candidates = c("orig.ident", "sample", "seurat_annotations", "seurat_clusters")
   )
-  sp_expr <- sp_expr[, keep, drop = FALSE]
-  sp_md <- sp_md[keep, , drop = FALSE]
+  sp_obj <- subset(sp_obj, cells = keep)
 }
-if (!all(c("x", "y") %in% colnames(sp_md))) {
-  if (all(c("array_col", "array_row") %in% colnames(sp_md))) {
-    sp_md$x <- sp_md$array_col
-    sp_md$y <- sp_md$array_row
-  } else {
-    n <- nrow(sp_md)
-    sp_md$x <- seq_len(n)
-    sample_vec <- if ("sample" %in% colnames(sp_md)) sp_md$sample else rep("sample_1", n)
-    sp_md$y <- as.numeric(as.factor(sample_vec))
+md_sp <- sp_obj@meta.data
+region_col <- pick_first_col(c("seurat_annotations", "region", "seurat_clusters"), colnames(md_sp))
+if (is.null(region_col)) {
+  md_sp$region <- as.character(Idents(sp_obj))
+} else if (region_col == "seurat_clusters") {
+  md_sp$region <- paste0("cluster_", md_sp$seurat_clusters)
+} else if (region_col != "region") {
+  md_sp$region <- as.character(md_sp[[region_col]])
+}
+sp_obj@meta.data <- md_sp
+
+gs_sp <- NULL
+for (sp_name in c("mouse", "human")) {
+  gs_try <- try(get_geneset("hallmark", source = "builtin", species = sp_name), silent = TRUE)
+  if (inherits(gs_try, "try-error")) next
+  gs_try <- map_geneset_to_expr(gs_try, rownames(sp_obj))
+  gs_try <- gs_try[vapply(gs_try, length, integer(1)) >= 3L]
+  if (length(gs_try) > 0L) {
+    gs_sp <- gs_try
+    break
   }
 }
-
-sp_genes <- rownames(sp_expr)
-half_n <- max(30, floor(length(sp_genes) / 2))
-idx_a <- seq_len(min(half_n, length(sp_genes)))
-idx_b <- seq(from = min(half_n + 1, length(sp_genes)), to = length(sp_genes))
-gs_sp <- list(
-  Spatial_signature_A = unique(sp_genes[idx_a])[1:min(30, length(unique(sp_genes[idx_a])))],
-  Spatial_signature_B = unique(sp_genes[idx_b])[1:min(30, length(unique(sp_genes[idx_b])))]
-)
+if (is.null(gs_sp) || length(gs_sp) == 0L) {
+  gs_sp <- fallback_signatures(rownames(sp_obj))
+}
 sp <- score_signature(
-  expr = sp_expr,
-  meta = sp_md,
+  object = sp_obj,
   geneset = gs_sp,
   geneset_source = "list",
-  seurat = FALSE,
+  seurat = TRUE,
   method = "rank",
   min_genes = 3,
   verbose = FALSE
 )
-
-coords <- data.frame(x = sp_md$x, y = sp_md$y, row.names = rownames(sp_md))
 ```
 
 ```{r embedding_feature, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=10.0, fig.height=7.0, out.width="98%"}
@@ -278,8 +211,7 @@ plot_embedding_score(sc, pathway = rownames(sc$score)[1], object = seu, reductio
 ```
 
 ```{r spatial_slice, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=11.0, fig.height=8.2, out.width="100%"}
-tissue_bg <- as.raster(matrix(colorRampPalette(c("#f8f5ea", "#e8dcc4", "#d2b48c"))(256), nrow = 16))
-plot_spatial_score(sp, pathway = rownames(sp$score)[1], coords = coords, image = tissue_bg) +
+plot_spatial_score(sp, pathway = rownames(sp$score)[1], object = sp_obj) +
   ggplot2::labs(title = "Signature score on spatial slice")
 ```
 

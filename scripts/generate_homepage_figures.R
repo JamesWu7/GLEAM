@@ -108,7 +108,6 @@ generate_from_full_examples <- function() {
 
   ifnb_path <- find_full_example("ifnb_seurat.rds")
   a1_path <- find_full_example("stxBrain_anterior1_seurat.rds")
-  p1_path <- find_full_example("stxBrain_posterior1_seurat.rds")
 
   seu <- readRDS(ifnb_path)
   md0 <- seu@meta.data
@@ -189,128 +188,55 @@ generate_from_full_examples <- function() {
     verbose = FALSE
   )
 
-  resolve_expr <- function(obj) {
-    assay_candidates <- unique(c(
-      tryCatch(SeuratObject::DefaultAssay(obj), error = function(e) NULL),
-      "Spatial",
-      "RNA"
-    ))
-    assay_candidates <- assay_candidates[!is.na(assay_candidates) & nzchar(assay_candidates)]
-
-    get_if_nonempty <- function(expr) {
-      m <- tryCatch(eval.parent(substitute(expr)), error = function(e) NULL)
-      if (!is.null(m) && nrow(m) > 0L && ncol(m) > 0L) return(m)
-      NULL
-    }
-
-    for (assay in assay_candidates) {
-      m <- get_if_nonempty(SeuratObject::LayerData(object = obj, assay = assay, layer = "data"))
-      if (!is.null(m)) return(m)
-      m <- get_if_nonempty(SeuratObject::LayerData(object = obj, assay = assay, layer = "counts"))
-      if (!is.null(m)) return(m)
-      m <- get_if_nonempty(SeuratObject::GetAssayData(object = obj, assay = assay, slot = "data"))
-      if (!is.null(m)) return(m)
-      m <- get_if_nonempty(SeuratObject::GetAssayData(object = obj, assay = assay, slot = "counts"))
-      if (!is.null(m)) return(m)
-    }
-
-    stop("Failed to extract non-empty expression matrix from Seurat spatial object.")
-  }
-
-  prep_spatial_object <- function(obj, sample_label) {
-    expr <- resolve_expr(obj)
-    md <- as.data.frame(obj[[]], stringsAsFactors = FALSE)
-    if (is.null(rownames(md))) rownames(md) <- colnames(expr)
-    md <- md[colnames(expr), , drop = FALSE]
-    if (!"sample" %in% colnames(md)) md$sample <- sample_label
-    if (!"section" %in% colnames(md)) md$section <- sample_label
-    if (!all(c("x", "y") %in% colnames(md))) {
-      if (all(c("imagecol", "imagerow") %in% colnames(md))) {
-        md$x <- md$imagecol
-        md$y <- md$imagerow
-      } else if (all(c("col", "row") %in% colnames(md))) {
-        md$x <- md$col
-        md$y <- md$row
-      }
-    }
-    prefixed_ids <- make.unique(paste0(sample_label, "_", colnames(expr)), sep = "_dup")
-    colnames(expr) <- prefixed_ids
-    rownames(md) <- prefixed_ids
-    list(expr = expr, meta = md)
-  }
-
-  sp_a1 <- prep_spatial_object(readRDS(a1_path), "anterior")
-  sp_p1 <- prep_spatial_object(readRDS(p1_path), "posterior")
-
-  common_genes <- intersect(rownames(sp_a1$expr), rownames(sp_p1$expr))
-  if (length(common_genes) < 100L) {
-    stop("Too few shared genes between anterior/posterior spatial objects.")
-  }
-  sp_expr <- cbind(
-    sp_a1$expr[common_genes, , drop = FALSE],
-    sp_p1$expr[common_genes, , drop = FALSE]
-  )
-  sp_md <- rbind(
-    sp_a1$meta[colnames(sp_a1$expr), , drop = FALSE],
-    sp_p1$meta[colnames(sp_p1$expr), , drop = FALSE]
-  )
-  sp_md <- sp_md[colnames(sp_expr), , drop = FALSE]
-
-  if (!"sample" %in% colnames(sp_md)) sp_md$sample <- "sample_1"
-  if (!"group" %in% colnames(sp_md)) sp_md$group <- ifelse(grepl("anterior", sp_md$sample, ignore.case = TRUE), "anterior", "posterior")
-  if (!"region" %in% colnames(sp_md)) sp_md$region <- if ("seurat_clusters" %in% colnames(sp_md)) paste0("cluster_", sp_md$seurat_clusters) else sp_md$group
-  if (!"section" %in% colnames(sp_md)) sp_md$section <- sp_md$sample
-
-  if (ncol(sp_expr) > 6000) {
+  sp_obj <- readRDS(a1_path)
+  if (ncol(sp_obj) > 3500) {
     keep <- stratified_keep(
-      meta = sp_md,
-      n_target = 6000,
-      strata_candidates = c("sample", "section", "group", "region", "seurat_clusters")
+      meta = sp_obj@meta.data,
+      n_target = 3500,
+      strata_candidates = c("orig.ident", "sample", "seurat_annotations", "seurat_clusters")
     )
-    sp_expr <- sp_expr[, keep, drop = FALSE]
-    sp_md <- sp_md[keep, , drop = FALSE]
+    sp_obj <- subset(sp_obj, cells = keep)
   }
-  if (!all(c("x", "y") %in% colnames(sp_md))) {
-    if (all(c("array_col", "array_row") %in% colnames(sp_md))) {
-      sp_md$x <- sp_md$array_col
-      sp_md$y <- sp_md$array_row
-    } else {
-      n <- nrow(sp_md)
-      sp_md$x <- seq_len(n)
-      sample_vec <- if ("sample" %in% colnames(sp_md)) sp_md$sample else rep("sample_1", n)
-      sp_md$y <- as.numeric(as.factor(sample_vec))
+  md_sp <- sp_obj@meta.data
+  region_col <- pick_first_col(c("seurat_annotations", "region", "seurat_clusters"), colnames(md_sp))
+  if (is.null(region_col)) {
+    md_sp$region <- as.character(Idents(sp_obj))
+  } else if (region_col == "seurat_clusters") {
+    md_sp$region <- paste0("cluster_", md_sp$seurat_clusters)
+  } else if (region_col != "region") {
+    md_sp$region <- as.character(md_sp[[region_col]])
+  }
+  sp_obj@meta.data <- md_sp
+
+  gs_sp <- NULL
+  for (sp_name in c("mouse", "human")) {
+    gs_try <- try(get_geneset("hallmark", source = "builtin", species = sp_name), silent = TRUE)
+    if (inherits(gs_try, "try-error")) next
+    gs_try <- map_geneset_to_expr(gs_try, rownames(sp_obj))
+    gs_try <- gs_try[vapply(gs_try, length, integer(1)) >= 3L]
+    if (length(gs_try) > 0L) {
+      gs_sp <- gs_try
+      break
     }
   }
-
-  sp_genes <- rownames(sp_expr)
-  half_n <- max(30L, floor(length(sp_genes) / 2))
-  idx_a <- seq_len(min(half_n, length(sp_genes)))
-  idx_b <- seq(from = min(half_n + 1L, length(sp_genes)), to = length(sp_genes))
-  gs_sp <- list(
-    Spatial_signature_A = unique(sp_genes[idx_a])[1:min(30L, length(unique(sp_genes[idx_a])))],
-    Spatial_signature_B = unique(sp_genes[idx_b])[1:min(30L, length(unique(sp_genes[idx_b])))]
-  )
-
+  if (is.null(gs_sp) || length(gs_sp) == 0L) {
+    gs_sp <- fallback_signatures(rownames(sp_obj))
+  }
   sp <- score_signature(
-    expr = sp_expr,
-    meta = sp_md,
+    object = sp_obj,
     geneset = gs_sp,
     geneset_source = "list",
-    seurat = FALSE,
+    seurat = TRUE,
     method = "rank",
     min_genes = 3,
     verbose = FALSE
   )
 
-  coords <- data.frame(x = sp_md$x, y = sp_md$y, row.names = rownames(sp_md))
-
-  tissue_bg <- as.raster(matrix(colorRampPalette(c("#f8f5ea", "#e8dcc4", "#d2b48c"))(256), nrow = 16))
-
   p1 <- plot_embedding_score(sc, pathway = rownames(sc$score)[1], object = seu, reduction = "umap") +
     ggplot2::labs(title = "Signature score on embedding")
   ggplot2::ggsave(file.path(out_dir, "embedding_signature_feature.png"), p1, width = 10.0, height = 7.0, dpi = 220)
 
-  p2 <- plot_spatial_score(sp, pathway = rownames(sp$score)[1], coords = coords, image = tissue_bg) +
+  p2 <- plot_spatial_score(sp, pathway = rownames(sp$score)[1], object = sp_obj) +
     ggplot2::labs(title = "Signature score on spatial slice")
   ggplot2::ggsave(file.path(out_dir, "spatial_slice_signature.png"), p2, width = 11.0, height = 8.2, dpi = 240)
 
@@ -343,6 +269,136 @@ generate_from_full_examples <- function() {
   TRUE
 }
 
+load_example_data <- function(name) {
+  env <- new.env(parent = emptyenv())
+  data_file <- file.path("data", paste0(name, ".rda"))
+  if (file.exists(data_file)) {
+    load(data_file, envir = env)
+  } else {
+    data(list = name, package = "GLEAM", envir = env)
+  }
+  if (!exists(name, envir = env, inherits = FALSE)) {
+    stop("Missing example dataset: ", name)
+  }
+  get(name, envir = env, inherits = FALSE)
+}
+
+generate_from_builtin_examples <- function() {
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    message("[GLEAM] ggplot2 unavailable; cannot generate homepage figures from built-in examples.")
+    return(FALSE)
+  }
+
+  expr_pbmc <- load_example_data("pbmc_medium_matrix")
+  meta_pbmc <- load_example_data("pbmc_medium_meta")
+  expr_sp <- load_example_data("spatial_medium_expr")
+  meta_sp <- load_example_data("spatial_medium_meta")
+  coords_sp <- load_example_data("spatial_medium_coords")
+
+  meta_pbmc <- as.data.frame(meta_pbmc, stringsAsFactors = FALSE)
+  if ("cell_id" %in% colnames(meta_pbmc)) {
+    rownames(meta_pbmc) <- meta_pbmc$cell_id
+  }
+  meta_pbmc <- meta_pbmc[colnames(expr_pbmc), , drop = FALSE]
+
+  meta_sp <- as.data.frame(meta_sp, stringsAsFactors = FALSE)
+  if ("cell_id" %in% colnames(meta_sp)) {
+    rownames(meta_sp) <- meta_sp$cell_id
+  }
+  coords_sp <- as.data.frame(coords_sp, stringsAsFactors = FALSE)
+  rownames(coords_sp) <- rownames(meta_sp)
+  coords_sp <- coords_sp[colnames(expr_sp), c("x", "y"), drop = FALSE]
+  meta_sp <- meta_sp[colnames(expr_sp), , drop = FALSE]
+
+  gs_pbmc <- NULL
+  for (sp_name in c("human", "mouse")) {
+    gs_try <- try(get_geneset("hallmark", source = "builtin", species = sp_name), silent = TRUE)
+    if (inherits(gs_try, "try-error")) next
+    gs_try <- map_geneset_to_expr(gs_try, rownames(expr_pbmc))
+    gs_try <- gs_try[vapply(gs_try, length, integer(1)) >= 3L]
+    if (length(gs_try) > 0L) {
+      gs_pbmc <- gs_try
+      break
+    }
+  }
+  if (is.null(gs_pbmc) || length(gs_pbmc) == 0L) {
+    gs_pbmc <- fallback_signatures(rownames(expr_pbmc))
+  }
+
+  sc <- score_signature(
+    expr = expr_pbmc,
+    meta = meta_pbmc,
+    geneset = gs_pbmc,
+    geneset_source = "list",
+    seurat = FALSE,
+    method = "rank",
+    min_genes = 3,
+    verbose = FALSE
+  )
+
+  top_idx <- head(order(Matrix::rowSums(expr_pbmc > 0), decreasing = TRUE), 220L)
+  emb <- stats::prcomp(
+    t(as.matrix(expr_pbmc[top_idx, , drop = FALSE])),
+    rank. = 2,
+    center = TRUE,
+    scale. = TRUE
+  )$x[, 1:2, drop = FALSE]
+  colnames(emb) <- c("UMAP_1", "UMAP_2")
+  rownames(emb) <- colnames(expr_pbmc)
+
+  ct_top <- names(sort(table(meta_pbmc$celltype), decreasing = TRUE))
+  ct_top <- head(ct_top, 5L)
+  keep_cells <- rownames(meta_pbmc)[meta_pbmc$celltype %in% ct_top]
+  sc_vis <- sc
+  sc_vis$score <- sc$score[, keep_cells, drop = FALSE]
+  sc_vis$meta <- sc$meta[keep_cells, , drop = FALSE]
+
+  gs_sp <- fallback_signatures(rownames(expr_sp))
+  sc_sp <- score_signature(
+    expr = expr_sp,
+    meta = meta_sp,
+    geneset = gs_sp,
+    geneset_source = "list",
+    seurat = FALSE,
+    method = "rank",
+    min_genes = 3,
+    verbose = FALSE
+  )
+
+  tissue_bg <- as.raster(matrix(
+    colorRampPalette(c("#f7f4ea", "#eadfc8", "#d9c6a0", "#c8a97b"))(256),
+    nrow = 16
+  ))
+
+  p1 <- plot_embedding_score(sc, pathway = rownames(sc$score)[1], embedding = emb, reduction = "umap") +
+    ggplot2::labs(title = "Signature score on embedding")
+  ggplot2::ggsave(file.path(out_dir, "embedding_signature_feature.png"), p1, width = 10.0, height = 7.0, dpi = 220)
+
+  p2 <- plot_spatial_score(sc_sp, pathway = rownames(sc_sp$score)[1], coords = coords_sp, image = tissue_bg) +
+    ggplot2::labs(title = "Signature score on spatial slice")
+  ggplot2::ggsave(file.path(out_dir, "spatial_slice_signature.png"), p2, width = 11.0, height = 8.2, dpi = 240)
+
+  sig_n <- min(3L, nrow(sc_vis$score))
+  sc_dot <- sc_vis
+  sc_dot$score <- sc_vis$score[seq_len(sig_n), , drop = FALSE]
+  rownames(sc_dot$score) <- paste0("Sig_", seq_len(sig_n))
+  p3 <- plot_dot_bar(sc_dot, by = c("group", "celltype"))
+  ggplot2::ggsave(file.path(out_dir, "signature_dotbar_compare.png"), p3, width = 12.0, height = 7.8, dpi = 220)
+
+  n_lin <- length(unique(as.character(sc_vis$meta$lineage)))
+  pal_lineage <- make_discrete_palette(n_lin)
+  p4 <- plot_pseudotime_score(
+    sc_vis,
+    pathway = rownames(sc_vis$score)[1],
+    pseudotime = "pseudotime",
+    lineage = "lineage",
+    palette = pal_lineage
+  ) + ggplot2::labs(title = "Trajectory-aware signature trend")
+  ggplot2::ggsave(file.path(out_dir, "trajectory_signature_trend.png"), p4, width = 10.0, height = 6.8, dpi = 220)
+
+  TRUE
+}
+
 can_render_vignette <- requireNamespace("rmarkdown", quietly = TRUE) &&
   requireNamespace("knitr", quietly = TRUE) &&
   isTRUE(rmarkdown::pandoc_available())
@@ -350,7 +406,7 @@ can_render_vignette <- requireNamespace("rmarkdown", quietly = TRUE) &&
 ok <- FALSE
 
 if (can_render_vignette) {
-  vignette_file <- file.path("vignettes", "GLEAM_homepage_showcase.Rmd")
+  vignette_file <- file.path("scripts", "GLEAM_homepage_showcase.Rmd")
   if (!file.exists(vignette_file)) stop("Missing vignette file: ", vignette_file)
 
   tmp_dir <- file.path(tempdir(), "gleam_homepage_figures")
@@ -388,11 +444,15 @@ if (!ok) {
   ok <- isTRUE(generate_from_full_examples())
 }
 
+if (!ok) {
+  ok <- isTRUE(generate_from_builtin_examples())
+}
+
 if (!ok && has_existing_figures()) {
   message("[GLEAM] keeping existing homepage figures in ", out_dir)
   ok <- TRUE
 }
 
 if (!ok) {
-  stop("Failed to generate homepage figures. Install Seurat or provide pre-generated files under assets/figures.")
+  stop("Failed to generate homepage figures from full examples, built-in examples, and existing files.")
 }

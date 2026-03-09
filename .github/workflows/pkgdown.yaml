@@ -44,10 +44,9 @@ jobs:
         run: |
           test -f docs/index.html
           test -f docs/articles/index.html
-          test -f docs/articles/GLEAM_quickstart_scrna.html
-          test -f docs/articles/GLEAM_quickstart_spatial.html
           test -f docs/articles/GLEAM_full_scrna_workflow.html
           test -f docs/articles/GLEAM_full_spatial_workflow.html
+          test -f docs/articles/GLEAM_citation.html
           test -f docs/reference/index.html
           test -f docs/.nojekyll
       - name: Commit docs to main

@@ -9,12 +9,6 @@ if (!requireNamespace("rmarkdown", quietly = TRUE)) {
     message("[GLEAM] No vignette Rmd files found.")
   } else {
     preferred <- c(
-      "GLEAM_quickstart_scrna.Rmd",
-      "GLEAM_quickstart_spatial.Rmd",
-      "GLEAM_custom_geneset.Rmd",
-      "GLEAM_supported_genesets.Rmd",
-      "GLEAM_visualization_parameters.Rmd",
-      "GLEAM_function_categories.Rmd",
       "GLEAM_full_scrna_workflow.Rmd",
       "GLEAM_full_spatial_workflow.Rmd",
       "GLEAM_citation.Rmd"
