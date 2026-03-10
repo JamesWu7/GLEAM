@@ -49,14 +49,32 @@ plot_spatial_score <- function(
     img <- tryCatch({
       if (!is.null(sp_payload$image_name)) sp_payload$image_name else names(object@images)[[1]]
     }, error = function(e) NULL)
-    sf <- .spatial_featureplot_compat(
-      object = object,
-      features = sig_col,
-      image_name = img,
-      point_size = point_size,
-      alpha = alpha,
-      cols = cols
-    )
+    sf_fun <- get0(".spatial_featureplot_compat", mode = "function", inherits = TRUE)
+    if (is.null(sf_fun)) {
+      sf <- list(plot = NULL, error = "internal helper .spatial_featureplot_compat() not found")
+    } else {
+      sf_args <- list(
+        object = object,
+        features = sig_col,
+        image_name = img,
+        point_size = point_size,
+        alpha = alpha,
+        cols = cols
+      )
+      fm <- names(formals(sf_fun))
+      if (!("..." %in% fm)) {
+        sf_args <- sf_args[intersect(names(sf_args), fm)]
+      }
+      sf <- tryCatch(
+        do.call(sf_fun, sf_args),
+        error = function(e) list(plot = NULL, error = conditionMessage(e))
+      )
+      if (!is.list(sf)) {
+        sf <- list(plot = NULL, error = "invalid return from .spatial_featureplot_compat()")
+      }
+      if (is.null(sf$plot)) sf$plot <- NULL
+      if (is.null(sf$error)) sf$error <- NULL
+    }
     p <- sf$plot
     if (!is.null(p)) {
       if ("patchwork" %in% class(p) && requireNamespace("patchwork", quietly = TRUE)) {
