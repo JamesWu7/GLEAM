@@ -208,6 +208,14 @@ sp_slice <- score_signature(
 coords <- data.frame(x = sp_md$x, y = sp_md$y, row.names = rownames(sp_md))
 
 # Native Seurat slice/tissue rendering (recommended)
+if (requireNamespace("Seurat", quietly = TRUE)) {
+  suppressWarnings(
+    try(
+      Seurat::SpatialDimPlot(sp_a1, group.by = "orig.ident", pt.size.factor = 1.6),
+      silent = TRUE
+    )
+  )
+}
 plot_spatial_score(sp_slice, pathway = rownames(sp_slice$score)[1], object = sp_a1)
 
 # Combined-sample coordinate view (for across-slice comparative context)

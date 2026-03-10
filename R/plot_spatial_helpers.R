@@ -8,7 +8,8 @@
   if (!is.null(image_name) && is.character(image_name) && length(image_name) == 1L && nzchar(image_name)) {
     base_images <- list(
       list(images = image_name),
-      list(image = image_name)
+      list(image = image_name),
+      list()
     )
   } else {
     base_images <- list(list(), list(images = NULL), list(image = NULL))
