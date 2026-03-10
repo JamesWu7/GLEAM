@@ -36,6 +36,15 @@ resolve_seurat_layer <- function(object, assay = NULL, layer = NULL, slot = NULL
   list(assay = assay, layer = NULL, slot = slot %||% "data")
 }
 
+#' @keywords internal
+.is_valid_expr_matrix <- function(x) {
+  if (is.null(x)) return(FALSE)
+  ok_cls <- is.matrix(x) || inherits(x, "dgCMatrix")
+  if (!ok_cls) return(FALSE)
+  if (nrow(x) < 1L || ncol(x) < 1L) return(FALSE)
+  !is.null(rownames(x)) && !is.null(colnames(x))
+}
+
 #' Extract expression matrix from input
 #'
 #' @param object Seurat object.
@@ -72,6 +81,47 @@ extract_expr <- function(object = NULL, expr = NULL, assay = NULL, layer = NULL,
       )
     }
   )
+
+  if (!.is_valid_expr_matrix(mat)) {
+    fallback_expr <- NULL
+    alt_layers <- unique(c("data", "counts"))
+    if (!is.null(info$layer)) {
+      alt_layers <- c(info$layer, setdiff(alt_layers, info$layer))
+    }
+    for (ly in alt_layers) {
+      cand <- tryCatch(
+        SeuratObject::LayerData(object = object, assay = info$assay, layer = ly),
+        error = function(e) NULL
+      )
+      if (.is_valid_expr_matrix(cand)) {
+        fallback_expr <- cand
+        break
+      }
+    }
+    if (is.null(fallback_expr)) {
+      for (sl in c("data", "counts")) {
+        cand <- tryCatch(
+          SeuratObject::GetAssayData(object = object, assay = info$assay, slot = sl),
+          error = function(e) NULL
+        )
+        if (.is_valid_expr_matrix(cand)) {
+          fallback_expr <- cand
+          break
+        }
+      }
+    }
+    if (!is.null(fallback_expr)) {
+      mat <- fallback_expr
+    }
+  }
+
+  if (!.is_valid_expr_matrix(mat)) {
+    stop(
+      "Failed to extract a non-empty expression matrix with row/column names from Seurat object.",
+      " Try specifying `assay`, `layer = \"counts\"`, or `slot = \"counts\"`.",
+      call. = FALSE
+    )
+  }
 
   as_expr_matrix(mat)
 }

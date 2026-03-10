@@ -183,6 +183,8 @@ generate_from_full_examples <- function() {
     geneset = hallmark_gs,
     geneset_source = "list",
     seurat = TRUE,
+    layer = "counts",
+    slot = "counts",
     method = "rank",
     min_genes = 3,
     verbose = FALSE
@@ -227,6 +229,8 @@ generate_from_full_examples <- function() {
     geneset = gs_sp,
     geneset_source = "list",
     seurat = TRUE,
+    layer = "counts",
+    slot = "counts",
     method = "rank",
     min_genes = 3,
     verbose = FALSE

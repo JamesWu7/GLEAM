@@ -223,6 +223,8 @@ sp <- score_signature(
   geneset = gs_st,
   geneset_source = "list",
   seurat = TRUE,
+  layer = "counts",
+  slot = "counts",
   method = "rank",
   min_genes = 3
 )
