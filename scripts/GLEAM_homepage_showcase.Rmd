@@ -216,7 +216,7 @@ plot_spatial_score(sp, pathway = rownames(sp$score)[1], object = sp_obj) +
 ```
 
 ```{r dotbar_compare, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=12.8, fig.height=8.8, out.width="100%"}
-plot_dot_bar(sc, by = c("group", "celltype"), pathway = rownames(sc$score)[1:5]) +
+plot_dot_bar(sc, by = c("group", "celltype"), pathway = rownames(sc$score)[1]) +
   ggplot2::labs(title = "Dot-bar signature comparison")
 ```
 

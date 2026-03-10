@@ -19,7 +19,6 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
 
   mean_df <- aggregate_signature(score, by = by, fun = "mean", long = TRUE)
   frac_df <- aggregate_signature(score, by = by, fun = "fraction", threshold = threshold, long = TRUE)
-
   if (!all(c(group_col, celltype_col) %in% colnames(mean_df))) {
     stop("`by` columns must exist in `score$meta` and be present in aggregated output.", call. = FALSE)
   }
@@ -27,17 +26,20 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
   mean_df$signature <- mean_df$pathway
   frac_df$signature <- frac_df$pathway
 
-  if (!is.null(pathway)) {
-    mean_df <- mean_df[mean_df$signature %in% pathway, , drop = FALSE]
-    frac_df <- frac_df[frac_df$signature %in% pathway, , drop = FALSE]
+  sig_use <- if (is.null(pathway)) rownames(score$score)[[1]] else as.character(pathway)[[1]]
+  if (!is.null(pathway) && length(pathway) > 1L) {
+    warning("`plot_dot_bar()` now supports one signature at a time; using the first signature only.", call. = FALSE)
   }
+
+  mean_df <- mean_df[as.character(mean_df$signature) == sig_use, , drop = FALSE]
+  frac_df <- frac_df[as.character(frac_df$signature) == sig_use, , drop = FALSE]
   if (nrow(mean_df) < 1L) {
-    stop("No signatures remain after filtering.", call. = FALSE)
+    stop("Selected signature not found in aggregated output.", call. = FALSE)
   }
 
   key <- paste(mean_df$signature, mean_df$group_key)
   frac_map <- stats::setNames(frac_df$value, paste(frac_df$signature, frac_df$group_key))
-  mean_df$fraction <- frac_map[key]
+  mean_df$fraction <- as.numeric(frac_map[key])
   tp <- resolve_text_params(theme_params)
 
   cell_levels <- names(sort(tapply(
@@ -45,44 +47,48 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
     INDEX = as.character(mean_df[[celltype_col]]),
     FUN = function(x) mean(x, na.rm = TRUE)
   ), decreasing = TRUE))
-  mean_df$celltype_plot <- factor(as.character(mean_df[[celltype_col]]), levels = rev(cell_levels))
+  mean_df$celltype_plot <- factor(as.character(mean_df[[celltype_col]]), levels = rev(cell_levels), ordered = TRUE)
 
-  n_sig <- length(unique(as.character(mean_df$signature)))
-  ncol_facet <- if (n_sig <= 2L) n_sig else min(3L, ceiling(sqrt(n_sig)))
+  dot_df <- stats::aggregate(
+    x = list(value = mean_df$value, fraction = mean_df$fraction),
+    by = list(celltype = mean_df$celltype_plot),
+    FUN = function(x) mean(x, na.rm = TRUE)
+  )
+  dot_df$celltype <- factor(as.character(dot_df$celltype), levels = levels(mean_df$celltype_plot), ordered = TRUE)
+  dot_df$signature <- sig_use
 
-  dot <- ggplot2::ggplot(mean_df, ggplot2::aes(
-    x = .data$value,
-    y = .data$celltype_plot,
-    color = .data[[group_col]],
+  dot <- ggplot2::ggplot(dot_df, ggplot2::aes(
+    x = .data$signature,
+    y = .data$celltype,
+    color = .data$value,
     size = .data$fraction
   )) +
-    ggplot2::geom_point(alpha = 0.9, position = ggplot2::position_dodge(width = 0.55)) +
-    ggplot2::scale_size_continuous(range = c(1, 8)) +
-    scale_gleam_color(color_palette, continuous = FALSE) +
-    ggplot2::facet_wrap(~signature, scales = "free_x", ncol = ncol_facet) +
+    ggplot2::geom_point(alpha = 0.95, stroke = 0.25) +
+    scale_gleam_color(color_palette, continuous = TRUE) +
+    ggplot2::scale_size_continuous(range = c(2.5, 10)) +
     ggplot2::labs(
-      title = "Signature dot + bar summary",
-      x = "Signature score",
+      title = "Signature score and active fraction",
+      x = "Signature",
       y = "Cell type",
-      color = "Group",
+      color = "Mean score",
       size = "Active fraction"
     ) +
-    do.call(gleam_theme, tp)
+    do.call(gleam_theme, tp) +
+    ggplot2::theme(
+      panel.grid.major.x = ggplot2::element_blank(),
+      panel.grid.minor = ggplot2::element_blank(),
+      axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5)
+    )
 
   group_vals_raw <- mean_df[[group_col]]
-  g_levels <- if (is.factor(group_vals_raw)) {
-    levels(droplevels(group_vals_raw))
-  } else {
-    unique(as.character(group_vals_raw))
-  }
+  g_levels <- if (is.factor(group_vals_raw)) levels(droplevels(group_vals_raw)) else unique(as.character(group_vals_raw))
   g_levels <- g_levels[!is.na(g_levels) & nzchar(g_levels)]
-
   if (length(g_levels) < 2L) {
     return(dot)
   }
   if (length(g_levels) > 2L) {
     warning(
-      "More than two groups detected; showing difference using the first two groups: ",
+      "More than two groups detected; right-panel delta uses the first two groups: ",
       g_levels[[1]], " and ", g_levels[[2]], ".",
       call. = FALSE
     )
@@ -90,43 +96,39 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
   g1 <- g_levels[[1]]
   g2 <- g_levels[[2]]
 
-  sub <- mean_df[as.character(mean_df[[group_col]]) %in% c(g1, g2), c("signature", celltype_col, group_col, "value"), drop = FALSE]
-  colnames(sub) <- c("signature", "celltype", "group", "value")
+  sub <- mean_df[as.character(mean_df[[group_col]]) %in% c(g1, g2), c(celltype_col, group_col, "value"), drop = FALSE]
+  colnames(sub) <- c("celltype", "group", "value")
   agg <- stats::aggregate(
     x = sub$value,
-    by = list(signature = sub$signature, celltype = sub$celltype, group = sub$group),
+    by = list(celltype = sub$celltype, group = sub$group),
     FUN = function(x) mean(x, na.rm = TRUE)
   )
   colnames(agg)[colnames(agg) == "x"] <- "value"
-  wide <- stats::reshape(
-    agg,
-    idvar = c("signature", "celltype"),
-    timevar = "group",
-    direction = "wide"
-  )
+  wide <- stats::reshape(agg, idvar = "celltype", timevar = "group", direction = "wide")
   c1 <- paste0("value.", g1)
   c2 <- paste0("value.", g2)
   if (!all(c(c1, c2) %in% colnames(wide))) {
     return(dot)
   }
-  wide$delta <- as.numeric(wide[[c2]]) - as.numeric(wide[[c1]])
-  bar_df <- wide[, c("signature", "celltype", "delta"), drop = FALSE]
+
+  bar_df <- wide[, c("celltype", c1, c2), drop = FALSE]
   bar_df <- bar_df[stats::complete.cases(bar_df), , drop = FALSE]
-  if (is.null(bar_df) || nrow(bar_df) < 1L) {
+  if (nrow(bar_df) < 1L) {
     return(dot)
   }
-  bar_df$signature <- factor(as.character(bar_df$signature), levels = unique(as.character(mean_df$signature)))
-  bar_df$celltype_plot <- factor(as.character(bar_df$celltype), levels = levels(mean_df$celltype_plot))
-  bar_df$direction <- ifelse(bar_df$delta >= 0, "increase", "decrease")
-  bar_df$direction <- factor(bar_df$direction, levels = c("decrease", "increase"))
+  bar_df$delta <- as.numeric(bar_df[[c2]]) - as.numeric(bar_df[[c1]])
+  bar_df$celltype_plot <- factor(as.character(bar_df$celltype), levels = levels(mean_df$celltype_plot), ordered = TRUE)
+  bar_df <- bar_df[order(bar_df$celltype_plot), , drop = FALSE]
+  bar_df$direction <- factor(ifelse(bar_df$delta >= 0, "increase", "decrease"), levels = c("decrease", "increase"))
 
   bar <- ggplot2::ggplot(bar_df, ggplot2::aes(x = .data$delta, y = .data$celltype_plot)) +
-    ggplot2::geom_col(ggplot2::aes(fill = .data$direction), width = 0.65, color = NA) +
+    ggplot2::geom_col(ggplot2::aes(fill = .data$direction), width = 0.64, color = NA, alpha = 0.88) +
+    ggplot2::geom_path(ggplot2::aes(group = 1), linewidth = 0.55, color = "#111827", alpha = 0.9) +
+    ggplot2::geom_point(size = 1.8, color = "#111827") +
     ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "grey35", linewidth = 0.35) +
     scale_gleam_fill(palette = c("#2B83BA", "#D73027"), continuous = FALSE) +
-    ggplot2::facet_wrap(~signature, scales = "free_x", ncol = ncol_facet) +
     ggplot2::labs(
-      title = paste0("Group difference (", g2, " - ", g1, ")"),
+      title = paste0("Group difference curve (", g2, " - ", g1, ")"),
       x = "Delta signature score",
       y = "Cell type"
     ) +
@@ -141,5 +143,5 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
     return(dot)
   }
 
-  dot + bar + patchwork::plot_layout(guides = "collect", widths = c(7, 4))
+  dot + bar + patchwork::plot_layout(guides = "collect", widths = c(3.2, 4.8))
 }

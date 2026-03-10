@@ -240,7 +240,7 @@ generate_from_full_examples <- function() {
     ggplot2::labs(title = "Signature score on spatial slice")
   ggplot2::ggsave(file.path(out_dir, "spatial_slice_signature.png"), p2, width = 11.0, height = 8.2, dpi = 240)
 
-  p3 <- plot_dot_bar(sc, by = c(group_col, celltype_col), pathway = rownames(sc$score)[1:5]) +
+  p3 <- plot_dot_bar(sc, by = c(group_col, celltype_col), pathway = rownames(sc$score)[1]) +
     ggplot2::labs(title = "Dot-bar signature comparison")
   ggplot2::ggsave(file.path(out_dir, "signature_dotbar_compare.png"), p3, width = 12.8, height = 8.8, dpi = 220)
 
@@ -378,7 +378,7 @@ generate_from_builtin_examples <- function() {
     ggplot2::labs(title = "Signature score on spatial slice")
   ggplot2::ggsave(file.path(out_dir, "spatial_slice_signature.png"), p2, width = 11.0, height = 8.2, dpi = 240)
 
-  sig_n <- min(3L, nrow(sc_vis$score))
+  sig_n <- min(1L, nrow(sc_vis$score))
   sc_dot <- sc_vis
   sc_dot$score <- sc_vis$score[seq_len(sig_n), , drop = FALSE]
   rownames(sc_dot$score) <- paste0("Sig_", seq_len(sig_n))
@@ -442,6 +442,13 @@ if (can_render_vignette) {
 
 if (!ok) {
   ok <- isTRUE(generate_from_full_examples())
+}
+
+if (!ok) {
+  if (!requireNamespace("Seurat", quietly = TRUE) && has_existing_figures()) {
+    message("[GLEAM] Seurat unavailable; keeping existing homepage figures in ", out_dir)
+    ok <- TRUE
+  }
 }
 
 if (!ok) {

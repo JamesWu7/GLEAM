@@ -200,21 +200,9 @@ extract_spatial_coords <- function(object = NULL, meta = NULL, coords = NULL, se
     stop("No spatial coordinates found. Provide `coords` or `meta` columns x/y or row/col.", call. = FALSE)
   }
 
-  # Seurat path: try image coordinates first, then metadata fallbacks.
-  out <- tryCatch({
-    imgs <- names(object@images)
-    if (length(imgs) < 1) stop("no image")
-    cdat <- SeuratObject::GetTissueCoordinates(object = object, image = imgs[[1]])
-    cdat <- as.data.frame(cdat)
-    if (!all(c("x", "y") %in% colnames(cdat))) {
-      if (all(c("imagerow", "imagecol") %in% colnames(cdat))) {
-        cdat <- data.frame(x = cdat$imagecol, y = cdat$imagerow, row.names = rownames(cdat))
-      }
-    } else {
-      cdat <- cdat[, c("x", "y"), drop = FALSE]
-    }
-    cdat
-  }, error = function(e) NULL)
+  # Seurat path: try unified spatial payload first, then metadata fallbacks.
+  payload <- tryCatch(.extract_seurat_spatial_payload(object), error = function(e) NULL)
+  out <- if (!is.null(payload)) payload$coords else NULL
 
   if (!is.null(out)) return(out)
 
@@ -238,4 +226,99 @@ extract_spatial_meta <- function(object = NULL, meta = NULL, seurat = TRUE) {
     stop("`meta` must be provided for matrix-based spatial workflows.", call. = FALSE)
   }
   as.data.frame(meta, stringsAsFactors = FALSE)
+}
+
+#' @keywords internal
+.normalize_spatial_xy <- function(df) {
+  if (is.null(df)) return(NULL)
+  df <- as.data.frame(df, stringsAsFactors = FALSE)
+  if (all(c("x", "y") %in% colnames(df))) {
+    out <- df[, c("x", "y"), drop = FALSE]
+  } else if (all(c("imagecol", "imagerow") %in% colnames(df))) {
+    out <- data.frame(x = df$imagecol, y = df$imagerow, row.names = rownames(df))
+  } else if (all(c("col", "row") %in% colnames(df))) {
+    out <- data.frame(x = df$col, y = df$row, row.names = rownames(df))
+  } else if (ncol(df) >= 2L) {
+    out <- data.frame(x = df[[1]], y = df[[2]], row.names = rownames(df))
+  } else {
+    return(NULL)
+  }
+  out$x <- as.numeric(out$x)
+  out$y <- as.numeric(out$y)
+  out
+}
+
+#' @keywords internal
+.as_raster_spatial_image <- function(img) {
+  if (is.null(img)) return(NULL)
+  if (inherits(img, "raster")) return(img)
+  if (is.matrix(img)) return(as.raster(img))
+
+  if (is.array(img) && length(dim(img)) == 3L && dim(img)[3] >= 3L) {
+    arr <- img[, , seq_len(3), drop = FALSE]
+    arr <- suppressWarnings(as.numeric(arr))
+    arr <- array(arr, dim = dim(img)[1:3])
+    if (!all(is.na(arr)) && max(arr, na.rm = TRUE) > 1) {
+      arr <- arr / 255
+    }
+    arr <- pmax(0, pmin(1, arr))
+    rgb_mat <- grDevices::rgb(arr[, , 1], arr[, , 2], arr[, , 3])
+    dim(rgb_mat) <- dim(arr)[1:2]
+    return(as.raster(rgb_mat))
+  }
+  NULL
+}
+
+#' @keywords internal
+.extract_seurat_spatial_payload <- function(object, image = NULL) {
+  if (!is_seurat_object(object)) return(NULL)
+  img_names <- tryCatch(names(object@images), error = function(e) character())
+  if (length(img_names) < 1L) return(NULL)
+
+  image_name <- if (!is.null(image) && is.character(image) && length(image) == 1L && image %in% img_names) {
+    image
+  } else {
+    img_names[[1]]
+  }
+
+  img_obj <- tryCatch(object@images[[image_name]], error = function(e) NULL)
+
+  coords <- tryCatch({
+    tc <- SeuratObject::GetTissueCoordinates(object = object, image = image_name)
+    .normalize_spatial_xy(tc)
+  }, error = function(e) NULL)
+
+  if (is.null(coords) && !is.null(img_obj)) {
+    bounds <- tryCatch(attr(img_obj, "boundaries"), error = function(e) NULL)
+    if (!is.null(bounds) && length(bounds) > 0L) {
+      for (b in bounds) {
+        cdat <- tryCatch(attr(b, "coords"), error = function(e) NULL)
+        cells <- tryCatch(attr(b, "cells"), error = function(e) NULL)
+        cdat <- .normalize_spatial_xy(cdat)
+        if (!is.null(cdat)) {
+          if (!is.null(cells) && length(cells) == nrow(cdat)) {
+            rownames(cdat) <- as.character(cells)
+          }
+          coords <- cdat
+          break
+        }
+      }
+    }
+  }
+
+  if (is.null(coords)) {
+    md <- tryCatch(extract_meta(object = object, seurat = TRUE), error = function(e) NULL)
+    coords <- .normalize_spatial_xy(md)
+  }
+
+  bg <- NULL
+  if (!is.null(img_obj)) {
+    bg <- tryCatch(attr(img_obj, "image"), error = function(e) NULL)
+    bg <- .as_raster_spatial_image(bg)
+  }
+
+  if (is.null(coords) && is.null(bg)) {
+    return(NULL)
+  }
+  list(coords = coords, image = bg, image_name = image_name)
 }

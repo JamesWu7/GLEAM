@@ -46,12 +46,16 @@ aggregate_pathway <- function(score, by, fun = c("mean", "median", "fraction", "
     )
   }
 
-  wide <- sapply(grp_levels, function(gl) {
+  wide_list <- lapply(grp_levels, function(gl) {
     idx <- grp_key == gl
-    agg_fun(mat[, idx, drop = FALSE])
+    as.numeric(agg_fun(mat[, idx, drop = FALSE]))
   })
+  wide <- do.call(cbind, wide_list)
   if (is.null(dim(wide))) {
-    wide <- matrix(wide, ncol = 1L)
+    wide <- matrix(wide, nrow = nrow(mat), ncol = length(grp_levels))
+  }
+  if (nrow(wide) != nrow(mat)) {
+    wide <- matrix(wide, nrow = nrow(mat), ncol = length(grp_levels), byrow = FALSE)
   }
   rownames(wide) <- rownames(mat)
   colnames(wide) <- grp_levels

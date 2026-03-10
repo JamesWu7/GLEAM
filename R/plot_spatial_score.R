@@ -28,6 +28,10 @@ plot_spatial_score <- function(
   check_score_object(score)
   if (!pathway %in% rownames(score$score)) stop("`signature` not found in score matrix.", call. = FALSE)
   tp <- resolve_text_params(theme_params)
+  sp_payload <- NULL
+  if (is.null(coords) && !is.null(object) && is_seurat_object(object)) {
+    sp_payload <- tryCatch(.extract_seurat_spatial_payload(object), error = function(e) NULL)
+  }
 
   # Prefer native Seurat spatial rendering when a spatial Seurat object is available.
   if (is.null(coords) && !is.null(object) && is_seurat_object(object) && requireNamespace("Seurat", quietly = TRUE)) {
@@ -43,7 +47,9 @@ plot_spatial_score <- function(
 
     p <- tryCatch({
       cols <- if (is.character(palette) && length(palette) == 1L) get_palette(palette, n = 128, continuous = TRUE) else palette
-      img <- tryCatch(names(object@images)[[1]], error = function(e) NULL)
+      img <- tryCatch({
+        if (!is.null(sp_payload$image_name)) sp_payload$image_name else names(object@images)[[1]]
+      }, error = function(e) NULL)
       Seurat::SpatialFeaturePlot(
         object = object,
         features = sig_col,
@@ -54,7 +60,7 @@ plot_spatial_score <- function(
       )
     }, error = function(e) {
       warning(
-        sprintf("Seurat SpatialFeaturePlot failed (%s). Falling back to coordinate scatter mode.", e$message),
+        sprintf("Seurat SpatialFeaturePlot failed (%s). Falling back to coordinate+tissue overlay mode.", e$message),
         call. = FALSE
       )
       NULL
@@ -67,17 +73,12 @@ plot_spatial_score <- function(
       }
       return(p)
     }
-
-    md <- tryCatch(extract_meta(object = object, seurat = TRUE), error = function(e) NULL)
-    if (!is.null(md)) {
-      if (all(c("x", "y") %in% colnames(md))) {
-        coords <- data.frame(x = md$x, y = md$y, row.names = rownames(md))
-      } else if (all(c("imagecol", "imagerow") %in% colnames(md))) {
-        coords <- data.frame(x = md$imagecol, y = md$imagerow, row.names = rownames(md))
-      } else if (all(c("col", "row") %in% colnames(md))) {
-        coords <- data.frame(x = md$col, y = md$row, row.names = rownames(md))
-      }
-    }
+  }
+  if (is.null(coords) && !is.null(sp_payload) && !is.null(sp_payload$coords)) {
+    coords <- sp_payload$coords
+  }
+  if (is.null(image) && !is.null(sp_payload) && !is.null(sp_payload$image)) {
+    image <- sp_payload$image
   }
 
   if (is.null(coords)) {
@@ -85,6 +86,7 @@ plot_spatial_score <- function(
   }
   dat <- join_score_spatial(score, coords)
   dat$pathway_score <- as.numeric(score$score[pathway, dat$cell_id])
+  dat <- dat[order(dat$pathway_score), , drop = FALSE]
 
   p <- ggplot2::ggplot(dat, ggplot2::aes(x = .data$x, y = .data$y, color = .data$pathway_score))
   if (!is.null(image)) {
@@ -97,7 +99,8 @@ plot_spatial_score <- function(
     ggplot2::coord_fixed() +
     ggplot2::labs(title = paste("Spatial signature:", pathway), x = NULL, y = NULL, color = "Signature score") +
     ggplot2::scale_y_reverse() +
-    do.call(gleam_theme, tp)
+    do.call(gleam_theme, tp) +
+    ggplot2::theme(panel.grid = ggplot2::element_blank())
 
   if (!is.null(split.by)) {
     sp <- resolve_meta_var(score$meta, split.by, "split.by")
@@ -113,7 +116,8 @@ plot_spatial_score <- function(
       ggplot2::facet_wrap(~ split) +
       ggplot2::labs(title = paste("Spatial signature:", pathway), x = NULL, y = NULL, color = "Signature score") +
       ggplot2::scale_y_reverse() +
-      do.call(gleam_theme, tp)
+      do.call(gleam_theme, tp) +
+      ggplot2::theme(panel.grid = ggplot2::element_blank())
   }
 
   p

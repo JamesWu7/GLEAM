@@ -25,6 +25,11 @@ plot_spatial_multi <- function(
   pathways <- intersect(pathways, rownames(score$score))
   if (length(pathways) < 1L) stop("No valid signatures provided.", call. = FALSE)
   tp <- resolve_text_params(theme_params)
+  sp_payload <- NULL
+  img_bg <- NULL
+  if (is.null(coords) && !is.null(object) && is_seurat_object(object)) {
+    sp_payload <- tryCatch(.extract_seurat_spatial_payload(object), error = function(e) NULL)
+  }
 
   # Prefer native Seurat in-slice visualization for spatial Seurat objects.
   if (is.null(coords) && !is.null(object) && is_seurat_object(object) && requireNamespace("Seurat", quietly = TRUE)) {
@@ -46,7 +51,9 @@ plot_spatial_multi <- function(
 
     p <- tryCatch({
       cols <- if (is.character(palette) && length(palette) == 1L) get_palette(palette, n = 128, continuous = TRUE) else palette
-      img <- tryCatch(names(object@images)[[1]], error = function(e) NULL)
+      img <- tryCatch({
+        if (!is.null(sp_payload$image_name)) sp_payload$image_name else names(object@images)[[1]]
+      }, error = function(e) NULL)
       Seurat::SpatialFeaturePlot(
         object = object,
         features = feat_names,
@@ -57,7 +64,7 @@ plot_spatial_multi <- function(
       )
     }, error = function(e) {
       warning(
-        sprintf("Seurat SpatialFeaturePlot failed (%s). Falling back to coordinate scatter mode.", e$message),
+        sprintf("Seurat SpatialFeaturePlot failed (%s). Falling back to coordinate+tissue overlay mode.", e$message),
         call. = FALSE
       )
       NULL
@@ -70,17 +77,12 @@ plot_spatial_multi <- function(
       }
       return(p)
     }
-
-    md <- tryCatch(extract_meta(object = object, seurat = TRUE), error = function(e) NULL)
-    if (!is.null(md)) {
-      if (all(c("x", "y") %in% colnames(md))) {
-        coords <- data.frame(x = md$x, y = md$y, row.names = rownames(md))
-      } else if (all(c("imagecol", "imagerow") %in% colnames(md))) {
-        coords <- data.frame(x = md$imagecol, y = md$imagerow, row.names = rownames(md))
-      } else if (all(c("col", "row") %in% colnames(md))) {
-        coords <- data.frame(x = md$col, y = md$row, row.names = rownames(md))
-      }
-    }
+  }
+  if (is.null(coords) && !is.null(sp_payload) && !is.null(sp_payload$coords)) {
+    coords <- sp_payload$coords
+  }
+  if (!is.null(sp_payload) && !is.null(sp_payload$image)) {
+    img_bg <- sp_payload$image
   }
 
   if (is.null(coords)) {
@@ -99,12 +101,17 @@ plot_spatial_multi <- function(
     )
   }))
 
-  ggplot2::ggplot(long, ggplot2::aes(x = .data$x, y = .data$y, color = .data$value)) +
+  p <- ggplot2::ggplot(long, ggplot2::aes(x = .data$x, y = .data$y, color = .data$value))
+  if (!is.null(img_bg)) {
+    p <- p + ggplot2::annotation_raster(img_bg, xmin = min(long$x), xmax = max(long$x), ymin = min(long$y), ymax = max(long$y))
+  }
+  p +
     ggplot2::geom_point(size = point_size, alpha = alpha) +
     scale_gleam_color(palette = palette, continuous = TRUE) +
     ggplot2::facet_wrap(~ pathway) +
     ggplot2::coord_fixed() +
     ggplot2::scale_y_reverse() +
     ggplot2::labs(title = "Spatial multi-signature map", x = NULL, y = NULL, color = "Signature score") +
-    do.call(gleam_theme, tp)
+    do.call(gleam_theme, tp) +
+    ggplot2::theme(panel.grid = ggplot2::element_blank())
 }

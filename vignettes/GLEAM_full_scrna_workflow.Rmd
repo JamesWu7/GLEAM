@@ -267,12 +267,41 @@ safe_plot <- function(label, expr) {
   invisible(NULL)
 }
 
+sig_col <- paste0("GLEAM_signature_", gsub("[^A-Za-z0-9_]+", "_", top_pw))
+sig_vals <- rep(NA_real_, ncol(seu))
+names(sig_vals) <- colnames(seu)
+sig_cells <- intersect(colnames(seu), colnames(sc$score))
+sig_vals[sig_cells] <- as.numeric(sc$score[top_pw, sig_cells])
+seu[[sig_col]] <- sig_vals
+
+safe_plot(
+  "seurat_featureplot",
+  Seurat::FeaturePlot(
+    seu,
+    features = sig_col,
+    reduction = "umap",
+    cols = get_palette("gleam_continuous", n = 128, continuous = TRUE),
+    order = TRUE,
+    pt.size = 0.8
+  ) + ggplot2::labs(title = "Seurat FeaturePlot-style signature map")
+)
+safe_plot(
+  "seurat_vlnplot",
+  Seurat::VlnPlot(
+    seu,
+    features = sig_col,
+    group.by = celltype_col,
+    split.by = group_col,
+    pt.size = 0
+  ) + Seurat::NoLegend() + ggplot2::labs(title = "Seurat VlnPlot-style signature distribution")
+)
+
 safe_plot("embedding_umap", plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "umap"))
 safe_plot("embedding_pca", plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "pca"))
 safe_plot("embedding_tsne", plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "tsne"))
 
 safe_plot("dot", plot_dot(sc, by = c("group", "celltype")))
-safe_plot("dot_bar", plot_dot_bar(sc, by = c("group", "celltype"), color_palette = pal_group))
+safe_plot("dot_bar", plot_dot_bar(sc, by = c("group", "celltype"), pathway = top_pw, color_palette = "gleam_continuous"))
 safe_plot("violin", plot_violin(sc, pathway = rownames(sc$score)[1], group = group_col, palette = pal_group))
 safe_plot("split_violin", plot_split_violin(sc, pathway = rownames(sc$score)[1], x = celltype_col, split.by = group_col, palette = pal_group))
 safe_plot("ridge", plot_ridge(sc, pathway = rownames(sc$score)[1], group = celltype_col, palette = pal_celltype))
