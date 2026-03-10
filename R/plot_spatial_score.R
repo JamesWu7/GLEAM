@@ -45,26 +45,19 @@ plot_spatial_score <- function(
     vals[cells] <- as.numeric(score$score[pathway, cells])
     object[[sig_col]] <- vals
 
-    p <- tryCatch({
-      cols <- if (is.character(palette) && length(palette) == 1L) get_palette(palette, n = 128, continuous = TRUE) else palette
-      img <- tryCatch({
-        if (!is.null(sp_payload$image_name)) sp_payload$image_name else names(object@images)[[1]]
-      }, error = function(e) NULL)
-      Seurat::SpatialFeaturePlot(
-        object = object,
-        features = sig_col,
-        images = img,
-        pt.size.factor = point_size,
-        alpha = c(0.05, alpha),
-        cols = cols
-      )
-    }, error = function(e) {
-      warning(
-        sprintf("Seurat SpatialFeaturePlot failed (%s). Falling back to coordinate+tissue overlay mode.", e$message),
-        call. = FALSE
-      )
-      NULL
-    })
+    cols <- if (is.character(palette) && length(palette) == 1L) get_palette(palette, n = 128, continuous = TRUE) else palette
+    img <- tryCatch({
+      if (!is.null(sp_payload$image_name)) sp_payload$image_name else names(object@images)[[1]]
+    }, error = function(e) NULL)
+    sf <- .spatial_featureplot_compat(
+      object = object,
+      features = sig_col,
+      image_name = img,
+      point_size = point_size,
+      alpha = alpha,
+      cols = cols
+    )
+    p <- sf$plot
     if (!is.null(p)) {
       if ("patchwork" %in% class(p) && requireNamespace("patchwork", quietly = TRUE)) {
         p <- p & do.call(gleam_theme, tp)
@@ -73,9 +66,16 @@ plot_spatial_score <- function(
       }
       return(p)
     }
+    warning(
+      sprintf("Seurat SpatialFeaturePlot failed (%s). Falling back to coordinate+tissue overlay mode.", sf$error %||% "unknown error"),
+      call. = FALSE
+    )
   }
   if (is.null(coords) && !is.null(sp_payload) && !is.null(sp_payload$coords)) {
     coords <- sp_payload$coords
+  }
+  if (is.null(coords) && is.data.frame(score$meta)) {
+    coords <- tryCatch(.normalize_spatial_xy(score$meta), error = function(e) NULL)
   }
   if (is.null(image) && !is.null(sp_payload) && !is.null(sp_payload$image)) {
     image <- sp_payload$image

@@ -337,6 +337,12 @@ extract_spatial_meta <- function(object = NULL, meta = NULL, seurat = TRUE) {
     tc <- SeuratObject::GetTissueCoordinates(object = object, image = image_name)
     .normalize_spatial_xy(tc)
   }, error = function(e) NULL)
+  if (is.null(coords) && requireNamespace("Seurat", quietly = TRUE)) {
+    coords <- tryCatch({
+      tc <- Seurat::GetTissueCoordinates(object = object, image = image_name)
+      .normalize_spatial_xy(tc)
+    }, error = function(e) NULL)
+  }
 
   if (is.null(coords) && !is.null(img_obj)) {
     bounds <- tryCatch(attr(img_obj, "boundaries"), error = function(e) NULL)
