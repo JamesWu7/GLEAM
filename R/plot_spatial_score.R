@@ -105,6 +105,9 @@ plot_spatial_score <- function(
   dat <- join_score_spatial(score, coords)
   dat$pathway_score <- as.numeric(score$score[pathway, dat$cell_id])
   dat <- dat[order(dat$pathway_score), , drop = FALSE]
+  if (!is.null(split.by)) {
+    dat$split <- as.factor(resolve_meta_var(score$meta, split.by, "split.by"))
+  }
 
   p <- ggplot2::ggplot(dat, ggplot2::aes(x = .data$x, y = .data$y, color = .data$pathway_score))
   if (!is.null(image)) {
@@ -117,25 +120,16 @@ plot_spatial_score <- function(
     ggplot2::coord_fixed() +
     ggplot2::labs(title = paste("Spatial signature:", pathway), x = NULL, y = NULL, color = "Signature score") +
     ggplot2::scale_y_reverse() +
+    ggplot2::guides(color = ggplot2::guide_colorbar(barheight = ggplot2::unit(3.6, "cm"))) +
     do.call(gleam_theme, tp) +
-    ggplot2::theme(panel.grid = ggplot2::element_blank())
+    ggplot2::theme(
+      panel.grid = ggplot2::element_blank(),
+      axis.text = ggplot2::element_blank(),
+      axis.ticks = ggplot2::element_blank()
+    )
 
   if (!is.null(split.by)) {
-    sp <- resolve_meta_var(score$meta, split.by, "split.by")
-    dat$split <- as.factor(sp)
-    p <- ggplot2::ggplot(dat, ggplot2::aes(x = .data$x, y = .data$y, color = .data$pathway_score))
-    if (!is.null(image)) {
-      p <- p + ggplot2::annotation_raster(image, xmin = min(dat$x), xmax = max(dat$x), ymin = min(dat$y), ymax = max(dat$y))
-    }
-    p <- p +
-      ggplot2::geom_point(size = point_size, alpha = alpha) +
-      scale_gleam_color(palette = palette, continuous = TRUE) +
-      ggplot2::coord_fixed() +
-      ggplot2::facet_wrap(~ split) +
-      ggplot2::labs(title = paste("Spatial signature:", pathway), x = NULL, y = NULL, color = "Signature score") +
-      ggplot2::scale_y_reverse() +
-      do.call(gleam_theme, tp) +
-      ggplot2::theme(panel.grid = ggplot2::element_blank())
+    p <- p + ggplot2::facet_wrap(~ split)
   }
 
   p

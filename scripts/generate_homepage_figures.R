@@ -78,6 +78,26 @@ make_discrete_palette <- function(n) {
   get_palette("gleam_discrete", n = n)
 }
 
+inject_signature_to_object <- function(obj, score_obj, sig_name, col_prefix = "GLEAM_signature_") {
+  sig_col <- paste0(col_prefix, gsub("[^A-Za-z0-9_]+", "_", sig_name))
+  vals <- rep(NA_real_, ncol(obj))
+  names(vals) <- colnames(obj)
+  common_cells <- intersect(colnames(obj), colnames(score_obj$score))
+  vals[common_cells] <- as.numeric(score_obj$score[sig_name, common_cells])
+  obj[[sig_col]] <- vals
+  list(object = obj, sig_col = sig_col)
+}
+
+apply_showcase_style <- function(p, title) {
+  if ("patchwork" %in% class(p) && requireNamespace("patchwork", quietly = TRUE)) {
+    return((p & gleam_theme(base_size = 12)) + patchwork::plot_annotation(title = title))
+  }
+  if (inherits(p, "ggplot")) {
+    return(p + gleam_theme(base_size = 12) + ggplot2::labs(title = title))
+  }
+  p
+}
+
 find_full_example <- function(file_name) {
   p <- system.file("extdata", "full_examples", file_name, package = "GLEAM")
   if (p == "") p <- file.path("inst", "extdata", "full_examples", file_name)
@@ -236,18 +256,38 @@ generate_from_full_examples <- function() {
     verbose = FALSE
   )
 
-  p1 <- plot_embedding_score(sc, pathway = rownames(sc$score)[1], object = seu, reduction = "umap") +
-    ggplot2::labs(title = "Signature score on embedding")
+  sig_embedding <- rownames(sc$score)[1]
+  emb_payload <- inject_signature_to_object(seu, sc, sig_embedding)
+  seu <- emb_payload$object
+  sig_col_emb <- emb_payload$sig_col
+  p1 <- Seurat::FeaturePlot(
+    object = seu,
+    features = sig_col_emb,
+    reduction = "umap",
+    order = TRUE,
+    pt.size = 0.62,
+    cols = get_palette("gleam_continuous", n = 128, continuous = TRUE)
+  )
+  p1 <- apply_showcase_style(p1, "Signature score on embedding (Seurat FeaturePlot)")
   ggplot2::ggsave(file.path(out_dir, "embedding_signature_feature.png"), p1, width = 10.0, height = 7.0, dpi = 220)
 
+  sig_spatial <- rownames(sp$score)[1]
+  sp_payload <- inject_signature_to_object(sp_obj, sp, sig_spatial)
+  sp_obj <- sp_payload$object
+  sig_col_sp <- sp_payload$sig_col
   p2 <- tryCatch(
-    plot_spatial_score(sp, pathway = rownames(sp$score)[1], object = sp_obj),
+    Seurat::SpatialFeaturePlot(
+      object = sp_obj,
+      features = sig_col_sp,
+      pt.size.factor = 1.65,
+      alpha = c(0.12, 1)
+    ),
     error = function(e) {
-      message("[GLEAM] full-example spatial fallback: ", conditionMessage(e))
-      coords_sp <- extract_spatial_coords(object = sp_obj, seurat = TRUE)
-      plot_spatial_score(sp, pathway = rownames(sp$score)[1], coords = coords_sp)
+      message("[GLEAM] full-example SpatialFeaturePlot fallback: ", conditionMessage(e))
+      plot_spatial_score(sp, pathway = sig_spatial, object = sp_obj)
     }
-  ) + ggplot2::labs(title = "Signature score on spatial slice")
+  )
+  p2 <- apply_showcase_style(p2, "Signature score on spatial slice (Seurat SpatialFeaturePlot)")
   ggplot2::ggsave(file.path(out_dir, "spatial_slice_signature.png"), p2, width = 11.0, height = 8.2, dpi = 240)
 
   p3 <- plot_dot_bar(sc, by = c(group_col, celltype_col), pathway = rownames(sc$score)[1]) +

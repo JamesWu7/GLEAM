@@ -65,7 +65,7 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
   )) +
     ggplot2::geom_point(alpha = 0.95, stroke = 0.25) +
     scale_gleam_color(color_palette, continuous = TRUE) +
-    ggplot2::scale_size_continuous(range = c(2.5, 10)) +
+    ggplot2::scale_size_continuous(range = c(2.6, 10.8)) +
     ggplot2::labs(
       title = "Signature score and active fraction",
       x = "Signature",
@@ -77,11 +77,13 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
     ggplot2::theme(
       panel.grid.major.x = ggplot2::element_blank(),
       panel.grid.minor = ggplot2::element_blank(),
-      axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5)
+      axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5),
+      legend.box = "vertical",
+      legend.spacing.y = ggplot2::unit(2, "mm")
     )
 
   group_vals_raw <- mean_df[[group_col]]
-  g_levels <- if (is.factor(group_vals_raw)) levels(droplevels(group_vals_raw)) else unique(as.character(group_vals_raw))
+  g_levels <- if (is.factor(group_vals_raw)) levels(base::droplevels(group_vals_raw)) else unique(as.character(group_vals_raw))
   g_levels <- g_levels[!is.na(g_levels) & nzchar(g_levels)]
   if (length(g_levels) < 2L) {
     return(dot)

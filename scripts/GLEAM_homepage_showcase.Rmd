@@ -207,23 +207,66 @@ sp <- score_signature(
   min_genes = 3,
   verbose = FALSE
 )
+
+inject_signature_to_object <- function(obj, score_obj, sig_name, col_prefix = "GLEAM_signature_") {
+  sig_col <- paste0(col_prefix, gsub("[^A-Za-z0-9_]+", "_", sig_name))
+  vals <- rep(NA_real_, ncol(obj))
+  names(vals) <- colnames(obj)
+  common_cells <- intersect(colnames(obj), colnames(score_obj$score))
+  vals[common_cells] <- as.numeric(score_obj$score[sig_name, common_cells])
+  obj[[sig_col]] <- vals
+  list(object = obj, sig_col = sig_col)
+}
+
+apply_showcase_style <- function(p, title) {
+  if ("patchwork" %in% class(p) && requireNamespace("patchwork", quietly = TRUE)) {
+    return((p & gleam_theme(base_size = 12)) + patchwork::plot_annotation(title = title))
+  }
+  if (inherits(p, "ggplot")) {
+    return(p + gleam_theme(base_size = 12) + ggplot2::labs(title = title))
+  }
+  p
+}
 ```
 
 ```{r embedding_feature, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=10.0, fig.height=7.0, out.width="98%"}
-plot_embedding_score(sc, pathway = rownames(sc$score)[1], object = seu, reduction = "umap") +
-  ggplot2::labs(title = "Signature score on embedding")
+sig_embedding <- rownames(sc$score)[1]
+emb_payload <- inject_signature_to_object(seu, sc, sig_embedding)
+seu <- emb_payload$object
+sig_col_emb <- emb_payload$sig_col
+
+p_embedding <- Seurat::FeaturePlot(
+  object = seu,
+  features = sig_col_emb,
+  reduction = "umap",
+  order = TRUE,
+  pt.size = 0.62,
+  cols = get_palette("gleam_continuous", n = 128, continuous = TRUE)
+)
+
+apply_showcase_style(p_embedding, "Signature score on embedding (Seurat FeaturePlot)")
 ```
 
 ```{r spatial_slice, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=11.0, fig.height=8.2, out.width="100%"}
+sig_spatial <- rownames(sp$score)[1]
+sp_payload <- inject_signature_to_object(sp_obj, sp, sig_spatial)
+sp_obj <- sp_payload$object
+sig_col_sp <- sp_payload$sig_col
+
 p_spatial <- tryCatch(
-  plot_spatial_score(sp, pathway = rownames(sp$score)[1], object = sp_obj),
+  Seurat::SpatialFeaturePlot(
+    object = sp_obj,
+    features = sig_col_sp,
+    pt.size.factor = 1.65,
+    alpha = c(0.12, 1)
+  ),
   error = function(e) {
-    message("[GLEAM] spatial_slice fallback: ", conditionMessage(e))
-    coords_sp <- extract_spatial_coords(object = sp_obj, seurat = TRUE)
-    plot_spatial_score(sp, pathway = rownames(sp$score)[1], coords = coords_sp)
+    message("[GLEAM] SpatialFeaturePlot fallback: ", conditionMessage(e))
+    plot_spatial_score(sp, pathway = sig_spatial, object = sp_obj)
   }
 )
-p_spatial + ggplot2::labs(title = "Signature score on spatial slice")
+
+apply_showcase_style(p_spatial, "Signature score on spatial slice (Seurat SpatialFeaturePlot)")
 ```
 
 ```{r dotbar_compare, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=12.8, fig.height=8.8, out.width="100%"}

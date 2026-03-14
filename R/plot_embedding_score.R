@@ -53,8 +53,14 @@ plot_embedding_score <- function(
     )
     if ("patchwork" %in% class(p) && requireNamespace("patchwork", quietly = TRUE)) {
       p <- p & do.call(gleam_theme, tp)
+      if (tolower(reduction) %in% c("umap", "tsne")) {
+        p <- p & Seurat::NoAxes()
+      }
     } else if (inherits(p, "ggplot")) {
       p <- p + do.call(gleam_theme, tp)
+      if (tolower(reduction) %in% c("umap", "tsne")) {
+        p <- p + Seurat::NoAxes()
+      }
     }
     return(p)
   }
