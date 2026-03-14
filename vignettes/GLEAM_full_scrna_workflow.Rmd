@@ -12,7 +12,7 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.align = "center",
-  fig.width = 8.2,
+  fig.width = 8.4,
   fig.height = 5.8,
   out.width = "92%",
   dpi = 140
@@ -21,148 +21,84 @@ knitr::opts_chunk$set(
 pkg_root <- if (file.exists("DESCRIPTION")) "." else if (file.exists(file.path("..", "DESCRIPTION"))) ".." else NULL
 if (!is.null(pkg_root) && requireNamespace("pkgload", quietly = TRUE)) {
   pkgload::load_all(pkg_root, export_all = FALSE, quiet = TRUE)
-} else if (requireNamespace("GLEAM", quietly = TRUE)) {
-  library(GLEAM)
 } else {
-  stop("Need installed 'GLEAM' or package 'pkgload' to render this vignette.")
+  library(GLEAM)
 }
+
+seurat_ok <- requireNamespace("Seurat", quietly = TRUE) && requireNamespace("SeuratObject", quietly = TRUE)
 ```
 
-## 1) Load Seurat object and inspect starting state
+## 1) Load Seurat object
 
-```{r no-seurat-fallback, eval=!requireNamespace("Seurat", quietly = TRUE), echo=FALSE, fig.width=8.8, fig.height=6.2, out.width="96%"}
-cat("Seurat is not available in this rendering environment. Showing representative pre-rendered figures.\n\n")
-fig_root_candidates <- c("man/figures", "../man/figures", "../../man/figures")
-fig_root <- fig_root_candidates[file.exists(fig_root_candidates)][1]
-if (is.na(fig_root)) fig_root <- "man/figures"
-knitr::include_graphics(c(
-  file.path(fig_root, "embedding_signature_feature.png"),
-  file.path(fig_root, "signature_dotbar_compare.png"),
-  file.path(fig_root, "trajectory_signature_trend.png")
-))
-```
-
-```{r scrna-load, eval=requireNamespace("Seurat", quietly = TRUE)}
+```{r step1-load, eval=seurat_ok}
 library(Seurat)
 
 ifnb_path <- system.file("extdata", "full_examples", "ifnb_seurat.rds", package = "GLEAM")
 if (ifnb_path == "") ifnb_path <- file.path("inst", "extdata", "full_examples", "ifnb_seurat.rds")
 seu <- readRDS(ifnb_path)
 
-if (ncol(seu) > 7000) {
-  set.seed(123)
-  keep <- sample(colnames(seu), size = 7000)
-  seu <- subset(seu, cells = keep)
-}
+cells_use <- colnames(seu)[seq_len(min(5000, ncol(seu)))]
+seu <- subset(seu, cells = cells_use)
 
-md <- seu@meta.data
-meta_cols <- colnames(md)
-sample_col <- if ("sample" %in% meta_cols) "sample" else if ("orig.ident" %in% meta_cols) "orig.ident" else NULL
-group_col <- if ("stim" %in% meta_cols) "stim" else if ("group" %in% meta_cols) "group" else if (!is.null(sample_col)) sample_col else "group"
-celltype_col <- if ("seurat_annotations" %in% meta_cols) "seurat_annotations" else if ("celltype" %in% meta_cols) "celltype" else "seurat_clusters"
+dim(seu)
+seu
+```
 
-if (is.null(sample_col)) {
-  md$sample <- ifelse(seq_len(nrow(md)) <= nrow(md) / 2, "sample_A", "sample_B")
-  sample_col <- "sample"
-} else {
-  md$sample <- as.character(md[[sample_col]])
-}
-if (!(group_col %in% colnames(md))) {
-  md$group <- ifelse(seq_len(nrow(md)) <= nrow(md) / 2, "A", "B")
-  group_col <- "group"
-}
-if (celltype_col == "seurat_clusters") {
-  md$seurat_clusters <- as.character(md$seurat_clusters)
-  md$celltype <- paste0("cluster_", md$seurat_clusters)
-  celltype_col <- "celltype"
-}
-if (length(unique(as.character(md$sample))) < 2L) {
-  md$sample <- ifelse(seq_len(nrow(md)) <= nrow(md) / 2, "sample_A", "sample_B")
-}
-if (length(unique(as.character(md[[group_col]]))) < 2L) {
-  md$group <- ifelse(md$sample == unique(md$sample)[1], "A", "B")
-  group_col <- "group"
-}
+## 2) Set analysis columns and consistent palettes
 
-celltype_levels <- names(sort(table(as.character(md[[celltype_col]])), decreasing = TRUE))
-group_levels <- unique(as.character(md[[group_col]]))
-group_levels <- group_levels[!is.na(group_levels) & nzchar(group_levels)]
-if (length(group_levels) < 1L) group_levels <- c("A", "B")
-md[[celltype_col]] <- factor(as.character(md[[celltype_col]]), levels = celltype_levels)
-md[[group_col]] <- factor(as.character(md[[group_col]]), levels = group_levels)
-md$sample <- as.character(md$sample)
+```{r step2-meta, eval=seurat_ok}
+seu$sample <- as.character(seu$orig.ident)
+seu$group <- as.character(seu$stim)
+seu$celltype <- as.character(seu$seurat_annotations)
+
+celltype_levels <- names(sort(table(seu$celltype), decreasing = TRUE))
+group_levels <- unique(seu$group)
+
+seu$celltype <- factor(seu$celltype, levels = celltype_levels)
+seu$group <- factor(seu$group, levels = group_levels)
 
 pal_celltype <- setNames(get_palette("gleam_discrete", n = length(celltype_levels), continuous = FALSE), celltype_levels)
 pal_group <- setNames(get_palette("brewer_set2", n = length(group_levels), continuous = FALSE), group_levels)
 
-seu@meta.data <- md
-
-if (!"pca" %in% names(seu@reductions)) {
-  seu <- NormalizeData(seu, verbose = FALSE)
-  seu <- FindVariableFeatures(seu, verbose = FALSE)
-  seu <- ScaleData(seu, verbose = FALSE)
-  seu <- RunPCA(seu, verbose = FALSE)
-}
-if (!"umap" %in% names(seu@reductions)) {
-  seu <- FindNeighbors(seu, dims = 1:20, verbose = FALSE)
-  seu <- FindClusters(seu, resolution = 0.5, verbose = FALSE)
-  seu <- RunUMAP(seu, dims = 1:20, verbose = FALSE)
-}
-if (!"tsne" %in% names(seu@reductions)) {
-  seu <- RunTSNE(seu, dims = 1:20, verbose = FALSE)
-}
-
-if (!"pseudotime" %in% colnames(seu@meta.data)) {
-  seu$pseudotime <- rank(Embeddings(seu, "pca")[, 1], ties.method = "average") / ncol(seu)
-}
-if (!"lineage" %in% colnames(seu@meta.data)) {
-  seu$lineage <- as.character(seu@meta.data[[celltype_col]])
-}
-
-dim(seu)
-seu
-head(seu@meta.data[, unique(c("sample", group_col, celltype_col, "pseudotime", "lineage")), drop = FALSE])
+head(seu@meta.data[, c("sample", "group", "celltype")])
 ```
 
-## 2) UMAP/tSNE overview before scoring
+## 3) Standard Seurat preprocessing
 
-```{r scrna-umap-celltype, eval=requireNamespace("Seurat", quietly = TRUE)}
-DimPlot(seu, reduction = "umap", group.by = celltype_col, cols = pal_celltype, pt.size = 0.35) +
+```{r step3-preprocess, eval=seurat_ok}
+seu <- NormalizeData(seu, verbose = FALSE)
+seu <- FindVariableFeatures(seu, verbose = FALSE)
+seu <- ScaleData(seu, verbose = FALSE)
+seu <- RunPCA(seu, verbose = FALSE)
+seu <- FindNeighbors(seu, dims = 1:20, verbose = FALSE)
+seu <- FindClusters(seu, resolution = 0.5, verbose = FALSE)
+seu <- RunUMAP(seu, dims = 1:20, verbose = FALSE)
+seu <- RunTSNE(seu, dims = 1:20, verbose = FALSE)
+
+ElbowPlot(seu, ndims = 30)
+```
+
+## 4) UMAP and tSNE overview
+
+```{r step4-umap-celltype, eval=seurat_ok}
+DimPlot(seu, reduction = "umap", group.by = "celltype", cols = pal_celltype, pt.size = 0.35) +
   ggplot2::labs(title = "UMAP by cell type")
 ```
 
-```{r scrna-umap-group, eval=requireNamespace("Seurat", quietly = TRUE)}
-DimPlot(seu, reduction = "umap", group.by = group_col, cols = pal_group, pt.size = 0.35) +
+```{r step4-umap-group, eval=seurat_ok}
+DimPlot(seu, reduction = "umap", group.by = "group", cols = pal_group, pt.size = 0.35) +
   ggplot2::labs(title = "UMAP by group")
 ```
 
-```{r scrna-tsne-group, eval=requireNamespace("Seurat", quietly = TRUE)}
-DimPlot(seu, reduction = "tsne", group.by = group_col, cols = pal_group, pt.size = 0.35) +
+```{r step4-tsne-group, eval=seurat_ok}
+DimPlot(seu, reduction = "tsne", group.by = "group", cols = pal_group, pt.size = 0.35) +
   ggplot2::labs(title = "tSNE by group")
 ```
 
-## 3) Signature scoring
+## 5) Signature scoring
 
-```{r scrna-score, eval=requireNamespace("Seurat", quietly = TRUE)}
-gs <- NULL
-for (sp in c("human", "mouse")) {
-  gs_try <- try(get_geneset("hallmark", source = "builtin", species = sp), silent = TRUE)
-  if (inherits(gs_try, "try-error")) next
-  gs_try <- lapply(gs_try, function(g) intersect(unique(as.character(g)), rownames(seu)))
-  gs_try <- gs_try[vapply(gs_try, length, integer(1)) >= 3L]
-  if (length(gs_try) > 0L) {
-    gs <- gs_try
-    break
-  }
-}
-if (is.null(gs) || length(gs) == 0L) {
-  genes <- rownames(seu)
-  k <- min(30L, length(genes))
-  gs <- list(
-    Signature_A = unique(genes[seq_len(k)]),
-    Signature_B = unique(rev(genes)[seq_len(k)])
-  )
-}
+```{r step5-score, eval=seurat_ok}
+gs <- get_geneset("hallmark", source = "builtin", species = "human")
 
 sc <- score_signature(
   object = seu,
@@ -176,56 +112,39 @@ sc <- score_signature(
   min_genes = 3,
   verbose = FALSE
 )
-sc$meta[[celltype_col]] <- factor(as.character(sc$meta[[celltype_col]]), levels = celltype_levels)
-sc$meta[[group_col]] <- factor(as.character(sc$meta[[group_col]]), levels = group_levels)
-if ("lineage" %in% colnames(sc$meta)) {
-  lineage_levels <- unique(as.character(sc$meta$lineage))
-  lineage_levels <- lineage_levels[!is.na(lineage_levels) & nzchar(lineage_levels)]
-  if (length(lineage_levels) < 1L) lineage_levels <- "lineage_1"
-  sc$meta$lineage <- factor(as.character(sc$meta$lineage), levels = lineage_levels)
-}
-sc$meta$sample <- as.character(sc$meta$sample)
 
-custom_gs <- list(IFN_custom = c("STAT1", "IRF1", "ISG15", "IFIT3", "CXCL10"))
-sc_custom <- score_signature(
-  object = seu,
-  geneset = custom_gs,
-  geneset_source = "list",
-  seurat = TRUE,
-  method = "mean",
-  min_genes = 2,
-  verbose = FALSE
-)
+sc$meta$celltype <- factor(as.character(sc$meta$celltype), levels = celltype_levels)
+sc$meta$group <- factor(as.character(sc$meta$group), levels = group_levels)
+
+dim(sc$score)
 ```
 
-## 4) Differential testing on signatures
+## 6) Differential analysis
 
-```{r scrna-diff, eval=requireNamespace("Seurat", quietly = TRUE)}
+```{r step6-diff, eval=seurat_ok}
 res_pb <- test_signature(
   sc,
-  group = group_col,
+  group = "group",
   sample = "sample",
-  celltype = celltype_col,
+  celltype = "celltype",
   level = "pseudobulk",
   method = "wilcox"
 )
 
 top_sig <- res_pb$table$pathway[order(res_pb$table$p_adj)][1]
-if (is.na(top_sig) || !nzchar(top_sig)) top_sig <- rownames(sc$score)[1]
-
-top_sig
 head(res_pb$table)
+top_sig
 ```
 
-## 5) FeaturePlot-style signature map
+## 7) FeaturePlot-style signature map
 
-```{r scrna-featureplot, eval=requireNamespace("Seurat", quietly = TRUE)}
+```{r step7-featureplot, eval=seurat_ok}
 sig_col <- paste0("GLEAM_signature_", gsub("[^A-Za-z0-9_]+", "_", top_sig))
-vals <- rep(NA_real_, ncol(seu))
-names(vals) <- colnames(seu)
-cells_in <- intersect(colnames(seu), colnames(sc$score))
-vals[cells_in] <- as.numeric(sc$score[top_sig, cells_in])
-seu[[sig_col]] <- vals
+score_values <- rep(NA_real_, ncol(seu))
+names(score_values) <- colnames(seu)
+overlap_cells <- intersect(colnames(seu), colnames(sc$score))
+score_values[overlap_cells] <- as.numeric(sc$score[top_sig, overlap_cells])
+seu[[sig_col]] <- score_values
 
 FeaturePlot(
   seu,
@@ -237,59 +156,94 @@ FeaturePlot(
 ) + ggplot2::labs(title = paste0("FeaturePlot signature map: ", top_sig))
 ```
 
-## 6) GLEAM plotting functions (consistent palettes)
+## 8) GLEAM embedding score plot
 
-```{r scrna-dotbar, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=11.8, fig.height=7.2, out.width="100%"}
+```{r step8-embedding-score, eval=seurat_ok}
+plot_embedding_score(
+  sc,
+  pathway = top_sig,
+  object = seu,
+  reduction = "umap",
+  point_size = 0.7,
+  palette = "gleam_continuous"
+)
+```
+
+## 9) Dot-bar plot
+
+```{r step9-dotbar, eval=seurat_ok, fig.width=11.8, fig.height=7.2, out.width="100%"}
 plot_dot_bar(
   sc,
-  by = c(group_col, celltype_col),
+  by = c("group", "celltype"),
   pathway = top_sig,
   color_palette = "gleam_continuous"
 )
 ```
 
-```{r scrna-violin, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=10.2, fig.height=6.2}
+## 10) Violin plot
+
+```{r step10-violin, eval=seurat_ok, fig.width=10.4, fig.height=6.2}
 plot_violin(
   sc,
   pathway = top_sig,
-  group = celltype_col,
+  group = "celltype",
   palette = pal_celltype,
   point_size = 0,
   alpha = 0.75
 ) + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 28, hjust = 1))
 ```
 
-```{r scrna-split-violin, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=10.8, fig.height=6.4}
+## 11) Split violin plot
+
+```{r step11-split-violin, eval=seurat_ok, fig.width=10.8, fig.height=6.4}
 plot_split_violin(
   sc,
   pathway = top_sig,
-  x = celltype_col,
-  split.by = group_col,
+  x = "celltype",
+  split.by = "group",
   palette = pal_group,
   alpha = 0.72
 ) + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 28, hjust = 1))
 ```
 
-```{r scrna-ridge, eval=requireNamespace("Seurat", quietly = TRUE) && requireNamespace("ggridges", quietly = TRUE), fig.width=10.8, fig.height=6.4}
+## 12) Ridge plot
+
+```{r step12-ridge, eval=seurat_ok && requireNamespace("ggridges", quietly = TRUE), fig.width=10.8, fig.height=6.4}
 plot_ridge(
   sc,
   pathway = top_sig,
-  group = celltype_col,
+  group = "celltype",
   palette = pal_celltype,
   alpha = 0.75
 )
 ```
 
-## 7) Trajectory-aware visualization
+## 13) Trajectory-style plots
 
-```{r scrna-trajectory, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=10.8, fig.height=6.6}
-lineage_levels <- unique(as.character(sc$meta$lineage))
-lineage_levels <- lineage_levels[!is.na(lineage_levels) & nzchar(lineage_levels)]
-if (length(lineage_levels) < 1L) lineage_levels <- "lineage_1"
+```{r step13-trajectory-setup, eval=seurat_ok}
+seu$pseudotime <- rank(Embeddings(seu, "pca")[, 1], ties.method = "average") / ncol(seu)
+seu$lineage <- as.character(seu$celltype)
+
+sc2 <- score_signature(
+  object = seu,
+  geneset = gs,
+  geneset_source = "list",
+  seurat = TRUE,
+  assay = "RNA",
+  layer = "data",
+  slot = "data",
+  method = "ensemble",
+  min_genes = 3,
+  verbose = FALSE
+)
+
+lineage_levels <- unique(as.character(sc2$meta$lineage))
 pal_lineage <- setNames(get_palette("brewer_dark2", n = length(lineage_levels), continuous = FALSE), lineage_levels)
+```
 
+```{r step13-pseudotime, eval=seurat_ok}
 plot_pseudotime_score(
-  sc,
+  sc2,
   pathway = top_sig,
   pseudotime = "pseudotime",
   lineage = "lineage",
@@ -297,25 +251,12 @@ plot_pseudotime_score(
 )
 ```
 
-```{r scrna-traj-map, eval=requireNamespace("Seurat", quietly = TRUE)}
+```{r step13-trajmap, eval=seurat_ok}
 plot_trajectory_score(
-  sc,
+  sc2,
   pathway = top_sig,
   object = seu,
   reduction = "umap",
   palette = "gleam_continuous"
 )
-```
-
-## 8) Export tables
-
-```{r scrna-export, eval=requireNamespace("Seurat", quietly = TRUE)}
-long_tbl <- pivot_scores_long(sc)
-summary_tbl <- summarize_scores(sc, by = c("sample", group_col), fun = "mean")
-out_csv <- file.path(tempdir(), "gleam_scrna_scores.csv")
-export_scores(sc, out_csv, format = "csv", include_meta = TRUE)
-
-head(long_tbl)
-head(summary_tbl)
-out_csv
 ```

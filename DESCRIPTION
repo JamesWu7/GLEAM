@@ -62,4 +62,4 @@ VignetteBuilder: knitr
 URL: https://github.com/JamesWu7/GLEAM,
     https://jameswu7.github.io/GLEAM/
 BugReports: https://github.com/JamesWu7/GLEAM/issues
-Config/Needs/website: pkgdown, knitr, rmarkdown, pkgload
+Config/Needs/website: pkgdown, knitr, rmarkdown, pkgload, Seurat, SeuratObject, ggridges
