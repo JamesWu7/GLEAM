@@ -84,6 +84,33 @@ plot_spatial_score <- function(
       }
       return(p)
     }
+    if (!is.null(sf$error) &&
+        grepl("UpdateSeuratObject", sf$error, fixed = TRUE) &&
+        requireNamespace("SeuratObject", quietly = TRUE)) {
+      updated_object <- tryCatch(SeuratObject::UpdateSeuratObject(object), error = function(e) NULL)
+      if (!is.null(updated_object)) {
+        sf_retry <- tryCatch(
+          do.call(sf_fun, list(
+            object = updated_object,
+            features = sig_col,
+            image_name = img,
+            point_size = point_size,
+            alpha = alpha,
+            cols = cols
+          )),
+          error = function(e) list(plot = NULL, error = conditionMessage(e))
+        )
+        p_retry <- sf_retry$plot
+        if (!is.null(p_retry)) {
+          if ("patchwork" %in% class(p_retry) && requireNamespace("patchwork", quietly = TRUE)) {
+            p_retry <- p_retry & do.call(gleam_theme, tp)
+          } else if (inherits(p_retry, "ggplot")) {
+            p_retry <- p_retry + do.call(gleam_theme, tp)
+          }
+          return(p_retry)
+        }
+      }
+    }
     warning(
       sprintf("Seurat SpatialFeaturePlot failed (%s). Falling back to coordinate+tissue overlay mode.", sf$error %||% "unknown error"),
       call. = FALSE

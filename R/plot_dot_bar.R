@@ -42,11 +42,16 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
   mean_df$fraction <- as.numeric(frac_map[key])
   tp <- resolve_text_params(theme_params)
 
-  cell_levels <- names(sort(tapply(
-    X = mean_df$value,
-    INDEX = as.character(mean_df[[celltype_col]]),
-    FUN = function(x) mean(x, na.rm = TRUE)
-  ), decreasing = TRUE))
+  cell_raw <- mean_df[[celltype_col]]
+  if (is.factor(cell_raw)) {
+    cell_levels <- levels(base::droplevels(cell_raw))
+  } else {
+    cell_levels <- names(sort(tapply(
+      X = mean_df$value,
+      INDEX = as.character(cell_raw),
+      FUN = function(x) mean(x, na.rm = TRUE)
+    ), decreasing = TRUE))
+  }
   mean_df$celltype_plot <- factor(as.character(mean_df[[celltype_col]]), levels = rev(cell_levels), ordered = TRUE)
 
   dot_df <- stats::aggregate(
