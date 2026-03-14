@@ -9,6 +9,7 @@
 ^API_MIGRATION\.md$
 ^DESIGN_AUDIT\.md$
 ^MONOCLE3_INTEGRATION\.md$
+^LICENSE\.md$
 ^_pkgdown\.yml$
 ^docs$
 ^data-raw$

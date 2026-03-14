@@ -381,7 +381,7 @@ extract_spatial_meta <- function(object = NULL, meta = NULL, seurat = TRUE) {
     if (is.null(bg)) {
       bg <- tryCatch(img_obj@image, error = function(e) NULL)
     }
-    if (is.null(bg) && methods::isS4(img_obj) && "image" %in% methods::slotNames(img_obj)) {
+    if (is.null(bg) && isS4(img_obj) && "image" %in% methods::slotNames(img_obj)) {
       bg <- tryCatch(methods::slot(img_obj, "image"), error = function(e) NULL)
     }
     bg <- .as_raster_spatial_image(bg)

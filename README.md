@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="man/figures/GLEAM_LOG.jpg" alt="GLEAM logo" width="330"/>
+  <img src="assets/GLEAM_LOG.jpg" alt="GLEAM logo" width="330"/>
 </p>
 
 # GLEAM
