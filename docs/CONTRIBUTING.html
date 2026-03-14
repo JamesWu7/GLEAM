@@ -28,7 +28,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Contributing to GLEAM</h1>
-      <small class="dont-index">Source: <a href="https://github.com/JamesWu7/GLEAM/blob/HEAD/CONTRIBUTING.md" class="external-link"><code>CONTRIBUTING.md</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/JamesWu7/GLEAM/blob/master/CONTRIBUTING.md" class="external-link"><code>CONTRIBUTING.md</code></a></small>
     </div>
 
 <div id="contributing-to-gleam" class="section level1">
@@ -37,7 +37,7 @@
 <h2 id="development-setup">Development setup<a class="anchor" aria-label="anchor" href="#development-setup"></a></h2>
 <ol style="list-style-type: decimal"><li><code>source("scripts/setup_dev.R")</code></li>
 <li><code>source("scripts/check_env.R")</code></li>
-<li><code>devtools::load_all()</code></li>
+<li><code><a href="https://devtools.r-lib.org/reference/load_all.html" class="external-link">devtools::load_all()</a></code></li>
 </ol></div>
 <div class="section level2">
 <h2 id="development-cycle">Development cycle<a class="anchor" aria-label="anchor" href="#development-cycle"></a></h2>
@@ -45,9 +45,9 @@
 <li>Update roxygen documentation.</li>
 <li>Add/update tests under <code>tests/testthat</code>.</li>
 <li>Run:
-<ul><li><code>devtools::document()</code></li>
-<li><code>devtools::test()</code></li>
-<li><code>devtools::check()</code></li>
+<ul><li><code><a href="https://devtools.r-lib.org/reference/document.html" class="external-link">devtools::document()</a></code></li>
+<li><code><a href="https://devtools.r-lib.org/reference/test.html" class="external-link">devtools::test()</a></code></li>
+<li><code><a href="https://devtools.r-lib.org/reference/check.html" class="external-link">devtools::check()</a></code></li>
 </ul></li>
 <li>Update <code>NEWS.md</code> for user-visible changes.</li>
 </ol></div>

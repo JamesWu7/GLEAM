@@ -15,7 +15,6 @@ custom genesets remain fully supported for other species.
 ## Installation
 
 ``` r
-
 if (!requireNamespace("devtools", quietly = TRUE)) install.packages("devtools")
 devtools::install_github("JamesWu7/GLEAM")
 ```
@@ -27,12 +26,13 @@ devtools::install_github("JamesWu7/GLEAM")
 
 ## Workflow highlights
 
-Figures below are generated from `vignettes/GLEAM_homepage_showcase.Rmd`
+Figures below are generated from `scripts/GLEAM_homepage_showcase.Rmd`
 via `scripts/generate_homepage_figures.R`.
 
 ![Feature-style signature score on
-embedding](reference/figures/embedding_signature_feature.png)![Spatial
-slice-style signature score
+embedding](reference/figures/embedding_signature_feature.png)
+
+![Spatial slice-style signature score
 map](reference/figures/spatial_slice_signature.png)
 
 ![Dot-bar signature
@@ -42,7 +42,6 @@ signature trend](reference/figures/trajectory_signature_trend.png)
 ## Quick start (Seurat scRNA-seq)
 
 ``` r
-
 library(GLEAM)
 library(Seurat)
 
@@ -143,63 +142,17 @@ visualization](reference/figures/embedding_signature_feature.png)
 ## Quick start (Seurat spatial)
 
 ``` r
-
+library(GLEAM)
 library(Seurat)
 
-a1_path <- system.file("extdata", "full_examples", "stxBrain_anterior1_seurat.rds", package = "GLEAM")
-p1_path <- system.file("extdata", "full_examples", "stxBrain_posterior1_seurat.rds", package = "GLEAM")
-if (a1_path == "") a1_path <- file.path("inst", "extdata", "full_examples", "stxBrain_anterior1_seurat.rds")
-if (p1_path == "") p1_path <- file.path("inst", "extdata", "full_examples", "stxBrain_posterior1_seurat.rds")
+st_path <- system.file("extdata", "full_examples", "stxBrain_anterior1_seurat.rds", package = "GLEAM")
+if (st_path == "") st_path <- file.path("inst", "extdata", "full_examples", "stxBrain_anterior1_seurat.rds")
+st <- readRDS(st_path)
 
-sp_a1 <- readRDS(a1_path)
-sp_p1 <- readRDS(p1_path)
-resolve_expr <- function(obj) {
-  assay_candidates <- unique(c(
-    tryCatch(SeuratObject::DefaultAssay(obj), error = function(e) NULL),
-    "Spatial",
-    "RNA"
-  ))
-  assay_candidates <- assay_candidates[!is.na(assay_candidates) & nzchar(assay_candidates)]
-
-  get_if_nonempty <- function(expr) {
-    m <- tryCatch(eval.parent(substitute(expr)), error = function(e) NULL)
-    if (!is.null(m) && nrow(m) > 0L && ncol(m) > 0L) return(m)
-    NULL
-  }
-
-  for (assay in assay_candidates) {
-    m <- get_if_nonempty(SeuratObject::LayerData(object = obj, assay = assay, layer = "data"))
-    if (!is.null(m)) return(m)
-    m <- get_if_nonempty(SeuratObject::LayerData(object = obj, assay = assay, layer = "counts"))
-    if (!is.null(m)) return(m)
-    m <- get_if_nonempty(SeuratObject::GetAssayData(object = obj, assay = assay, slot = "data"))
-    if (!is.null(m)) return(m)
-    m <- get_if_nonempty(SeuratObject::GetAssayData(object = obj, assay = assay, slot = "counts"))
-    if (!is.null(m)) return(m)
-  }
-
-  stop("Failed to extract non-empty expression matrix from Seurat spatial object.")
-}
-
-prep_spatial_object <- function(obj, sample_label) {
-  expr <- resolve_expr(obj)
-  md <- as.data.frame(obj[[]], stringsAsFactors = FALSE)
-  if (is.null(rownames(md))) rownames(md) <- colnames(expr)
-  md <- md[colnames(expr), , drop = FALSE]
-  if (!"sample" %in% colnames(md)) md$sample <- sample_label
-  if (!all(c("x", "y") %in% colnames(md))) {
-    if (all(c("imagecol", "imagerow") %in% colnames(md))) {
-      md$x <- md$imagecol
-      md$y <- md$imagerow
-    } else if (all(c("col", "row") %in% colnames(md))) {
-      md$x <- md$col
-      md$y <- md$row
-    }
-  }
-  prefixed_ids <- make.unique(paste0(sample_label, "_", colnames(expr)), sep = "_dup")
-  colnames(expr) <- prefixed_ids
-  rownames(md) <- prefixed_ids
-  list(expr = expr, meta = md)
+pick_first_col <- function(candidates, cols) {
+  hit <- candidates[candidates %in% cols]
+  if (length(hit) == 0L) return(NULL)
+  hit[[1]]
 }
 
 stratified_keep <- function(meta, n_target, strata_candidates = character()) {
@@ -221,55 +174,70 @@ stratified_keep <- function(meta, n_target, strata_candidates = character()) {
   unique(keep)[seq_len(min(n_target, length(unique(keep))))]
 }
 
-sp1 <- prep_spatial_object(sp_a1, "anterior")
-sp2 <- prep_spatial_object(sp_p1, "posterior")
-common_genes <- intersect(rownames(sp1$expr), rownames(sp2$expr))
-sp_expr <- cbind(sp1$expr[common_genes, , drop = FALSE], sp2$expr[common_genes, , drop = FALSE])
-sp_md <- rbind(sp1$meta[colnames(sp1$expr), , drop = FALSE], sp2$meta[colnames(sp2$expr), , drop = FALSE])
-sp_md <- sp_md[colnames(sp_expr), , drop = FALSE]
-if (!"group" %in% colnames(sp_md)) sp_md$group <- ifelse(grepl("anterior", sp_md$sample, ignore.case = TRUE), "anterior", "posterior")
-if (!"region" %in% colnames(sp_md)) sp_md$region <- if ("seurat_clusters" %in% colnames(sp_md)) paste0("cluster_", sp_md$seurat_clusters) else sp_md$group
-if (ncol(sp_expr) > 6000) {
+if (ncol(st) > 3500) {
   keep <- stratified_keep(
-    meta = sp_md,
-    n_target = 6000,
-    strata_candidates = c("sample", "group", "region", "seurat_clusters")
+    meta = st@meta.data,
+    n_target = 3500,
+    strata_candidates = c("orig.ident", "sample", "seurat_annotations", "seurat_clusters")
   )
-  sp_expr <- sp_expr[, keep, drop = FALSE]
-  sp_md <- sp_md[keep, , drop = FALSE]
+  st <- subset(st, cells = keep)
 }
-if (!all(c("x", "y") %in% colnames(sp_md))) {
-  if (all(c("array_col", "array_row") %in% colnames(sp_md))) {
-    sp_md$x <- sp_md$array_col
-    sp_md$y <- sp_md$array_row
-  } else {
-    n <- nrow(sp_md)
-    sp_md$x <- seq_len(n)
-    sample_vec <- if ("sample" %in% colnames(sp_md)) sp_md$sample else rep("sample_1", n)
-    sp_md$y <- as.numeric(as.factor(sample_vec))
+
+md_st <- st@meta.data
+region_col <- pick_first_col(c("seurat_annotations", "region", "seurat_clusters"), colnames(md_st))
+if (is.null(region_col)) {
+  md_st$region <- as.character(Idents(st))
+  region_col <- "region"
+} else if (region_col == "seurat_clusters") {
+  md_st$region <- paste0("cluster_", md_st$seurat_clusters)
+} else if (region_col != "region") {
+  md_st$region <- as.character(md_st[[region_col]])
+}
+st@meta.data <- md_st
+
+map_geneset_to_expr <- function(gs, expr_genes) {
+  expr_genes <- as.character(expr_genes)
+  expr_upper <- toupper(expr_genes)
+  mapped <- lapply(gs, function(g) {
+    idx <- match(toupper(unique(as.character(g))), expr_upper, nomatch = 0L)
+    unique(expr_genes[idx[idx > 0L]])
+  })
+  mapped[vapply(mapped, length, integer(1)) >= 3L]
+}
+
+gs_st <- NULL
+for (sp in c("mouse", "human")) {
+  gs_try <- try(get_geneset("hallmark", source = "builtin", species = sp), silent = TRUE)
+  if (inherits(gs_try, "try-error")) next
+  gs_try <- map_geneset_to_expr(gs_try, rownames(st))
+  if (length(gs_try) > 0L) {
+    gs_st <- gs_try
+    break
   }
 }
-coords <- data.frame(x = sp_md$x, y = sp_md$y, row.names = rownames(sp_md))
+if (is.null(gs_st) || length(gs_st) == 0L) {
+  genes <- rownames(st)
+  n_take <- min(30L, length(genes))
+  gs_st <- list(Spatial_signature = unique(genes[seq_len(n_take)]))
+}
 
-sp_genes <- rownames(sp_expr)
-half_n <- max(30, floor(length(sp_genes) / 2))
-idx_a <- seq_len(min(half_n, length(sp_genes)))
-idx_b <- seq(from = min(half_n + 1, length(sp_genes)), to = length(sp_genes))
-gs_spatial <- list(
-  Spatial_signature_A = unique(sp_genes[idx_a])[1:min(30, length(unique(sp_genes[idx_a])))],
-  Spatial_signature_B = unique(sp_genes[idx_b])[1:min(30, length(unique(sp_genes[idx_b])))]
+sp <- score_signature(
+  object = st,
+  geneset = gs_st,
+  geneset_source = "list",
+  seurat = TRUE,
+  layer = "counts",
+  slot = "counts",
+  method = "rank",
+  min_genes = 3
 )
 
-sp <- score_signature(expr = sp_expr, meta = sp_md, geneset = gs_spatial, geneset_source = "list", seurat = FALSE, method = "rank", min_genes = 3)
-img <- as.raster(matrix(colorRampPalette(c("#f7f3e8", "#eadfca", "#d9c7a4"))(256), nrow = 16))
-sp_res <- test_signature(sp, region = "region", group = "group", sample = "sample", level = "sample_region")
-top_sp_pw <- sp_res$table$pathway[order(sp_res$table$p_adj)][1]
-
-p1 <- plot_spatial_score(sp, pathway = rownames(sp$score)[1], coords = coords, image = img, split.by = "sample")
-p2 <- plot_spatial_score(sp, pathway = top_sp_pw, coords = coords, image = img, split.by = "region")
+top_sig <- rownames(sp$score)[1]
+p1 <- plot_spatial_score(sp, pathway = top_sig, object = st)
+p2 <- plot_dot(sp, by = "region")
 
 if (requireNamespace("patchwork", quietly = TRUE)) {
-  p1 + p2 + patchwork::plot_layout(ncol = 2)
+  p1 + p2 + patchwork::plot_layout(widths = c(2, 1))
 } else {
   p1
   p2
@@ -282,7 +250,6 @@ visualization](reference/figures/spatial_slice_signature.png)
 ## Custom gene-set example (concise)
 
 ``` r
-
 custom_gs <- list(
   IFN_custom = c("STAT1", "IRF1", "ISG15", "IFIT3"),
   CYT_custom = c("NKG7", "PRF1", "GZMB", "GNLY")
@@ -315,8 +282,9 @@ plot_dot(sc_custom, by = c("group", "celltype"))
   `sample`, `celltype`.
 - Embeddings: `reduction = "umap"|"pca"|"tsne"` in embedding/trajectory
   plots.
-- Spatial display: `coords` with optional `image` for slice-style
-  overlays.
+- Spatial display: prefer `object = <Seurat spatial object>` for native
+  slice rendering; `coords` + optional `image` remains available for
+  matrix-mode overlays.
 - Style controls through theme helpers: `base_size`, `title_size`,
   `axis_text_size`, `legend_text_size`, `font_family`, `font_face`,
   `title_color`, `text_color`.
@@ -324,23 +292,6 @@ plot_dot(sc_custom, by = c("group", "celltype"))
   [`get_palette()`](https://JamesWu7.github.io/GLEAM/reference/get_palette.md),
   [`scale_gleam_color()`](https://JamesWu7.github.io/GLEAM/reference/scale_gleam_color.md),
   [`scale_gleam_fill()`](https://JamesWu7.github.io/GLEAM/reference/scale_gleam_fill.md).
-
-## Detailed tutorials by function category
-
-- Input/extraction: [Seurat v4/v5 input
-  guide](https://JamesWu7.github.io/GLEAM/articles/GLEAM_seurat_v4_v5_input.html)
-- Geneset management: [Supported
-  genesets](https://JamesWu7.github.io/GLEAM/articles/GLEAM_supported_genesets.html)
-- Scoring/methods: [Scoring method
-  comparison](https://JamesWu7.github.io/GLEAM/articles/GLEAM_scoring_method_comparison.html)
-- Differential analysis: [Differential analysis
-  tutorial](https://JamesWu7.github.io/GLEAM/articles/GLEAM_differential_analysis.html)
-- Trajectory analysis: [Trajectory mapping
-  tutorial](https://JamesWu7.github.io/GLEAM/articles/GLEAM_trajectory_mapping.html)
-- Spatial analysis: [Spatial full
-  workflow](https://JamesWu7.github.io/GLEAM/articles/GLEAM_full_spatial_workflow.html)
-- Function categories overview: [Function
-  categories](https://JamesWu7.github.io/GLEAM/articles/GLEAM_function_categories.html)
 
 ## Full workflow tutorials
 
@@ -358,3 +309,15 @@ Suggested text for manuscripts:
 
 > GLEAM: Gene-set and cell-state exploration across space and time in R.
 > R package (v0.2.0). Available at: <https://github.com/JamesWu7/GLEAM>.
+
+BibTeX:
+
+``` bibtex
+@Manual{GLEAM,
+  title   = {GLEAM: Gene-set and cell-state exploration across space and time in R},
+  author  = {Xinjie Wu},
+  year    = {2026},
+  note    = {R package version 0.2.0},
+  url     = {https://github.com/JamesWu7/GLEAM}
+}
+```

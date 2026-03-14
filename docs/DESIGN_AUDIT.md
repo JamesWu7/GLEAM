@@ -64,8 +64,9 @@ Date: 2026-03-08 Repository: `JamesWu7/GLEAM`
 
 - `monocle3` retained in `Suggests` (not in `Imports`/`Depends`) —
   correct.
-- Added `Biobase` to `Suggests` to match `Biobase::pData` usage in
-  trajectory utilities.
+- Added `Biobase` to `Suggests` to match
+  [`Biobase::pData`](https://rdrr.io/pkg/Biobase/man/phenoData.html)
+  usage in trajectory utilities.
 - `Matrix` remains in `Imports`; now used explicitly via
   [`Matrix::colMeans`](https://rdrr.io/pkg/Matrix/man/colSums-methods.html)
   in scoring helper path.
@@ -178,17 +179,17 @@ Date: 2026-03-08 Repository: `JamesWu7/GLEAM`
 
 ### Explicit pathway -\> signature mapping
 
-| Legacy name | Canonical name | Decision | Compatibility plan |
-|----|----|----|----|
-| `score_pathway` | `score_signature` | Rename and keep public | keep `score_pathway()` wrapper and docs alias |
-| `aggregate_pathway` | `aggregate_signature` | Rename and keep public | keep wrapper + docs alias |
-| `test_pathway` | `test_signature` | Rename and keep public | keep wrapper + docs alias |
-| `differential_pathway` | `differential_signature` | Rename and keep public | keep wrapper; internally alias to test family |
-| `test_pathway_spatial` | `test_signature_spatial` | Rename and keep public | keep wrapper + docs alias |
-| `differential_pathway_spatial` | `differential_signature_spatial` | Rename and keep public | keep wrapper alias |
-| `test_pathway_trajectory` | `test_signature_trajectory` | Rename and keep public | keep wrapper + backend-aware forwarding |
-| `differential_pathway_trajectory` | `differential_signature_trajectory` | Rename and keep public | keep wrapper alias |
-| `run_scpathway` | `run_gleam` | Deprecate old brand | keep wrapper with warning, remove from canonical examples |
+| Legacy name                       | Canonical name                      | Decision               | Compatibility plan                                        |
+|-----------------------------------|-------------------------------------|------------------------|-----------------------------------------------------------|
+| `score_pathway`                   | `score_signature`                   | Rename and keep public | keep `score_pathway()` wrapper and docs alias             |
+| `aggregate_pathway`               | `aggregate_signature`               | Rename and keep public | keep wrapper + docs alias                                 |
+| `test_pathway`                    | `test_signature`                    | Rename and keep public | keep wrapper + docs alias                                 |
+| `differential_pathway`            | `differential_signature`            | Rename and keep public | keep wrapper; internally alias to test family             |
+| `test_pathway_spatial`            | `test_signature_spatial`            | Rename and keep public | keep wrapper + docs alias                                 |
+| `differential_pathway_spatial`    | `differential_signature_spatial`    | Rename and keep public | keep wrapper alias                                        |
+| `test_pathway_trajectory`         | `test_signature_trajectory`         | Rename and keep public | keep wrapper + backend-aware forwarding                   |
+| `differential_pathway_trajectory` | `differential_signature_trajectory` | Rename and keep public | keep wrapper alias                                        |
+| `run_scpathway`                   | `run_gleam`                         | Deprecate old brand    | keep wrapper with warning, remove from canonical examples |
 
 ## 12) Pathway vs signature terminology audit
 

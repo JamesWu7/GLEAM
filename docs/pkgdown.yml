@@ -1,22 +1,11 @@
-pandoc: '3.9'
+pandoc: 3.1.11
 pkgdown: 2.2.0
 pkgdown_sha: ~
 articles:
   GLEAM_citation: GLEAM_citation.html
-  GLEAM_custom_geneset: GLEAM_custom_geneset.html
-  GLEAM_differential_analysis: GLEAM_differential_analysis.html
   GLEAM_full_scrna_workflow: GLEAM_full_scrna_workflow.html
   GLEAM_full_spatial_workflow: GLEAM_full_spatial_workflow.html
-  GLEAM_function_categories: GLEAM_function_categories.html
-  GLEAM_homepage_showcase: GLEAM_homepage_showcase.html
-  GLEAM_quickstart_scrna: GLEAM_quickstart_scrna.html
-  GLEAM_quickstart_spatial: GLEAM_quickstart_spatial.html
-  GLEAM_scoring_method_comparison: GLEAM_scoring_method_comparison.html
-  GLEAM_seurat_v4_v5_input: GLEAM_seurat_v4_v5_input.html
-  GLEAM_supported_genesets: GLEAM_supported_genesets.html
-  GLEAM_trajectory_mapping: GLEAM_trajectory_mapping.html
-  GLEAM_visualization_parameters: GLEAM_visualization_parameters.html
-last_built: 2026-03-08T13:15Z
+last_built: 2026-03-14T03:17Z
 urls:
   reference: https://JamesWu7.github.io/GLEAM/reference
   article: https://JamesWu7.github.io/GLEAM/articles

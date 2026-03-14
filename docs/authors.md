@@ -7,11 +7,10 @@
 ## Citation
 
 Source:
-[`inst/CITATION`](https://github.com/JamesWu7/GLEAM/blob/HEAD/inst/CITATION)
+[`inst/CITATION`](https://github.com/JamesWu7/GLEAM/blob/master/inst/CITATION)
 
-Wu X (2026). GLEAM: Gene-set and cell-state exploration across space
-and time in R. R package version 0.2.0.
-https://github.com/JamesWu7/GLEAM
+Wu X (2026). GLEAM: Gene-set and cell-state exploration across space and
+time in R. R package version 0.2.0. https://github.com/JamesWu7/GLEAM
 
     @Manual{GLEAM,
       title = {GLEAM: Gene-set and cell-state exploration across space and time in R},

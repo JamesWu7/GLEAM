@@ -21,7 +21,6 @@ Monocle3 support in GLEAM is optional.
 ## Installation
 
 ``` r
-
 if (!requireNamespace("BiocManager", quietly = TRUE)) {
   install.packages("BiocManager")
 }
