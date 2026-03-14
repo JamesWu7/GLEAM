@@ -55,9 +55,21 @@ p_a1 <- tryCatch(
   Seurat::SpatialDimPlot(sp_a1, group.by = "orig.ident", pt.size.factor = 1.6),
   error = function(e) {
     md <- as.data.frame(sp_a1[[]], stringsAsFactors = FALSE)
-    md$x <- as.numeric(md$imagecol)
-    md$y <- as.numeric(md$imagerow)
-    ggplot2::ggplot(md, ggplot2::aes(x = .data$x, y = .data$y, color = .data$orig.ident)) +
+    coords <- tryCatch(
+      extract_spatial_coords(object = sp_a1),
+      error = function(e1) tryCatch(extract_spatial_coords(meta = md, seurat = FALSE), error = function(e2) NULL)
+    )
+    if (!is.null(coords)) {
+      coords <- as.data.frame(coords, stringsAsFactors = FALSE)
+      coords <- coords[rownames(md), c("x", "y"), drop = FALSE]
+      md$x <- as.numeric(coords$x)
+      md$y <- as.numeric(coords$y)
+    } else {
+      md$x <- seq_len(nrow(md))
+      md$y <- seq_len(nrow(md))
+    }
+    col_var <- if ("orig.ident" %in% colnames(md)) "orig.ident" else colnames(md)[1]
+    ggplot2::ggplot(md, ggplot2::aes(x = .data$x, y = .data$y, color = .data[[col_var]])) +
       ggplot2::geom_point(size = 0.55, alpha = 0.9) +
       ggplot2::coord_fixed() +
       ggplot2::scale_y_reverse() +
@@ -66,7 +78,7 @@ p_a1 <- tryCatch(
         subtitle = conditionMessage(e),
         x = NULL,
         y = NULL,
-        color = "orig.ident"
+        color = col_var
       ) +
       gleam_theme(base_size = 12)
   }
@@ -79,9 +91,21 @@ p_p1 <- tryCatch(
   Seurat::SpatialDimPlot(sp_p1, group.by = "orig.ident", pt.size.factor = 1.6),
   error = function(e) {
     md <- as.data.frame(sp_p1[[]], stringsAsFactors = FALSE)
-    md$x <- as.numeric(md$imagecol)
-    md$y <- as.numeric(md$imagerow)
-    ggplot2::ggplot(md, ggplot2::aes(x = .data$x, y = .data$y, color = .data$orig.ident)) +
+    coords <- tryCatch(
+      extract_spatial_coords(object = sp_p1),
+      error = function(e1) tryCatch(extract_spatial_coords(meta = md, seurat = FALSE), error = function(e2) NULL)
+    )
+    if (!is.null(coords)) {
+      coords <- as.data.frame(coords, stringsAsFactors = FALSE)
+      coords <- coords[rownames(md), c("x", "y"), drop = FALSE]
+      md$x <- as.numeric(coords$x)
+      md$y <- as.numeric(coords$y)
+    } else {
+      md$x <- seq_len(nrow(md))
+      md$y <- seq_len(nrow(md))
+    }
+    col_var <- if ("orig.ident" %in% colnames(md)) "orig.ident" else colnames(md)[1]
+    ggplot2::ggplot(md, ggplot2::aes(x = .data$x, y = .data$y, color = .data[[col_var]])) +
       ggplot2::geom_point(size = 0.55, alpha = 0.9) +
       ggplot2::coord_fixed() +
       ggplot2::scale_y_reverse() +
@@ -90,7 +114,7 @@ p_p1 <- tryCatch(
         subtitle = conditionMessage(e),
         x = NULL,
         y = NULL,
-        color = "orig.ident"
+        color = col_var
       ) +
       gleam_theme(base_size = 12)
   }
@@ -106,8 +130,10 @@ assay_p1 <- SeuratObject::DefaultAssay(sp_p1)
 
 expr_a1 <- SeuratObject::LayerData(sp_a1, assay = assay_a1, layer = "counts")
 expr_p1 <- SeuratObject::LayerData(sp_p1, assay = assay_p1, layer = "counts")
-colnames(expr_a1) <- paste0("anterior_", colnames(expr_a1))
-colnames(expr_p1) <- paste0("posterior_", colnames(expr_p1))
+orig_cells_a1 <- colnames(expr_a1)
+orig_cells_p1 <- colnames(expr_p1)
+colnames(expr_a1) <- paste0("anterior_", orig_cells_a1)
+colnames(expr_p1) <- paste0("posterior_", orig_cells_p1)
 
 common_genes <- intersect(rownames(expr_a1), rownames(expr_p1))
 expr <- cbind(expr_a1[common_genes, , drop = FALSE], expr_p1[common_genes, , drop = FALSE])
@@ -117,19 +143,41 @@ meta_p1 <- as.data.frame(sp_p1[[]], stringsAsFactors = FALSE)
 rownames(meta_a1) <- colnames(expr_a1)
 rownames(meta_p1) <- colnames(expr_p1)
 
+coords_a1 <- tryCatch(
+  extract_spatial_coords(object = sp_a1),
+  error = function(e1) tryCatch(extract_spatial_coords(meta = as.data.frame(sp_a1[[]], stringsAsFactors = FALSE), seurat = FALSE), error = function(e2) NULL)
+)
+coords_p1 <- tryCatch(
+  extract_spatial_coords(object = sp_p1),
+  error = function(e1) tryCatch(extract_spatial_coords(meta = as.data.frame(sp_p1[[]], stringsAsFactors = FALSE), seurat = FALSE), error = function(e2) NULL)
+)
+if (is.null(coords_a1) || is.null(coords_p1)) {
+  stop("Failed to extract spatial coordinates from one or both Seurat objects.")
+}
+coords_a1 <- as.data.frame(coords_a1, stringsAsFactors = FALSE)
+coords_p1 <- as.data.frame(coords_p1, stringsAsFactors = FALSE)
+coords_a1 <- coords_a1[orig_cells_a1, c("x", "y"), drop = FALSE]
+coords_p1 <- coords_p1[orig_cells_p1, c("x", "y"), drop = FALSE]
+rownames(coords_a1) <- colnames(expr_a1)
+rownames(coords_p1) <- colnames(expr_p1)
+
 meta_a1$sample <- "anterior"
 meta_p1$sample <- "posterior"
 meta <- rbind(meta_a1[colnames(expr_a1), , drop = FALSE], meta_p1[colnames(expr_p1), , drop = FALSE])
-common_cells <- intersect(colnames(expr), rownames(meta))
-if (length(common_cells) < 10L) {
+coords <- rbind(coords_a1[colnames(expr_a1), , drop = FALSE], coords_p1[colnames(expr_p1), , drop = FALSE])
+
+common_cells <- Reduce(intersect, list(colnames(expr), rownames(meta), rownames(coords)))
+if (length(common_cells) < 50L) {
   stop("Too few matched cells between expression matrix and metadata.")
 }
 expr <- expr[, common_cells, drop = FALSE]
 meta <- meta[common_cells, , drop = FALSE]
+coords <- coords[common_cells, c("x", "y"), drop = FALSE]
 
 cells_use <- common_cells[seq_len(min(7000L, length(common_cells)))]
 meta <- meta[cells_use, , drop = FALSE]
 expr <- expr[, cells_use, drop = FALSE]
+coords <- coords[cells_use, c("x", "y"), drop = FALSE]
 
 meta$section <- as.character(meta$sample)
 meta$group <- as.character(meta$sample)
@@ -141,13 +189,8 @@ if (is.null(region_col)) {
 } else {
   meta$region <- as.character(meta[[region_col]])
 }
-x_col <- if ("imagecol" %in% colnames(meta)) "imagecol" else if ("x" %in% colnames(meta)) "x" else if ("col" %in% colnames(meta)) "col" else NULL
-y_col <- if ("imagerow" %in% colnames(meta)) "imagerow" else if ("y" %in% colnames(meta)) "y" else if ("row" %in% colnames(meta)) "row" else NULL
-if (is.null(x_col) || is.null(y_col)) {
-  stop("Spatial metadata must contain coordinate columns (imagecol/imagerow or x/y).")
-}
-meta$x <- as.numeric(meta[[x_col]])
-meta$y <- as.numeric(meta[[y_col]])
+meta$x <- as.numeric(coords[rownames(meta), "x"])
+meta$y <- as.numeric(coords[rownames(meta), "y"])
 meta$pseudotime <- rank(meta$x, ties.method = "average") / nrow(meta)
 meta$lineage <- as.character(meta$region)
 
