@@ -106,29 +106,48 @@ assay_p1 <- SeuratObject::DefaultAssay(sp_p1)
 
 expr_a1 <- SeuratObject::LayerData(sp_a1, assay = assay_a1, layer = "counts")
 expr_p1 <- SeuratObject::LayerData(sp_p1, assay = assay_p1, layer = "counts")
+colnames(expr_a1) <- paste0("anterior_", colnames(expr_a1))
+colnames(expr_p1) <- paste0("posterior_", colnames(expr_p1))
 
 common_genes <- intersect(rownames(expr_a1), rownames(expr_p1))
 expr <- cbind(expr_a1[common_genes, , drop = FALSE], expr_p1[common_genes, , drop = FALSE])
 
 meta_a1 <- as.data.frame(sp_a1[[]], stringsAsFactors = FALSE)
 meta_p1 <- as.data.frame(sp_p1[[]], stringsAsFactors = FALSE)
-rownames(meta_a1) <- colnames(sp_a1)
-rownames(meta_p1) <- colnames(sp_p1)
+rownames(meta_a1) <- colnames(expr_a1)
+rownames(meta_p1) <- colnames(expr_p1)
 
 meta_a1$sample <- "anterior"
 meta_p1$sample <- "posterior"
 meta <- rbind(meta_a1[colnames(expr_a1), , drop = FALSE], meta_p1[colnames(expr_p1), , drop = FALSE])
-meta <- meta[colnames(expr), , drop = FALSE]
+common_cells <- intersect(colnames(expr), rownames(meta))
+if (length(common_cells) < 10L) {
+  stop("Too few matched cells between expression matrix and metadata.")
+}
+expr <- expr[, common_cells, drop = FALSE]
+meta <- meta[common_cells, , drop = FALSE]
 
-cells_use <- rownames(meta)[seq_len(min(7000, nrow(meta)))]
+cells_use <- common_cells[seq_len(min(7000L, length(common_cells)))]
 meta <- meta[cells_use, , drop = FALSE]
 expr <- expr[, cells_use, drop = FALSE]
 
 meta$section <- as.character(meta$sample)
 meta$group <- as.character(meta$sample)
-meta$region <- as.character(meta$seurat_annotations)
-meta$x <- as.numeric(meta$imagecol)
-meta$y <- as.numeric(meta$imagerow)
+region_col <- if ("seurat_annotations" %in% colnames(meta)) "seurat_annotations" else if ("region" %in% colnames(meta)) "region" else if ("seurat_clusters" %in% colnames(meta)) "seurat_clusters" else NULL
+if (is.null(region_col)) {
+  meta$region <- "region_1"
+} else if (region_col == "seurat_clusters") {
+  meta$region <- paste0("cluster_", as.character(meta[[region_col]]))
+} else {
+  meta$region <- as.character(meta[[region_col]])
+}
+x_col <- if ("imagecol" %in% colnames(meta)) "imagecol" else if ("x" %in% colnames(meta)) "x" else if ("col" %in% colnames(meta)) "col" else NULL
+y_col <- if ("imagerow" %in% colnames(meta)) "imagerow" else if ("y" %in% colnames(meta)) "y" else if ("row" %in% colnames(meta)) "row" else NULL
+if (is.null(x_col) || is.null(y_col)) {
+  stop("Spatial metadata must contain coordinate columns (imagecol/imagerow or x/y).")
+}
+meta$x <- as.numeric(meta[[x_col]])
+meta$y <- as.numeric(meta[[y_col]])
 meta$pseudotime <- rank(meta$x, ties.method = "average") / nrow(meta)
 meta$lineage <- as.character(meta$region)
 
