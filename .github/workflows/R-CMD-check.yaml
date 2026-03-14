@@ -20,7 +20,7 @@ jobs:
             any::knitr
             any::rmarkdown
           needs: check
-          dependencies: hard
+          dependencies: '"hard"'
       - name: Ensure vignette builders are installed
         run: |
           if (!requireNamespace("knitr", quietly = TRUE)) install.packages("knitr")
