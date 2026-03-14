@@ -282,6 +282,14 @@ extract_spatial_meta <- function(object = NULL, meta = NULL, seurat = TRUE) {
 .normalize_spatial_xy <- function(df) {
   if (is.null(df)) return(NULL)
   df <- as.data.frame(df, stringsAsFactors = FALSE)
+  cell_ids <- NULL
+  if ("cell" %in% colnames(df)) {
+    cell_ids <- as.character(df$cell)
+  } else if ("barcode" %in% colnames(df)) {
+    cell_ids <- as.character(df$barcode)
+  } else if ("spot" %in% colnames(df)) {
+    cell_ids <- as.character(df$spot)
+  }
   if (all(c("x", "y") %in% colnames(df))) {
     out <- df[, c("x", "y"), drop = FALSE]
   } else if (all(c("coords_x", "coords_y") %in% colnames(df))) {
@@ -301,6 +309,11 @@ extract_spatial_meta <- function(object = NULL, meta = NULL, seurat = TRUE) {
   }
   out$x <- as.numeric(out$x)
   out$y <- as.numeric(out$y)
+  # Many Seurat spatial APIs return explicit `cell` column with numeric rownames.
+  # Prefer those IDs when available to keep coordinate-to-cell alignment stable.
+  if (!is.null(cell_ids) && length(cell_ids) == nrow(out) && all(nzchar(cell_ids))) {
+    rownames(out) <- make.unique(cell_ids)
+  }
   out
 }
 
@@ -317,7 +330,8 @@ extract_spatial_meta <- function(object = NULL, meta = NULL, seurat = TRUE) {
     if (!all(is.na(arr)) && max(arr, na.rm = TRUE) > 1) {
       arr <- arr / 255
     }
-    arr <- pmax(0, pmin(1, arr))
+    arr[arr < 0] <- 0
+    arr[arr > 1] <- 1
     rgb_mat <- grDevices::rgb(arr[, , 1], arr[, , 2], arr[, , 3])
     dim(rgb_mat) <- dim(arr)[1:2]
     return(grDevices::as.raster(rgb_mat))
@@ -384,7 +398,7 @@ extract_spatial_meta <- function(object = NULL, meta = NULL, seurat = TRUE) {
     if (is.null(bg) && isS4(img_obj) && "image" %in% methods::slotNames(img_obj)) {
       bg <- tryCatch(methods::slot(img_obj, "image"), error = function(e) NULL)
     }
-    bg <- .as_raster_spatial_image(bg)
+    bg <- tryCatch(.as_raster_spatial_image(bg), error = function(e) NULL)
   }
 
   if (is.null(coords) && is.null(bg)) {

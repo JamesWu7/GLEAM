@@ -1,11 +1,11 @@
-pandoc: 3.1.11
-pkgdown: 2.2.0
+pandoc: 3.6.3
+pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
   GLEAM_citation: GLEAM_citation.html
   GLEAM_full_scrna_workflow: GLEAM_full_scrna_workflow.html
   GLEAM_full_spatial_workflow: GLEAM_full_spatial_workflow.html
-last_built: 2026-03-14T03:17Z
+last_built: 2026-03-14T11:57Z
 urls:
-  reference: https://JamesWu7.github.io/GLEAM/reference
-  article: https://JamesWu7.github.io/GLEAM/articles
+  reference: https://jameswu7.github.io/GLEAM/reference
+  article: https://jameswu7.github.io/GLEAM/articles

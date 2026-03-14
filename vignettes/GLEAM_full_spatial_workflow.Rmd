@@ -48,6 +48,33 @@ dim(sp_p1)
 sp_a1
 ```
 
+## 1b) Spatial preflight validation
+
+```{r step1b-preflight, eval=seurat_ok}
+imgs_a1 <- tryCatch(names(sp_a1@images), error = function(e) character())
+imgs_p1 <- tryCatch(names(sp_p1@images), error = function(e) character())
+cat("anterior images:", paste(imgs_a1, collapse = ", "), "\n")
+cat("posterior images:", paste(imgs_p1, collapse = ", "), "\n")
+
+coords_a1_check <- tryCatch(GLEAM:::extract_spatial_coords(object = sp_a1), error = function(e) e)
+coords_p1_check <- tryCatch(GLEAM:::extract_spatial_coords(object = sp_p1), error = function(e) e)
+
+if (inherits(coords_a1_check, "error")) stop("anterior coordinate extraction failed: ", conditionMessage(coords_a1_check))
+if (inherits(coords_p1_check, "error")) stop("posterior coordinate extraction failed: ", conditionMessage(coords_p1_check))
+
+cat("anterior coords:", nrow(coords_a1_check), "spots\n")
+cat("posterior coords:", nrow(coords_p1_check), "spots\n")
+
+if (!all(colnames(sp_a1) %in% rownames(coords_a1_check))) {
+  miss <- setdiff(colnames(sp_a1), rownames(coords_a1_check))
+  stop("anterior coordinate alignment failed; missing spots: ", paste(utils::head(miss, 5), collapse = ", "))
+}
+if (!all(colnames(sp_p1) %in% rownames(coords_p1_check))) {
+  miss <- setdiff(colnames(sp_p1), rownames(coords_p1_check))
+  stop("posterior coordinate alignment failed; missing spots: ", paste(utils::head(miss, 5), collapse = ", "))
+}
+```
+
 ## 2) Native slice view
 
 ```{r step2-slices, eval=seurat_ok}
@@ -56,8 +83,8 @@ p_a1 <- tryCatch(
   error = function(e) {
     md <- as.data.frame(sp_a1[[]], stringsAsFactors = FALSE)
     coords <- tryCatch(
-      extract_spatial_coords(object = sp_a1),
-      error = function(e1) tryCatch(extract_spatial_coords(meta = md, seurat = FALSE), error = function(e2) NULL)
+      GLEAM:::extract_spatial_coords(object = sp_a1),
+      error = function(e1) tryCatch(GLEAM:::extract_spatial_coords(meta = md, seurat = FALSE), error = function(e2) NULL)
     )
     if (!is.null(coords)) {
       coords <- as.data.frame(coords, stringsAsFactors = FALSE)
@@ -92,8 +119,8 @@ p_p1 <- tryCatch(
   error = function(e) {
     md <- as.data.frame(sp_p1[[]], stringsAsFactors = FALSE)
     coords <- tryCatch(
-      extract_spatial_coords(object = sp_p1),
-      error = function(e1) tryCatch(extract_spatial_coords(meta = md, seurat = FALSE), error = function(e2) NULL)
+      GLEAM:::extract_spatial_coords(object = sp_p1),
+      error = function(e1) tryCatch(GLEAM:::extract_spatial_coords(meta = md, seurat = FALSE), error = function(e2) NULL)
     )
     if (!is.null(coords)) {
       coords <- as.data.frame(coords, stringsAsFactors = FALSE)
@@ -143,19 +170,8 @@ meta_p1 <- as.data.frame(sp_p1[[]], stringsAsFactors = FALSE)
 rownames(meta_a1) <- colnames(expr_a1)
 rownames(meta_p1) <- colnames(expr_p1)
 
-coords_a1 <- tryCatch(
-  extract_spatial_coords(object = sp_a1),
-  error = function(e1) tryCatch(extract_spatial_coords(meta = as.data.frame(sp_a1[[]], stringsAsFactors = FALSE), seurat = FALSE), error = function(e2) NULL)
-)
-coords_p1 <- tryCatch(
-  extract_spatial_coords(object = sp_p1),
-  error = function(e1) tryCatch(extract_spatial_coords(meta = as.data.frame(sp_p1[[]], stringsAsFactors = FALSE), seurat = FALSE), error = function(e2) NULL)
-)
-if (is.null(coords_a1) || is.null(coords_p1)) {
-  stop("Failed to extract spatial coordinates from one or both Seurat objects.")
-}
-coords_a1 <- as.data.frame(coords_a1, stringsAsFactors = FALSE)
-coords_p1 <- as.data.frame(coords_p1, stringsAsFactors = FALSE)
+coords_a1 <- as.data.frame(coords_a1_check, stringsAsFactors = FALSE)
+coords_p1 <- as.data.frame(coords_p1_check, stringsAsFactors = FALSE)
 coords_a1 <- coords_a1[orig_cells_a1, c("x", "y"), drop = FALSE]
 coords_p1 <- coords_p1[orig_cells_p1, c("x", "y"), drop = FALSE]
 rownames(coords_a1) <- colnames(expr_a1)
