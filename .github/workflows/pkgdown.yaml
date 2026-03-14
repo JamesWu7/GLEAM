@@ -26,7 +26,9 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           needs: website
-          dependencies: '"hard"'
+          dependencies: hard
+      - name: Install GLEAM package for pkgdown reference/examples
+        run: R CMD INSTALL --no-build-vignettes .
       - name: Clean stale site output
         run: pkgdown::clean_site(force = TRUE)
         shell: Rscript {0}

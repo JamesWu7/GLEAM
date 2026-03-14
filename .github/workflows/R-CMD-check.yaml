@@ -15,9 +15,17 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@v2
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::rcmdcheck, any::knitr, any::rmarkdown
+          extra-packages: |
+            any::rcmdcheck
+            any::knitr
+            any::rmarkdown
           needs: check
-          dependencies: '"hard"'
+          dependencies: hard
+      - name: Ensure vignette builders are installed
+        run: |
+          if (!requireNamespace("knitr", quietly = TRUE)) install.packages("knitr")
+          if (!requireNamespace("rmarkdown", quietly = TRUE)) install.packages("rmarkdown")
+        shell: Rscript {0}
       - uses: r-lib/actions/check-r-package@v2
         env:
           _R_CHECK_FORCE_SUGGESTS_: false
