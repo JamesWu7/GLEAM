@@ -284,8 +284,14 @@ extract_spatial_meta <- function(object = NULL, meta = NULL, seurat = TRUE) {
   df <- as.data.frame(df, stringsAsFactors = FALSE)
   if (all(c("x", "y") %in% colnames(df))) {
     out <- df[, c("x", "y"), drop = FALSE]
+  } else if (all(c("coords_x", "coords_y") %in% colnames(df))) {
+    out <- data.frame(x = df$coords_x, y = df$coords_y, row.names = rownames(df))
+  } else if (all(c("x_coord", "y_coord") %in% colnames(df))) {
+    out <- data.frame(x = df$x_coord, y = df$y_coord, row.names = rownames(df))
   } else if (all(c("imagecol", "imagerow") %in% colnames(df))) {
     out <- data.frame(x = df$imagecol, y = df$imagerow, row.names = rownames(df))
+  } else if (all(c("array_col", "array_row") %in% colnames(df))) {
+    out <- data.frame(x = df$array_col, y = df$array_row, row.names = rownames(df))
   } else if (all(c("col", "row") %in% colnames(df))) {
     out <- data.frame(x = df$col, y = df$row, row.names = rownames(df))
   } else if (ncol(df) >= 2L) {
@@ -369,7 +375,15 @@ extract_spatial_meta <- function(object = NULL, meta = NULL, seurat = TRUE) {
 
   bg <- NULL
   if (!is.null(img_obj)) {
+    # Seurat spatial image storage differs across versions/classes:
+    # attribute("image"), @image slot, or methods::slot(image, "image").
     bg <- tryCatch(attr(img_obj, "image"), error = function(e) NULL)
+    if (is.null(bg)) {
+      bg <- tryCatch(img_obj@image, error = function(e) NULL)
+    }
+    if (is.null(bg) && methods::isS4(img_obj) && "image" %in% methods::slotNames(img_obj)) {
+      bg <- tryCatch(methods::slot(img_obj, "image"), error = function(e) NULL)
+    }
     bg <- .as_raster_spatial_image(bg)
   }
 

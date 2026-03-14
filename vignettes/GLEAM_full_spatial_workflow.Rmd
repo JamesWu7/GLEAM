@@ -17,7 +17,19 @@ knitr::opts_chunk$set(
   out.width = "96%",
   dpi = 180
 )
-library(GLEAM)
+pkg_root <- if (file.exists("DESCRIPTION")) "." else if (file.exists(file.path("..", "DESCRIPTION"))) ".." else NULL
+if (!is.null(pkg_root) && requireNamespace("pkgload", quietly = TRUE)) {
+  pkgload::load_all(pkg_root, export_all = FALSE, quiet = TRUE)
+} else if (requireNamespace("GLEAM", quietly = TRUE)) {
+  library(GLEAM)
+} else {
+  stop("Need installed 'GLEAM' or package 'pkgload' to render this vignette.")
+}
+
+.stratified_keep <- GLEAM:::.stratified_keep
+.prep_spatial_object_matrix <- GLEAM:::.prep_spatial_object_matrix
+.map_geneset_to_expr <- GLEAM:::.map_geneset_to_expr
+.fallback_signatures <- GLEAM:::.fallback_signatures
 ```
 
 ## 1) Spatial object construction
@@ -28,9 +40,12 @@ versions while retaining true spatial coordinate analysis.
 
 ```{r full-spatial-fallback-figs, eval=!requireNamespace("Seurat", quietly = TRUE), echo=FALSE, fig.width=9.8, fig.height=7.2, out.width="96%"}
 cat("Seurat is not available in this rendering environment. Showing representative pre-rendered spatial workflow figures.\n\n")
+fig_root_candidates <- c("man/figures", "../man/figures", "../../man/figures")
+fig_root <- fig_root_candidates[file.exists(fig_root_candidates)][1]
+if (is.na(fig_root)) fig_root <- "man/figures"
 knitr::include_graphics(c(
-  "../man/figures/spatial_slice_signature.png",
-  "../man/figures/signature_dotbar_compare.png"
+  file.path(fig_root, "spatial_slice_signature.png"),
+  file.path(fig_root, "signature_dotbar_compare.png")
 ))
 ```
 
@@ -44,84 +59,18 @@ if (p1_path == "") p1_path <- file.path("inst", "extdata", "full_examples", "stx
 
 sp_a1 <- readRDS(a1_path)
 sp_p1 <- readRDS(p1_path)
-
-resolve_expr <- function(obj) {
-  assay_candidates <- unique(c(
-    tryCatch(SeuratObject::DefaultAssay(obj), error = function(e) NULL),
-    "Spatial",
-    "RNA"
-  ))
-  assay_candidates <- assay_candidates[!is.na(assay_candidates) & nzchar(assay_candidates)]
-
-  get_if_nonempty <- function(expr) {
-    m <- tryCatch(eval.parent(substitute(expr)), error = function(e) NULL)
-    if (!is.null(m) && nrow(m) > 0L && ncol(m) > 0L) return(m)
-    NULL
-  }
-
-  for (assay in assay_candidates) {
-    m <- get_if_nonempty(SeuratObject::LayerData(object = obj, assay = assay, layer = "data"))
-    if (!is.null(m)) return(m)
-    m <- get_if_nonempty(SeuratObject::LayerData(object = obj, assay = assay, layer = "counts"))
-    if (!is.null(m)) return(m)
-    m <- get_if_nonempty(SeuratObject::GetAssayData(object = obj, assay = assay, slot = "data"))
-    if (!is.null(m)) return(m)
-    m <- get_if_nonempty(SeuratObject::GetAssayData(object = obj, assay = assay, slot = "counts"))
-    if (!is.null(m)) return(m)
-  }
-
-  stop("Failed to extract non-empty expression matrix from Seurat spatial object.")
+if (requireNamespace("SeuratObject", quietly = TRUE)) {
+  sp_a1 <- tryCatch(SeuratObject::UpdateSeuratObject(sp_a1), error = function(e) sp_a1)
+  sp_p1 <- tryCatch(SeuratObject::UpdateSeuratObject(sp_p1), error = function(e) sp_p1)
 }
-
-prep_spatial_object <- function(obj, sample_label) {
-  expr <- resolve_expr(obj)
-  md <- as.data.frame(obj[[]], stringsAsFactors = FALSE)
-  if (is.null(rownames(md))) rownames(md) <- colnames(expr)
-  md <- md[colnames(expr), , drop = FALSE]
-  if (!"sample" %in% colnames(md)) md$sample <- sample_label
-  if (!"section" %in% colnames(md)) md$section <- sample_label
-  if (!all(c("x", "y") %in% colnames(md))) {
-    if (all(c("imagecol", "imagerow") %in% colnames(md))) {
-      md$x <- md$imagecol
-      md$y <- md$imagerow
-    } else if (all(c("col", "row") %in% colnames(md))) {
-      md$x <- md$col
-      md$y <- md$row
-    }
-  }
-  prefixed_ids <- make.unique(paste0(sample_label, "_", colnames(expr)), sep = "_dup")
-  colnames(expr) <- prefixed_ids
-  rownames(md) <- prefixed_ids
-  list(expr = expr, meta = md)
-}
-
-stratified_keep <- function(meta, n_target, strata_candidates = character()) {
-  if (nrow(meta) <= n_target) return(rownames(meta))
-  strata <- intersect(strata_candidates, colnames(meta))
-  all_ids <- rownames(meta)
-  if (length(strata) == 0L) return(all_ids[seq_len(n_target)])
-
-  key <- interaction(meta[, strata, drop = FALSE], drop = TRUE, lex.order = TRUE)
-  groups <- split(all_ids, key)
-  per_group <- max(1L, floor(n_target / max(1L, length(groups))))
-  keep <- unlist(lapply(groups, function(ids) {
-    ids <- sort(ids)
-    head(ids, per_group)
-  }), use.names = FALSE)
-  if (length(keep) < n_target) {
-    keep <- c(keep, head(setdiff(all_ids, keep), n_target - length(keep)))
-  }
-  unique(keep)[seq_len(min(n_target, length(unique(keep))))]
-}
-
-sp1 <- prep_spatial_object(sp_a1, "anterior")
-sp2 <- prep_spatial_object(sp_p1, "posterior")
+sp1 <- .prep_spatial_object_matrix(sp_a1, "anterior")
+sp2 <- .prep_spatial_object_matrix(sp_p1, "posterior")
 common_genes <- intersect(rownames(sp1$expr), rownames(sp2$expr))
 sp_expr <- cbind(sp1$expr[common_genes, , drop = FALSE], sp2$expr[common_genes, , drop = FALSE])
 sp_md <- rbind(sp1$meta[colnames(sp1$expr), , drop = FALSE], sp2$meta[colnames(sp2$expr), , drop = FALSE])
 sp_md <- sp_md[colnames(sp_expr), , drop = FALSE]
 if (ncol(sp_expr) > 8000) {
-  keep <- stratified_keep(
+  keep <- .stratified_keep(
     meta = sp_md,
     n_target = 8000,
     strata_candidates = c("sample", "section", "group", "region", "seurat_clusters")
@@ -180,22 +129,9 @@ sp <- score_signature(
   method = "rank",
   min_genes = 3
 )
-
-map_geneset_to_expr <- function(gs_in, expr_genes) {
-  expr_genes <- as.character(expr_genes)
-  expr_upper <- toupper(expr_genes)
-  mapped <- lapply(gs_in, function(g) {
-    idx <- match(toupper(unique(as.character(g))), expr_upper, nomatch = 0L)
-    unique(expr_genes[idx[idx > 0L]])
-  })
-  mapped[vapply(mapped, length, integer(1)) >= 3L]
-}
-
-gs_slice <- map_geneset_to_expr(gs, rownames(sp_a1))
+gs_slice <- .map_geneset_to_expr(gs, rownames(sp_a1), min_genes = 3)
 if (length(gs_slice) == 0L) {
-  g <- rownames(sp_a1)
-  n_take <- min(30L, length(g))
-  gs_slice <- list(Spatial_signature = unique(g[seq_len(n_take)]))
+  gs_slice <- .fallback_signatures(rownames(sp_a1), max_genes = 30, min_genes = 3)
 }
 
 sp_slice <- score_signature(
@@ -225,18 +161,15 @@ if (requireNamespace("Seurat", quietly = TRUE)) {
   )
 }
 
-native_sp <- tryCatch(
-  plot_spatial_score(sp_slice, pathway = rownames(sp_slice$score)[1], object = sp_a1),
-  error = function(e) {
-    message("[GLEAM] native spatial plot fallback: ", conditionMessage(e))
-    coords_slice <- extract_spatial_coords(object = sp_a1, seurat = TRUE)
-    plot_spatial_score(
-      sp_slice,
-      pathway = rownames(sp_slice$score)[1],
-      coords = coords_slice
-    )
-  }
-)
+slice_pathway <- rownames(sp_slice$score)[1]
+sig_col <- paste0("GLEAM_signature_", gsub("[^A-Za-z0-9_]+", "_", slice_pathway))
+slice_vals <- rep(NA_real_, ncol(sp_a1))
+names(slice_vals) <- colnames(sp_a1)
+slice_cells <- intersect(colnames(sp_a1), colnames(sp_slice$score))
+slice_vals[slice_cells] <- as.numeric(sp_slice$score[slice_pathway, slice_cells])
+sp_a1[[sig_col]] <- slice_vals
+
+native_sp <- plot_spatial_score(sp_slice, pathway = slice_pathway, object = sp_a1)
 native_sp
 
 # Combined-sample coordinate view (for across-slice comparative context)

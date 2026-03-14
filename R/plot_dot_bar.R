@@ -44,15 +44,16 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
 
   cell_raw <- mean_df[[celltype_col]]
   if (is.factor(cell_raw)) {
-    cell_levels <- levels(base::droplevels(cell_raw))
+    base_levels <- levels(base::droplevels(cell_raw))
   } else {
-    cell_levels <- names(sort(tapply(
+    base_levels <- names(sort(tapply(
       X = mean_df$value,
       INDEX = as.character(cell_raw),
       FUN = function(x) mean(x, na.rm = TRUE)
     ), decreasing = TRUE))
   }
-  mean_df$celltype_plot <- factor(as.character(mean_df[[celltype_col]]), levels = rev(cell_levels), ordered = TRUE)
+  display_levels <- rev(base_levels)
+  mean_df$celltype_plot <- factor(as.character(mean_df[[celltype_col]]), levels = display_levels, ordered = TRUE)
 
   dot_df <- stats::aggregate(
     x = list(value = mean_df$value, fraction = mean_df$fraction),
@@ -80,9 +81,10 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
     ) +
     do.call(gleam_theme, tp) +
     ggplot2::theme(
+      plot.margin = ggplot2::margin(6, 8, 6, 8),
       panel.grid.major.x = ggplot2::element_blank(),
       panel.grid.minor = ggplot2::element_blank(),
-      axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5),
+      axis.text.x = ggplot2::element_text(angle = 20, hjust = 1, vjust = 1),
       legend.box = "vertical",
       legend.spacing.y = ggplot2::unit(2, "mm")
     )
@@ -128,8 +130,9 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
   bar_df <- bar_df[order(bar_df$celltype_plot), , drop = FALSE]
   bar_df$direction <- factor(ifelse(bar_df$delta >= 0, "increase", "decrease"), levels = c("decrease", "increase"))
   ct_levels <- levels(bar_df$celltype_plot)
-  ct_cols <- get_palette("gleam_discrete", n = length(ct_levels), continuous = FALSE)
-  names(ct_cols) <- ct_levels
+  ct_cols_all <- get_palette("gleam_discrete", n = length(base_levels), continuous = FALSE)
+  names(ct_cols_all) <- base_levels
+  ct_cols <- ct_cols_all[ct_levels]
 
   bar <- ggplot2::ggplot(bar_df, ggplot2::aes(x = .data$delta, y = .data$celltype_plot)) +
     ggplot2::geom_col(ggplot2::aes(fill = .data$celltype_plot), width = 0.64, color = NA, alpha = 0.9) +
@@ -144,7 +147,7 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
     ) +
     do.call(gleam_theme, tp) +
     ggplot2::theme(
-      plot.margin = ggplot2::margin(6, 6, 6, 0),
+      plot.margin = ggplot2::margin(6, 6, 6, 2),
       legend.position = "none"
     )
 
@@ -153,5 +156,5 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
     return(dot)
   }
 
-  dot + bar + patchwork::plot_layout(guides = "collect", widths = c(3.1, 4.9))
+  dot + bar + patchwork::plot_layout(guides = "collect", widths = c(3, 5))
 }

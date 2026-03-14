@@ -1,3 +1,7 @@
+---
+output: github_document
+---
+
 <p align="center">
   <img src="man/figures/GLEAM_LOG.jpg" alt="GLEAM logo" width="330"/>
 </p>
@@ -18,7 +22,7 @@ if (!requireNamespace("devtools", quietly = TRUE)) install.packages("devtools")
 devtools::install_github("JamesWu7/GLEAM")
 ```
 
-**Navigation:** [Documentation](https://JamesWu7.github.io/GLEAM/) | [Reference](https://JamesWu7.github.io/GLEAM/reference/) | [Tutorials](https://JamesWu7.github.io/GLEAM/articles/) | [Citation](#citation)
+**Navigation:** [Documentation](https://jameswu7.github.io/GLEAM/) | [Reference](https://jameswu7.github.io/GLEAM/reference/) | [Tutorials](https://jameswu7.github.io/GLEAM/articles/) | [Citation](https://jameswu7.github.io/GLEAM/articles/GLEAM_citation.html)
 
 ## Workflow highlights
 
@@ -51,85 +55,36 @@ library(Seurat)
 ifnb_path <- system.file("extdata", "full_examples", "ifnb_seurat.rds", package = "GLEAM")
 if (ifnb_path == "") ifnb_path <- file.path("inst", "extdata", "full_examples", "ifnb_seurat.rds")
 seu <- readRDS(ifnb_path)
-pick_first_col <- function(candidates, cols) {
-  hit <- candidates[candidates %in% cols]
-  if (length(hit) == 0L) return(NULL)
-  hit[[1]]
-}
+if (!"pca" %in% names(seu@reductions)) seu <- RunPCA(seu, verbose = FALSE)
+if (!"umap" %in% names(seu@reductions)) seu <- RunUMAP(seu, dims = 1:20, verbose = FALSE)
 
-stratified_keep <- function(meta, n_target, strata_candidates = character()) {
-  if (nrow(meta) <= n_target) return(rownames(meta))
-  strata <- intersect(strata_candidates, colnames(meta))
-  all_ids <- rownames(meta)
-  if (length(strata) == 0L) return(all_ids[seq_len(n_target)])
+meta_cols <- colnames(seu@meta.data)
+group_col <- if ("stim" %in% meta_cols) "stim" else if ("group" %in% meta_cols) "group" else "orig.ident"
+celltype_col <- if ("seurat_annotations" %in% meta_cols) "seurat_annotations" else if ("celltype" %in% meta_cols) "celltype" else "seurat_clusters"
+seu$sample <- if ("orig.ident" %in% meta_cols) as.character(seu$orig.ident) else "sample_1"
 
-  key <- interaction(meta[, strata, drop = FALSE], drop = TRUE, lex.order = TRUE)
-  groups <- split(all_ids, key)
-  per_group <- max(1L, floor(n_target / max(1L, length(groups))))
-  keep <- unlist(lapply(groups, function(ids) {
-    ids <- sort(ids)
-    head(ids, per_group)
-  }), use.names = FALSE)
-  if (length(keep) < n_target) {
-    keep <- c(keep, head(setdiff(all_ids, keep), n_target - length(keep)))
-  }
-  unique(keep)[seq_len(min(n_target, length(unique(keep))))]
-}
+hallmark_gs <- tryCatch(get_geneset("hallmark", source = "builtin", species = "human"), error = function(e) NULL)
+if (is.null(hallmark_gs)) hallmark_gs <- tryCatch(get_geneset("hallmark", source = "builtin", species = "mouse"), error = function(e) NULL)
+if (is.null(hallmark_gs)) hallmark_gs <- list(Signature_A = rownames(seu)[seq_len(min(30, nrow(seu)))])
 
-if (ncol(seu) > 5000) {
-  keep <- stratified_keep(
-    meta = seu@meta.data,
-    n_target = 5000,
-    strata_candidates = c("orig.ident", "stim", "seurat_annotations", "seurat_clusters")
-  )
-  seu <- subset(seu, cells = keep)
-}
+sc <- score_signature(
+  object = seu,
+  geneset = hallmark_gs,
+  geneset_source = "list",
+  seurat = TRUE,
+  method = "ensemble",
+  min_genes = 3
+)
 
-md <- seu@meta.data
-sample_col <- pick_first_col(c("sample", "orig.ident"), colnames(md))
-if (is.null(sample_col)) {
-  md$sample <- "sample_1"
-  sample_col <- "sample"
-} else if (sample_col != "sample") {
-  md$sample <- as.character(md[[sample_col]])
-}
-
-group_col <- pick_first_col(c("stim", "group"), colnames(md))
-if (is.null(group_col)) {
-  md$group <- ifelse(seq_len(nrow(md)) <= nrow(md) / 2, "A", "B")
-  group_col <- "group"
-} else if (group_col != "group") {
-  md$group <- as.character(md[[group_col]])
-}
-
-celltype_col <- pick_first_col(c("seurat_annotations", "celltype", "seurat_clusters"), colnames(md))
-if (is.null(celltype_col)) {
-  md$celltype <- as.character(Idents(seu))
-  celltype_col <- "celltype"
-} else if (celltype_col == "seurat_clusters") {
-  md$celltype <- paste0("cluster_", md$seurat_clusters)
-} else if (celltype_col != "celltype") {
-  md$celltype <- as.character(md[[celltype_col]])
-}
-if (length(unique(md$sample)) < 2L) {
-  md$sample <- ifelse(seq_len(nrow(md)) <= nrow(md) / 2, "sample_A", "sample_B")
-}
-if (length(unique(md$group)) < 2L) {
-  s1 <- unique(md$sample)[1]
-  md$group <- ifelse(md$sample == s1, "A", "B")
-}
-seu@meta.data <- md
-
-if (!"pca" %in% names(seu@reductions)) seu <- RunPCA(seu)
-if (!"umap" %in% names(seu@reductions)) seu <- RunUMAP(seu, dims = 1:20)
-
-hallmark_gs <- get_geneset("hallmark", source = "builtin", species = "human")
-sc <- score_signature(object = seu, geneset = hallmark_gs, geneset_source = "list", seurat = TRUE, method = "ensemble", min_genes = 3)
 res <- test_signature(sc, group = group_col, sample = "sample", celltype = celltype_col, level = "pseudobulk")
 top_pw <- res$table$pathway[order(res$table$p_adj)][1]
+if (is.na(top_pw) || !nzchar(top_pw)) top_pw <- rownames(sc$score)[1]
+
+cell_levels <- names(sort(table(as.character(sc$meta[[celltype_col]])), decreasing = TRUE))
+pal_cell <- setNames(get_palette("gleam_discrete", n = length(cell_levels), continuous = FALSE), cell_levels)
 
 p1 <- plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "umap")
-p2 <- plot_violin(sc, pathway = rownames(sc$score)[1], group = group_col)
+p2 <- plot_violin(sc, pathway = top_pw, group = celltype_col, palette = pal_cell, point_size = 0)
 
 if (requireNamespace("patchwork", quietly = TRUE)) {
   p1 + p2 + patchwork::plot_layout(ncol = 2)
@@ -153,67 +108,17 @@ st_path <- system.file("extdata", "full_examples", "stxBrain_anterior1_seurat.rd
 if (st_path == "") st_path <- file.path("inst", "extdata", "full_examples", "stxBrain_anterior1_seurat.rds")
 st <- readRDS(st_path)
 
-pick_first_col <- function(candidates, cols) {
-  hit <- candidates[candidates %in% cols]
-  if (length(hit) == 0L) return(NULL)
-  hit[[1]]
-}
-
-stratified_keep <- function(meta, n_target, strata_candidates = character()) {
-  if (nrow(meta) <= n_target) return(rownames(meta))
-  strata <- intersect(strata_candidates, colnames(meta))
-  all_ids <- rownames(meta)
-  if (length(strata) == 0L) return(all_ids[seq_len(n_target)])
-
-  key <- interaction(meta[, strata, drop = FALSE], drop = TRUE, lex.order = TRUE)
-  groups <- split(all_ids, key)
-  per_group <- max(1L, floor(n_target / max(1L, length(groups))))
-  keep <- unlist(lapply(groups, function(ids) {
-    ids <- sort(ids)
-    head(ids, per_group)
-  }), use.names = FALSE)
-  if (length(keep) < n_target) {
-    keep <- c(keep, head(setdiff(all_ids, keep), n_target - length(keep)))
-  }
-  unique(keep)[seq_len(min(n_target, length(unique(keep))))]
-}
-
-if (ncol(st) > 3500) {
-  keep <- stratified_keep(
-    meta = st@meta.data,
-    n_target = 3500,
-    strata_candidates = c("orig.ident", "sample", "seurat_annotations", "seurat_clusters")
-  )
-  st <- subset(st, cells = keep)
-}
-
 md_st <- st@meta.data
-region_col <- pick_first_col(c("seurat_annotations", "region", "seurat_clusters"), colnames(md_st))
-if (is.null(region_col)) {
-  md_st$region <- as.character(Idents(st))
-  region_col <- "region"
-} else if (region_col == "seurat_clusters") {
-  md_st$region <- paste0("cluster_", md_st$seurat_clusters)
-} else if (region_col != "region") {
-  md_st$region <- as.character(md_st[[region_col]])
-}
+region_col <- if ("seurat_annotations" %in% colnames(md_st)) "seurat_annotations" else if ("region" %in% colnames(md_st)) "region" else "seurat_clusters"
+if (region_col == "seurat_clusters") md_st$seurat_clusters <- paste0("cluster_", md_st$seurat_clusters)
 st@meta.data <- md_st
-
-map_geneset_to_expr <- function(gs, expr_genes) {
-  expr_genes <- as.character(expr_genes)
-  expr_upper <- toupper(expr_genes)
-  mapped <- lapply(gs, function(g) {
-    idx <- match(toupper(unique(as.character(g))), expr_upper, nomatch = 0L)
-    unique(expr_genes[idx[idx > 0L]])
-  })
-  mapped[vapply(mapped, length, integer(1)) >= 3L]
-}
 
 gs_st <- NULL
 for (sp in c("mouse", "human")) {
   gs_try <- try(get_geneset("hallmark", source = "builtin", species = sp), silent = TRUE)
   if (inherits(gs_try, "try-error")) next
-  gs_try <- map_geneset_to_expr(gs_try, rownames(st))
+  gs_try <- lapply(gs_try, function(g) intersect(unique(as.character(g)), rownames(st)))
+  gs_try <- gs_try[vapply(gs_try, length, integer(1)) >= 3L]
   if (length(gs_try) > 0L) {
     gs_st <- gs_try
     break
@@ -238,7 +143,7 @@ sp <- score_signature(
 
 top_sig <- rownames(sp$score)[1]
 p1 <- plot_spatial_score(sp, pathway = top_sig, object = st)
-p2 <- plot_dot(sp, by = "region")
+p2 <- plot_dot(sp, by = region_col)
 
 if (requireNamespace("patchwork", quietly = TRUE)) {
   p1 + p2 + patchwork::plot_layout(widths = c(2, 1))
@@ -288,8 +193,8 @@ plot_dot(sc_custom, by = c("group", "celltype"))
 
 ## Full workflow tutorials
 
-- Full scRNA workflow: [GLEAM_full_scrna_workflow](https://JamesWu7.github.io/GLEAM/articles/GLEAM_full_scrna_workflow.html)
-- Full spatial workflow: [GLEAM_full_spatial_workflow](https://JamesWu7.github.io/GLEAM/articles/GLEAM_full_spatial_workflow.html)
+- Full scRNA workflow: [GLEAM_full_scrna_workflow](https://jameswu7.github.io/GLEAM/articles/GLEAM_full_scrna_workflow.html)
+- Full spatial workflow: [GLEAM_full_spatial_workflow](https://jameswu7.github.io/GLEAM/articles/GLEAM_full_spatial_workflow.html)
 
 ## Citation
 
