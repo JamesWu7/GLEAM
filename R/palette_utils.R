@@ -15,6 +15,14 @@ list_palettes <- function() {
   )
 }
 
+.is_single_color_literal <- function(x) {
+  if (!is.character(x) || length(x) != 1L || is.na(x)) return(FALSE)
+  isTRUE(tryCatch({
+    grDevices::col2rgb(x)
+    TRUE
+  }, error = function(e) FALSE))
+}
+
 #' Get palette colors
 #'
 #' @param name Palette name.
@@ -25,6 +33,12 @@ list_palettes <- function() {
 #' @return Character color vector.
 #' @export
 get_palette <- function(name = "gleam_discrete", n = 8, continuous = FALSE, reverse = FALSE) {
+  if (length(name) == 1L && .is_single_color_literal(name)) {
+    cols <- rep(as.character(name), max(1L, n))
+    if (reverse) cols <- rev(cols)
+    return(cols)
+  }
+
   if (length(name) > 1L) {
     cols <- as.character(name)
     if (continuous && length(cols) < n) cols <- grDevices::colorRampPalette(cols)(n)
@@ -94,7 +108,11 @@ scale_gleam_color <- function(palette = "gleam_discrete", continuous = FALSE) {
     cols <- if (is.character(palette) && length(palette) == 1L) get_palette(palette, n = 256, continuous = TRUE) else as.character(palette)
     ggplot2::scale_color_gradientn(colors = cols)
   } else {
-    if (is.character(palette) && length(palette) == 1L) {
+    is_named_single <- is.character(palette) && length(palette) == 1L &&
+      !is.null(names(palette)) && any(nzchar(names(palette)))
+    use_named_palette <- is.character(palette) && length(palette) == 1L &&
+      !is_named_single && !.is_single_color_literal(palette)
+    if (use_named_palette) {
       ggplot2::discrete_scale(
         aesthetics = "colour",
         scale_name = "gleam_color",
@@ -127,7 +145,11 @@ scale_gleam_fill <- function(palette = "gleam_discrete", continuous = FALSE) {
     cols <- if (is.character(palette) && length(palette) == 1L) get_palette(palette, n = 256, continuous = TRUE) else as.character(palette)
     ggplot2::scale_fill_gradientn(colors = cols)
   } else {
-    if (is.character(palette) && length(palette) == 1L) {
+    is_named_single <- is.character(palette) && length(palette) == 1L &&
+      !is.null(names(palette)) && any(nzchar(names(palette)))
+    use_named_palette <- is.character(palette) && length(palette) == 1L &&
+      !is_named_single && !.is_single_color_literal(palette)
+    if (use_named_palette) {
       ggplot2::discrete_scale(
         aesthetics = "fill",
         scale_name = "gleam_fill",
