@@ -8,9 +8,6 @@ print.gleam_score <- function(x, ...) {
 }
 
 #' @export
-print.scpathway_score <- function(x, ...) print.gleam_score(x, ...)
-
-#' @export
 print.gleam_test <- function(x, ...) {
   cat("<gleam_test>\n")
   cat("  level: ", x$level, "\n", sep = "")
@@ -19,9 +16,6 @@ print.gleam_test <- function(x, ...) {
   print(utils::head(x$table, 6))
   invisible(x)
 }
-
-#' @export
-print.scpathway_test <- function(x, ...) print.gleam_test(x, ...)
 
 #' @export
 summary.gleam_test <- function(object, ...) {
@@ -35,6 +29,3 @@ summary.gleam_test <- function(object, ...) {
   class(out) <- "summary.gleam_test"
   out
 }
-
-#' @export
-summary.scpathway_test <- function(object, ...) summary.gleam_test(object, ...)

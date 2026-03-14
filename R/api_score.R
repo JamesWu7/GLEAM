@@ -158,7 +158,7 @@ score_pathway <- function(
     .score_one(method)
   }
 
-  new_scpathway_score(
+  new_gleam_score(
     score = score_mat,
     meta = meta_use,
     method = method,

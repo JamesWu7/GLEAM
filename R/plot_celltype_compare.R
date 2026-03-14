@@ -8,7 +8,7 @@
 #' @return A `ggplot` object.
 #' @export
 plot_celltype_compare <- function(x, top_n = 20, point_size = 2.5, theme_params = list()) {
-  tbl <- if (inherits(x, "gleam_test") || inherits(x, "scpathway_test")) x$table else x
+  tbl <- if (inherits(x, "gleam_test")) x$table else x
   if (!is.data.frame(tbl)) stop("`x` must be a gleam_test object or data.frame.", call. = FALSE)
 
   ord <- order(abs(tbl$effect_size), decreasing = TRUE)

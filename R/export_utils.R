@@ -7,7 +7,7 @@
 collect_scores <- function(...) {
   xs <- list(...)
   if (length(xs) < 1L) stop("Provide at least one score object.", call. = FALSE)
-  ok <- vapply(xs, function(x) inherits(x, "gleam_score") || inherits(x, "scpathway_score"), logical(1))
+  ok <- vapply(xs, function(x) inherits(x, "gleam_score"), logical(1))
   if (!all(ok)) stop("All inputs must be score objects returned by score_signature().", call. = FALSE)
   xs
 }
@@ -51,7 +51,7 @@ summarize_scores <- function(score, by = c("sample", "group"), fun = c("mean", "
 #' @export
 export_scores <- function(x, file, format = c("csv", "tsv"), include_meta = TRUE) {
   format <- match.arg(format)
-  df <- if (inherits(x, "gleam_score") || inherits(x, "scpathway_score")) {
+  df <- if (inherits(x, "gleam_score")) {
     long <- pivot_scores_long(x)
     if (include_meta) {
       meta <- x$meta

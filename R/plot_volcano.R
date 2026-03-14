@@ -19,7 +19,7 @@ plot_volcano <- function(
   alpha = 0.8,
   theme_params = list()
 ) {
-  tbl <- if (inherits(x, "gleam_test") || inherits(x, "scpathway_test")) x$table else x
+  tbl <- if (inherits(x, "gleam_test")) x$table else x
   if (!is.data.frame(tbl)) {
     stop("`x` must be a gleam_test object or a data.frame.", call. = FALSE)
   }

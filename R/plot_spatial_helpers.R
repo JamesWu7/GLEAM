@@ -3,6 +3,12 @@
   if (!requireNamespace("Seurat", quietly = TRUE)) {
     return(list(plot = NULL, error = "Seurat not available"))
   }
+  sf_formals <- tryCatch(names(formals(Seurat::SpatialFeaturePlot)), error = function(e) character())
+  accepts_dots <- "..." %in% sf_formals
+  keep_sf_args <- function(args) {
+    if (accepts_dots) return(args)
+    args[intersect(names(args), sf_formals)]
+  }
 
   base_images <- list()
   if (!is.null(image_name) && is.character(image_name) && length(image_name) == 1L && nzchar(image_name)) {
@@ -31,6 +37,7 @@
     for (sty in style_args) {
       args <- c(list(object = object, features = features), img_arg, sty)
       args <- args[!vapply(args, is.null, logical(1))]
+      args <- keep_sf_args(args)
       out <- tryCatch(
         do.call(Seurat::SpatialFeaturePlot, args),
         error = function(e) e

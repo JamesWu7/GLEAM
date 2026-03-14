@@ -75,7 +75,7 @@ test_pathway <- function(
       ref_group = ref_group,
       adjust_method = adjust_method
     )
-    return(new_scpathway_test(
+    return(new_gleam_test(
       table = tbl,
       level = use_level,
       method = method,
@@ -202,7 +202,7 @@ test_pathway <- function(
     )
   }
 
-  new_scpathway_test(
+  new_gleam_test(
     table = tbl,
     level = level,
     method = method,
@@ -311,7 +311,7 @@ compare_groups_within_celltype <- function(
     adjust_method = adjust_method
   )
 
-  new_scpathway_test(
+  new_gleam_test(
     table = tbl,
     level = level,
     method = method,

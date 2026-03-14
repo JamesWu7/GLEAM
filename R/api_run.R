@@ -91,7 +91,7 @@ run_gleam <- function(
     }
   )
 
-  tbl <- if (inherits(tst, "gleam_test") || inherits(tst, "scpathway_test")) tst$table else tst
+  tbl <- if (inherits(tst, "gleam_test")) tst$table else tst
   ord <- order(tbl$p_adj, decreasing = FALSE, na.last = TRUE)
   top_tbl <- tbl[utils::head(ord, min(top_n, nrow(tbl))), , drop = FALSE]
 

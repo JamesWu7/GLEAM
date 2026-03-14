@@ -9,7 +9,7 @@
 #'
 #' @return Object of class `gleam_score` and `gleam_score`.
 #' @keywords internal
-new_scpathway_score <- function(score, meta, method, geneset_name, geneset_info, params = list()) {
+new_gleam_score <- function(score, meta, method, geneset_name, geneset_info, params = list()) {
   if (is.null(colnames(score))) {
     stop("`score` must have cell names in colnames().", call. = FALSE)
   }
@@ -29,7 +29,7 @@ new_scpathway_score <- function(score, meta, method, geneset_name, geneset_info,
       geneset_info = geneset_info,
       params = params
     ),
-    class = c("gleam_score", "scpathway_score")
+    class = "gleam_score"
   )
   obj
 }

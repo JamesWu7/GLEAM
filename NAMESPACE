@@ -2,10 +2,7 @@
 
 S3method(print,gleam_score)
 S3method(print,gleam_test)
-S3method(print,scpathway_score)
-S3method(print,scpathway_test)
 S3method(summary,gleam_test)
-S3method(summary,scpathway_test)
 export(aggregate_signature)
 export(apply_gleam_theme)
 export(as_geneset)

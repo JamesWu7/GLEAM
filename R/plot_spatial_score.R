@@ -53,6 +53,7 @@ plot_spatial_score <- function(
     if (is.null(sf_fun)) {
       sf <- list(plot = NULL, error = "internal helper .spatial_featureplot_compat() not found")
     } else {
+      fm <- names(formals(sf_fun))
       sf_args <- list(
         object = object,
         features = sig_col,
@@ -61,7 +62,6 @@ plot_spatial_score <- function(
         alpha = alpha,
         cols = cols
       )
-      fm <- names(formals(sf_fun))
       if (!("..." %in% fm)) {
         sf_args <- sf_args[intersect(names(sf_args), fm)]
       }
@@ -89,15 +89,19 @@ plot_spatial_score <- function(
         requireNamespace("SeuratObject", quietly = TRUE)) {
       updated_object <- tryCatch(SeuratObject::UpdateSeuratObject(object), error = function(e) NULL)
       if (!is.null(updated_object)) {
+        sf_args_retry <- list(
+          object = updated_object,
+          features = sig_col,
+          image_name = img,
+          point_size = point_size,
+          alpha = alpha,
+          cols = cols
+        )
+        if (!("..." %in% fm)) {
+          sf_args_retry <- sf_args_retry[intersect(names(sf_args_retry), fm)]
+        }
         sf_retry <- tryCatch(
-          do.call(sf_fun, list(
-            object = updated_object,
-            features = sig_col,
-            image_name = img,
-            point_size = point_size,
-            alpha = alpha,
-            cols = cols
-          )),
+          do.call(sf_fun, sf_args_retry),
           error = function(e) list(plot = NULL, error = conditionMessage(e))
         )
         p_retry <- sf_retry$plot

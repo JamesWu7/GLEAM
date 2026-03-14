@@ -102,13 +102,17 @@ scale_gleam_color <- function(palette = "gleam_discrete", continuous = FALSE) {
       )
     } else {
       pal <- as.character(palette)
-      ggplot2::discrete_scale(
-        aesthetics = "colour",
-        scale_name = "gleam_color",
-        palette = function(n) {
-          if (length(pal) >= n) pal[seq_len(n)] else grDevices::colorRampPalette(pal)(n)
-        }
-      )
+      if (!is.null(names(palette)) && any(nzchar(names(palette)))) {
+        ggplot2::scale_color_manual(values = palette, drop = FALSE)
+      } else {
+        ggplot2::discrete_scale(
+          aesthetics = "colour",
+          scale_name = "gleam_color",
+          palette = function(n) {
+            if (length(pal) >= n) pal[seq_len(n)] else grDevices::colorRampPalette(pal)(n)
+          }
+        )
+      }
     }
   }
 }
@@ -131,13 +135,17 @@ scale_gleam_fill <- function(palette = "gleam_discrete", continuous = FALSE) {
       )
     } else {
       pal <- as.character(palette)
-      ggplot2::discrete_scale(
-        aesthetics = "fill",
-        scale_name = "gleam_fill",
-        palette = function(n) {
-          if (length(pal) >= n) pal[seq_len(n)] else grDevices::colorRampPalette(pal)(n)
-        }
-      )
+      if (!is.null(names(palette)) && any(nzchar(names(palette)))) {
+        ggplot2::scale_fill_manual(values = palette, drop = FALSE)
+      } else {
+        ggplot2::discrete_scale(
+          aesthetics = "fill",
+          scale_name = "gleam_fill",
+          palette = function(n) {
+            if (length(pal) >= n) pal[seq_len(n)] else grDevices::colorRampPalette(pal)(n)
+          }
+        )
+      }
     }
   }
 }

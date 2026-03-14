@@ -143,7 +143,7 @@ test_pathway_spatial <- function(
     }
   }
 
-  new_scpathway_test(
+  new_gleam_test(
     table = tbl,
     level = level,
     method = method,

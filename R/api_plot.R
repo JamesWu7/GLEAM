@@ -87,6 +87,3 @@ resolve_palette_params <- function(palette = NULL, fill_palette = NULL, color_pa
 .theme_gleam <- function(base_size = 13) {
   gleam_theme(base_size = base_size)
 }
-
-#' @keywords internal
-.theme_scpathway <- .theme_gleam

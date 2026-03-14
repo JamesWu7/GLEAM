@@ -286,7 +286,7 @@ test_pathway_trajectory <- function(
     message(sprintf("[GLEAM] trajectory test completed for %d pathways.", nrow(tbl)))
   }
 
-  new_scpathway_test(
+  new_gleam_test(
     table = tbl,
     level = "trajectory",
     method = method,

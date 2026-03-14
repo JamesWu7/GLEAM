@@ -8,7 +8,7 @@
 #'
 #' @return Object of class `gleam_test` and `gleam_test`.
 #' @keywords internal
-new_scpathway_test <- function(table, level, method, comparison = list(), params = list()) {
+new_gleam_test <- function(table, level, method, comparison = list(), params = list()) {
   structure(
     list(
       table = table,
@@ -17,6 +17,6 @@ new_scpathway_test <- function(table, level, method, comparison = list(), params
       comparison = comparison,
       params = params
     ),
-    class = c("gleam_test", "scpathway_test")
+    class = "gleam_test"
   )
 }

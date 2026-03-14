@@ -12,11 +12,12 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.align = "center",
-  fig.width = 9.8,
-  fig.height = 7.2,
-  out.width = "96%",
+  fig.width = 10.2,
+  fig.height = 7.4,
+  out.width = "98%",
   dpi = 180
 )
+
 pkg_root <- if (file.exists("DESCRIPTION")) "." else if (file.exists(file.path("..", "DESCRIPTION"))) ".." else NULL
 if (!is.null(pkg_root) && requireNamespace("pkgload", quietly = TRUE)) {
   pkgload::load_all(pkg_root, export_all = FALSE, quiet = TRUE)
@@ -25,31 +26,22 @@ if (!is.null(pkg_root) && requireNamespace("pkgload", quietly = TRUE)) {
 } else {
   stop("Need installed 'GLEAM' or package 'pkgload' to render this vignette.")
 }
-
-.stratified_keep <- GLEAM:::.stratified_keep
-.prep_spatial_object_matrix <- GLEAM:::.prep_spatial_object_matrix
-.map_geneset_to_expr <- GLEAM:::.map_geneset_to_expr
-.fallback_signatures <- GLEAM:::.fallback_signatures
 ```
 
-## 1) Spatial object construction
+## 1) Load Seurat spatial objects and inspect slices
 
-This workflow loads Seurat spatial objects, then combines expression and metadata
-at matrix level to avoid image-slot compatibility breakpoints across Seurat
-versions while retaining true spatial coordinate analysis.
-
-```{r full-spatial-fallback-figs, eval=!requireNamespace("Seurat", quietly = TRUE), echo=FALSE, fig.width=9.8, fig.height=7.2, out.width="96%"}
-cat("Seurat is not available in this rendering environment. Showing representative pre-rendered spatial workflow figures.\n\n")
+```{r no-seurat-fallback, eval=!requireNamespace("Seurat", quietly = TRUE), echo=FALSE, fig.width=10.8, fig.height=7.8, out.width="100%"}
+cat("Seurat is not available in this rendering environment. Showing representative pre-rendered spatial figures.\n\n")
 fig_root_candidates <- c("man/figures", "../man/figures", "../../man/figures")
 fig_root <- fig_root_candidates[file.exists(fig_root_candidates)][1]
 if (is.na(fig_root)) fig_root <- "man/figures"
 knitr::include_graphics(c(
   file.path(fig_root, "spatial_slice_signature.png"),
-  file.path(fig_root, "signature_dotbar_compare.png")
+  file.path(fig_root, "trajectory_signature_trend.png")
 ))
 ```
 
-```{r full-spatial-object, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=9.8, fig.height=7.2, out.width="96%"}
+```{r spatial-load, eval=requireNamespace("Seurat", quietly = TRUE)}
 library(Seurat)
 
 a1_path <- system.file("extdata", "full_examples", "stxBrain_anterior1_seurat.rds", package = "GLEAM")
@@ -63,75 +55,154 @@ if (requireNamespace("SeuratObject", quietly = TRUE)) {
   sp_a1 <- tryCatch(SeuratObject::UpdateSeuratObject(sp_a1), error = function(e) sp_a1)
   sp_p1 <- tryCatch(SeuratObject::UpdateSeuratObject(sp_p1), error = function(e) sp_p1)
 }
-sp1 <- .prep_spatial_object_matrix(sp_a1, "anterior")
-sp2 <- .prep_spatial_object_matrix(sp_p1, "posterior")
-common_genes <- intersect(rownames(sp1$expr), rownames(sp2$expr))
-sp_expr <- cbind(sp1$expr[common_genes, , drop = FALSE], sp2$expr[common_genes, , drop = FALSE])
-sp_md <- rbind(sp1$meta[colnames(sp1$expr), , drop = FALSE], sp2$meta[colnames(sp2$expr), , drop = FALSE])
-sp_md <- sp_md[colnames(sp_expr), , drop = FALSE]
-if (ncol(sp_expr) > 8000) {
-  keep <- .stratified_keep(
-    meta = sp_md,
-    n_target = 8000,
-    strata_candidates = c("sample", "section", "group", "region", "seurat_clusters")
-  )
-  sp_expr <- sp_expr[, keep, drop = FALSE]
-  sp_md <- sp_md[keep, , drop = FALSE]
-}
-if (!"group" %in% colnames(sp_md)) sp_md$group <- ifelse(grepl("anterior", sp_md$sample, ignore.case = TRUE), "anterior", "posterior")
-if (!"region" %in% colnames(sp_md)) sp_md$region <- if ("seurat_clusters" %in% colnames(sp_md)) paste0("cluster_", sp_md$seurat_clusters) else sp_md$group
-if (!"section" %in% colnames(sp_md)) sp_md$section <- sp_md$sample
-if (!all(c("x", "y") %in% colnames(sp_md))) {
-  if (all(c("array_col", "array_row") %in% colnames(sp_md))) {
-    sp_md$x <- sp_md$array_col
-    sp_md$y <- sp_md$array_row
-  } else {
-    n <- nrow(sp_md)
-    sp_md$x <- seq_len(n)
-    sample_vec <- if ("sample" %in% colnames(sp_md)) sp_md$sample else rep("sample_1", n)
-    sp_md$y <- as.numeric(as.factor(sample_vec))
-  }
-}
-if (!"pseudotime" %in% colnames(sp_md)) {
-  sp_md$pseudotime <- rank(sp_md$x, ties.method = "average") / nrow(sp_md)
-}
-if (!"lineage" %in% colnames(sp_md)) {
-  sp_md$lineage <- as.character(sp_md$region)
-}
 
-# Show object context before scoring
 dim(sp_a1); sp_a1
 dim(sp_p1); sp_p1
-head(sp_md[, intersect(c("sample", "group", "region", "section", "x", "y", "imagecol", "imagerow"), colnames(sp_md))])
-if ("umap" %in% names(sp_a1@reductions)) {
-  DimPlot(sp_a1, reduction = "umap", group.by = "orig.ident", pt.size = 0.35)
-}
 ```
 
-## 2) Geneset scoring in spatial context
+```{r spatial-native-slices, eval=requireNamespace("Seurat", quietly = TRUE)}
+p1 <- tryCatch(
+  Seurat::SpatialDimPlot(sp_a1, group.by = "orig.ident", pt.size.factor = 1.6) +
+    ggplot2::labs(title = "Anterior slice"),
+  error = function(e) NULL
+)
+p2 <- tryCatch(
+  Seurat::SpatialDimPlot(sp_p1, group.by = "orig.ident", pt.size.factor = 1.6) +
+    ggplot2::labs(title = "Posterior slice"),
+  error = function(e) NULL
+)
+if (!is.null(p1)) print(p1)
+if (!is.null(p2)) print(p2)
+```
 
-```{r full-spatial-score, eval=requireNamespace("Seurat", quietly = TRUE)}
-sp_genes <- rownames(sp_expr)
-half_n <- max(30, floor(length(sp_genes) / 2))
-idx_a <- seq_len(min(half_n, length(sp_genes)))
-idx_b <- seq(from = min(half_n + 1, length(sp_genes)), to = length(sp_genes))
+## 2) Build matrix + metadata for combined analysis
+
+```{r spatial-build-matrix, eval=requireNamespace("Seurat", quietly = TRUE)}
+assay_a1 <- tryCatch(SeuratObject::DefaultAssay(sp_a1), error = function(e) "Spatial")
+assay_p1 <- tryCatch(SeuratObject::DefaultAssay(sp_p1), error = function(e) "Spatial")
+
+expr_a1 <- tryCatch(SeuratObject::LayerData(sp_a1, assay = assay_a1, layer = "counts"), error = function(e) NULL)
+if (is.null(expr_a1) || nrow(expr_a1) < 1L || ncol(expr_a1) < 1L) {
+  expr_a1 <- tryCatch(SeuratObject::GetAssayData(sp_a1, assay = assay_a1, slot = "counts"), error = function(e) NULL)
+}
+if (is.null(expr_a1) || nrow(expr_a1) < 1L || ncol(expr_a1) < 1L) {
+  stop("Cannot extract counts matrix from anterior slice.")
+}
+
+expr_p1 <- tryCatch(SeuratObject::LayerData(sp_p1, assay = assay_p1, layer = "counts"), error = function(e) NULL)
+if (is.null(expr_p1) || nrow(expr_p1) < 1L || ncol(expr_p1) < 1L) {
+  expr_p1 <- tryCatch(SeuratObject::GetAssayData(sp_p1, assay = assay_p1, slot = "counts"), error = function(e) NULL)
+}
+if (is.null(expr_p1) || nrow(expr_p1) < 1L || ncol(expr_p1) < 1L) {
+  stop("Cannot extract counts matrix from posterior slice.")
+}
+
+meta_a1 <- as.data.frame(sp_a1[[]], stringsAsFactors = FALSE)
+meta_p1 <- as.data.frame(sp_p1[[]], stringsAsFactors = FALSE)
+if (is.null(rownames(meta_a1))) rownames(meta_a1) <- colnames(sp_a1)
+if (is.null(rownames(meta_p1))) rownames(meta_p1) <- colnames(sp_p1)
+
+common_genes <- intersect(rownames(expr_a1), rownames(expr_p1))
+expr <- cbind(expr_a1[common_genes, , drop = FALSE], expr_p1[common_genes, , drop = FALSE])
+
+meta_a1 <- meta_a1[colnames(expr_a1), , drop = FALSE]
+meta_p1 <- meta_p1[colnames(expr_p1), , drop = FALSE]
+meta_a1$sample <- "anterior"
+meta_p1$sample <- "posterior"
+meta <- rbind(meta_a1, meta_p1)
+meta <- meta[colnames(expr), , drop = FALSE]
+
+if (ncol(expr) > 8000) {
+  set.seed(123)
+  keep <- sample(colnames(expr), size = 8000)
+  expr <- expr[, keep, drop = FALSE]
+  meta <- meta[keep, , drop = FALSE]
+}
+
+if (!"section" %in% colnames(meta)) meta$section <- meta$sample
+if (!"group" %in% colnames(meta)) meta$group <- meta$sample
+if (!"region" %in% colnames(meta)) {
+  if ("seurat_annotations" %in% colnames(meta)) {
+    meta$region <- as.character(meta$seurat_annotations)
+  } else if ("seurat_clusters" %in% colnames(meta)) {
+    meta$region <- paste0("cluster_", meta$seurat_clusters)
+  } else {
+    meta$region <- meta$group
+  }
+}
+if (!all(c("x", "y") %in% colnames(meta))) {
+  if (all(c("imagecol", "imagerow") %in% colnames(meta))) {
+    meta$x <- meta$imagecol
+    meta$y <- meta$imagerow
+  } else if (all(c("array_col", "array_row") %in% colnames(meta))) {
+    meta$x <- meta$array_col
+    meta$y <- meta$array_row
+  } else {
+    meta$x <- seq_len(nrow(meta))
+    meta$y <- as.numeric(as.factor(meta$sample))
+  }
+}
+if (!"pseudotime" %in% colnames(meta)) {
+  meta$pseudotime <- rank(meta$x, ties.method = "average") / nrow(meta)
+}
+if (!"lineage" %in% colnames(meta)) {
+  meta$lineage <- as.character(meta$region)
+}
+
+region_levels <- names(sort(table(as.character(meta$region)), decreasing = TRUE))
+group_levels <- unique(as.character(meta$group))
+group_levels <- group_levels[!is.na(group_levels) & nzchar(group_levels)]
+if (length(group_levels) < 1L) group_levels <- c("anterior", "posterior")
+meta$region <- factor(as.character(meta$region), levels = region_levels)
+meta$group <- factor(as.character(meta$group), levels = group_levels)
+
+pal_region <- setNames(get_palette("gleam_discrete", n = length(region_levels), continuous = FALSE), region_levels)
+pal_group <- setNames(get_palette("brewer_set2", n = length(group_levels), continuous = FALSE), group_levels)
+
+head(meta[, intersect(c("sample", "section", "group", "region", "x", "y", "imagecol", "imagerow"), colnames(meta)), drop = FALSE])
+```
+
+```{r spatial-meta-map, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=10.8, fig.height=7.2}
+ggplot2::ggplot(meta, ggplot2::aes(x = .data$x, y = .data$y, color = .data$group)) +
+  ggplot2::geom_point(size = 0.55, alpha = 0.8) +
+  ggplot2::scale_color_manual(values = pal_group, drop = FALSE) +
+  ggplot2::coord_fixed() +
+  ggplot2::scale_y_reverse() +
+  ggplot2::labs(title = "Combined spatial coordinates by group", x = NULL, y = NULL, color = "Group") +
+  gleam_theme(base_size = 12) +
+  ggplot2::theme(panel.grid = ggplot2::element_blank())
+```
+
+## 3) Score signatures for spatial data
+
+```{r spatial-score, eval=requireNamespace("Seurat", quietly = TRUE)}
+genes <- rownames(expr)
+k <- min(30L, length(genes))
 gs <- list(
-  Spatial_signature_A = unique(sp_genes[idx_a])[1:min(30, length(unique(sp_genes[idx_a])))],
-  Spatial_signature_B = unique(sp_genes[idx_b])[1:min(30, length(unique(sp_genes[idx_b])))]
+  Spatial_signature_A = unique(genes[seq_len(k)]),
+  Spatial_signature_B = unique(rev(genes)[seq_len(k)])
 )
 
 sp <- score_signature(
-  expr = sp_expr,
-  meta = sp_md,
+  expr = expr,
+  meta = meta,
   geneset = gs,
   geneset_source = "list",
   seurat = FALSE,
   method = "rank",
-  min_genes = 3
+  min_genes = 3,
+  verbose = FALSE
 )
-gs_slice <- .map_geneset_to_expr(gs, rownames(sp_a1), min_genes = 3)
+sp$meta$region <- factor(as.character(sp$meta$region), levels = region_levels)
+sp$meta$group <- factor(as.character(sp$meta$group), levels = group_levels)
+sp$meta$sample <- as.character(sp$meta$sample)
+
+# also score a single slice object for native tissue rendering
+obj_genes <- rownames(sp_a1)
+gs_slice <- lapply(gs, function(g) intersect(g, obj_genes))
+gs_slice <- gs_slice[vapply(gs_slice, length, integer(1)) >= 3L]
 if (length(gs_slice) == 0L) {
-  gs_slice <- .fallback_signatures(rownames(sp_a1), max_genes = 30, min_genes = 3)
+  gs_slice <- list(Spatial_signature_A = unique(obj_genes[seq_len(min(30L, length(obj_genes)))]) )
 }
 
 sp_slice <- score_signature(
@@ -142,51 +213,54 @@ sp_slice <- score_signature(
   layer = "counts",
   slot = "counts",
   method = "rank",
-  min_genes = 3
+  min_genes = 3,
+  verbose = FALSE
 )
 ```
 
-## 3) Spatial visualization (native slice + combined coordinates)
+## 4) Slice-level signature map (native tissue context)
 
-```{r full-spatial-map, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=11.2, fig.height=8.2, out.width="100%"}
-coords <- data.frame(x = sp_md$x, y = sp_md$y, row.names = rownames(sp_md))
-
-# Native Seurat slice/tissue rendering (recommended)
-if (requireNamespace("Seurat", quietly = TRUE)) {
-  suppressWarnings(
-    try(
-      Seurat::SpatialDimPlot(sp_a1, group.by = "orig.ident", pt.size.factor = 1.6),
-      silent = TRUE
-    )
-  )
-}
-
-slice_pathway <- rownames(sp_slice$score)[1]
-sig_col <- paste0("GLEAM_signature_", gsub("[^A-Za-z0-9_]+", "_", slice_pathway))
-slice_vals <- rep(NA_real_, ncol(sp_a1))
-names(slice_vals) <- colnames(sp_a1)
-slice_cells <- intersect(colnames(sp_a1), colnames(sp_slice$score))
-slice_vals[slice_cells] <- as.numeric(sp_slice$score[slice_pathway, slice_cells])
-sp_a1[[sig_col]] <- slice_vals
-
-native_sp <- plot_spatial_score(sp_slice, pathway = slice_pathway, object = sp_a1)
-native_sp
-
-# Combined-sample coordinate view (for across-slice comparative context)
-tissue_bg <- as.raster(matrix(colorRampPalette(c("#f8f5ea", "#e8dcc4", "#d2b48c"))(256), nrow = 16))
-
-plot_spatial_score(sp, pathway = rownames(sp$score)[1], coords = coords, image = tissue_bg)
-plot_spatial_score(sp, pathway = rownames(sp$score)[2], coords = coords, split.by = "section", image = tissue_bg)
-plot_spatial_multi(sp, pathways = rownames(sp$score)[1:4], coords = coords)
+```{r spatial-native-signature, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=11.4, fig.height=8.4, out.width="100%"}
+top_sig <- rownames(sp_slice$score)[1]
+plot_spatial_score(
+  sp_slice,
+  pathway = top_sig,
+  object = sp_a1,
+  point_size = 1.7,
+  alpha = 0.92,
+  palette = "gleam_continuous"
+)
 ```
 
-## 4) Spatial differential analysis
+## 5) Combined spatial coordinates (across slices)
 
-```{r full-spatial-diff, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=11.4, fig.height=8.4, out.width="100%"}
-# region vs region
-res_region <- test_signature(sp, region = "region", level = "region", method = "wilcox")
+```{r spatial-combined-map, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=11.0, fig.height=8.0, out.width="100%"}
+coords <- data.frame(x = meta$x, y = meta$y, row.names = rownames(meta))
+plot_spatial_score(
+  sp,
+  pathway = rownames(sp$score)[1],
+  coords = coords,
+  split.by = "section",
+  point_size = 1.3,
+  alpha = 0.9,
+  palette = "gleam_continuous"
+)
+```
 
-# group vs group within region
+```{r spatial-multi, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=12.0, fig.height=8.2, out.width="100%"}
+plot_spatial_multi(
+  sp,
+  pathways = rownames(sp$score)[seq_len(min(4L, nrow(sp$score)))],
+  coords = coords,
+  point_size = 1.15,
+  alpha = 0.88,
+  palette = "gleam_continuous"
+)
+```
+
+## 6) Differential analysis in spatial context
+
+```{r spatial-diff, eval=requireNamespace("Seurat", quietly = TRUE)}
 res_group_region <- test_signature(
   sp,
   region = "region",
@@ -196,17 +270,59 @@ res_group_region <- test_signature(
   method = "wilcox"
 )
 
-top_sp <- res_group_region$table$pathway[order(res_group_region$table$p_adj)][1]
-plot_spatial_score(sp, pathway = top_sp, coords = coords, image = tissue_bg, split.by = "region")
-plot_spatial_compare(res_group_region)
+head(res_group_region$table)
 ```
 
-## 5) Optional embedding linkage and trajectory-like display
+```{r spatial-diff-plot, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=11.2, fig.height=8.0, out.width="100%"}
+top_sp <- res_group_region$table$pathway[order(res_group_region$table$p_adj)][1]
+if (is.na(top_sp) || !nzchar(top_sp)) top_sp <- rownames(sp$score)[1]
 
-```{r full-spatial-embedding-link, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=10.0, fig.height=7.2, out.width="96%"}
-emb2 <- as.matrix(sp_md[, c("x", "y"), drop = FALSE])
-rownames(emb2) <- rownames(sp_md)
+p1 <- plot_spatial_score(
+  sp,
+  pathway = top_sp,
+  coords = coords,
+  split.by = "region",
+  point_size = 1.35,
+  alpha = 0.9,
+  palette = "gleam_continuous"
+)
+p2 <- plot_spatial_compare(res_group_region)
+
+if (requireNamespace("patchwork", quietly = TRUE)) {
+  p1 + p2 + patchwork::plot_layout(widths = c(2.4, 1.2))
+} else {
+  p1
+  p2
+}
+```
+
+## 7) Embedding-style and pseudotime-style spatial views
+
+```{r spatial-embed-link, eval=requireNamespace("Seurat", quietly = TRUE)}
+emb2 <- as.matrix(meta[, c("x", "y"), drop = FALSE])
+rownames(emb2) <- rownames(meta)
 colnames(emb2) <- c("Spatial_1", "Spatial_2")
-plot_embedding_score(sp, pathway = rownames(sp$score)[1], embedding = emb2, reduction = "umap")
-plot_pseudotime_score(sp, pathway = rownames(sp$score)[1], pseudotime = "pseudotime", lineage = "lineage")
+
+plot_embedding_score(
+  sp,
+  pathway = rownames(sp$score)[1],
+  embedding = emb2,
+  reduction = "umap",
+  palette = "gleam_continuous"
+)
+```
+
+```{r spatial-pseudotime, eval=requireNamespace("Seurat", quietly = TRUE)}
+lineage_levels <- unique(as.character(meta$lineage))
+lineage_levels <- lineage_levels[!is.na(lineage_levels) & nzchar(lineage_levels)]
+if (length(lineage_levels) < 1L) lineage_levels <- "lineage_1"
+pal_lineage <- setNames(get_palette("brewer_dark2", n = length(lineage_levels), continuous = FALSE), lineage_levels)
+
+plot_pseudotime_score(
+  sp,
+  pathway = rownames(sp$score)[1],
+  pseudotime = "pseudotime",
+  lineage = "lineage",
+  palette = pal_lineage
+)
 ```
