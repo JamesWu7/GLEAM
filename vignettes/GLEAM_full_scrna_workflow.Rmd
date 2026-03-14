@@ -26,6 +26,15 @@ For realistic scRNA analysis, signature scoring is most useful after a standard
 cell-state workflow (normalization, variable feature selection, dimensionality
 reduction, neighbor graph construction, and clustering).
 
+```{r full-scrna-fallback-figs, eval=!requireNamespace("Seurat", quietly = TRUE), echo=FALSE, fig.width=7.6, fig.height=5.6, out.width="92%"}
+cat("Seurat is not available in this rendering environment. Showing representative pre-rendered workflow figures.\n\n")
+knitr::include_graphics(c(
+  "../man/figures/embedding_signature_feature.png",
+  "../man/figures/signature_dotbar_compare.png",
+  "../man/figures/trajectory_signature_trend.png"
+))
+```
+
 ```{r full-scrna-object, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=7.6, fig.height=5.6, out.width="92%"}
 library(Seurat)
 

@@ -26,6 +26,14 @@ This workflow loads Seurat spatial objects, then combines expression and metadat
 at matrix level to avoid image-slot compatibility breakpoints across Seurat
 versions while retaining true spatial coordinate analysis.
 
+```{r full-spatial-fallback-figs, eval=!requireNamespace("Seurat", quietly = TRUE), echo=FALSE, fig.width=9.8, fig.height=7.2, out.width="96%"}
+cat("Seurat is not available in this rendering environment. Showing representative pre-rendered spatial workflow figures.\n\n")
+knitr::include_graphics(c(
+  "../man/figures/spatial_slice_signature.png",
+  "../man/figures/signature_dotbar_compare.png"
+))
+```
+
 ```{r full-spatial-object, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=9.8, fig.height=7.2, out.width="96%"}
 library(Seurat)
 
