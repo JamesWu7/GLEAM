@@ -13,6 +13,9 @@ figure_targets <- c(
   "embedding_signature_feature.png",
   "spatial_slice_signature.png",
   "signature_dotbar_compare.png",
+  "signature_violin.png",
+  "signature_split_violin.png",
+  "signature_ridge.png",
   "trajectory_signature_trend.png"
 )
 
@@ -78,26 +81,6 @@ make_discrete_palette <- function(n) {
   get_palette("gleam_discrete", n = n)
 }
 
-inject_signature_to_object <- function(obj, score_obj, sig_name, col_prefix = "GLEAM_signature_") {
-  sig_col <- paste0(col_prefix, gsub("[^A-Za-z0-9_]+", "_", sig_name))
-  vals <- rep(NA_real_, ncol(obj))
-  names(vals) <- colnames(obj)
-  common_cells <- intersect(colnames(obj), colnames(score_obj$score))
-  vals[common_cells] <- as.numeric(score_obj$score[sig_name, common_cells])
-  obj[[sig_col]] <- vals
-  list(object = obj, sig_col = sig_col)
-}
-
-apply_showcase_style <- function(p, title) {
-  if ("patchwork" %in% class(p) && requireNamespace("patchwork", quietly = TRUE)) {
-    return((p & gleam_theme(base_size = 12)) + patchwork::plot_annotation(title = title))
-  }
-  if (inherits(p, "ggplot")) {
-    return(p + gleam_theme(base_size = 12) + ggplot2::labs(title = title))
-  }
-  p
-}
-
 find_full_example <- function(file_name) {
   p <- system.file("extdata", "full_examples", file_name, package = "GLEAM")
   if (p == "") p <- file.path("inst", "extdata", "full_examples", file_name)
@@ -115,6 +98,13 @@ copy_vignette_figures <- function(fig_dir) {
   copy_named("embedding_feature-1.png", "embedding_signature_feature.png")
   copy_named("spatial_slice-1.png", "spatial_slice_signature.png")
   copy_named("dotbar_compare-1.png", "signature_dotbar_compare.png")
+  copy_named("violin_compare-1.png", "signature_violin.png")
+  copy_named("split_violin_compare-1.png", "signature_split_violin.png")
+  if (file.exists(file.path(fig_dir, "ridge_compare-1.png"))) {
+    copy_named("ridge_compare-1.png", "signature_ridge.png")
+  } else {
+    copy_named("violin_compare-1.png", "signature_ridge.png")
+  }
   copy_named("trajectory_trend-1.png", "trajectory_signature_trend.png")
 }
 
@@ -256,49 +246,72 @@ generate_from_full_examples <- function() {
     verbose = FALSE
   )
 
-  sig_embedding <- rownames(sc$score)[1]
-  emb_payload <- inject_signature_to_object(seu, sc, sig_embedding)
-  seu <- emb_payload$object
-  sig_col_emb <- emb_payload$sig_col
-  p1 <- Seurat::FeaturePlot(
+  top_sig <- rownames(sc$score)[1]
+  p1 <- plot_embedding_score(
+    score = sc,
+    pathway = top_sig,
     object = seu,
-    features = sig_col_emb,
     reduction = "umap",
-    order = TRUE,
-    pt.size = 0.62,
-    cols = get_palette("gleam_continuous", n = 128, continuous = TRUE)
-  )
-  p1 <- apply_showcase_style(p1, "Signature score on embedding (Seurat FeaturePlot)")
+    point_size = 0.62
+  ) + ggplot2::labs(title = "Signature score on embedding")
   ggplot2::ggsave(file.path(out_dir, "embedding_signature_feature.png"), p1, width = 10.0, height = 7.0, dpi = 220)
 
-  sig_spatial <- rownames(sp$score)[1]
-  sp_payload <- inject_signature_to_object(sp_obj, sp, sig_spatial)
-  sp_obj <- sp_payload$object
-  sig_col_sp <- sp_payload$sig_col
-  p2 <- tryCatch(
-    Seurat::SpatialFeaturePlot(
-      object = sp_obj,
-      features = sig_col_sp,
-      pt.size.factor = 1.65,
-      alpha = c(0.12, 1)
-    ),
-    error = function(e) {
-      message("[GLEAM] full-example SpatialFeaturePlot fallback: ", conditionMessage(e))
-      plot_spatial_score(sp, pathway = sig_spatial, object = sp_obj)
-    }
-  )
-  p2 <- apply_showcase_style(p2, "Signature score on spatial slice (Seurat SpatialFeaturePlot)")
+  p2 <- plot_spatial_score(
+    score = sp,
+    pathway = rownames(sp$score)[1],
+    object = sp_obj,
+    point_size = 1.65
+  ) + ggplot2::labs(title = "Signature score on spatial slice")
   ggplot2::ggsave(file.path(out_dir, "spatial_slice_signature.png"), p2, width = 11.0, height = 8.2, dpi = 240)
 
-  p3 <- plot_dot_bar(sc, by = c(group_col, celltype_col), pathway = rownames(sc$score)[1]) +
+  ct_rank <- names(sort(table(sc$meta[[celltype_col]]), decreasing = TRUE))
+  ct_keep <- head(ct_rank, 8L)
+  keep_cells <- rownames(sc$meta)[sc$meta[[celltype_col]] %in% ct_keep]
+  sc_vis <- sc
+  sc_vis$score <- sc$score[, keep_cells, drop = FALSE]
+  sc_vis$meta <- sc$meta[keep_cells, , drop = FALSE]
+
+  p3 <- plot_dot_bar(sc_vis, by = c(group_col, celltype_col), pathway = top_sig) +
     ggplot2::labs(title = "Dot-bar signature comparison")
-  ggplot2::ggsave(file.path(out_dir, "signature_dotbar_compare.png"), p3, width = 12.8, height = 8.8, dpi = 220)
+  ggplot2::ggsave(file.path(out_dir, "signature_dotbar_compare.png"), p3, width = 12.8, height = 7.8, dpi = 220)
+
+  p5 <- plot_violin(
+    score = sc_vis,
+    pathway = top_sig,
+    group = celltype_col,
+    point_size = 0.25,
+    alpha = 0.7
+  ) +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30, hjust = 1)) +
+    ggplot2::labs(title = "Violin plot across major cell types")
+  ggplot2::ggsave(file.path(out_dir, "signature_violin.png"), p5, width = 11.0, height = 6.4, dpi = 220)
+
+  p6 <- plot_split_violin(
+    score = sc_vis,
+    pathway = top_sig,
+    x = celltype_col,
+    split.by = group_col,
+    alpha = 0.74
+  ) +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30, hjust = 1)) +
+    ggplot2::labs(title = "Split violin by group within major cell types")
+  ggplot2::ggsave(file.path(out_dir, "signature_split_violin.png"), p6, width = 11.4, height = 6.6, dpi = 220)
+
+  p7 <- tryCatch(
+    plot_ridge(sc_vis, pathway = top_sig, group = celltype_col, alpha = 0.72) +
+      ggplot2::labs(title = "Ridge distribution across major cell types"),
+    error = function(e) {
+      message("[GLEAM] ridge fallback to violin: ", conditionMessage(e))
+      p5
+    }
+  )
+  ggplot2::ggsave(file.path(out_dir, "signature_ridge.png"), p7, width = 11.0, height = 6.6, dpi = 220)
 
   pal_lineage <- make_discrete_palette(length(unique(as.character(sc$meta$lineage))))
   p4 <- tryCatch(
     plot_pseudotime_score(
-      sc,
-      pathway = rownames(sc$score)[1],
+      sc_vis,
+      pathway = top_sig,
       pseudotime = "pseudotime",
       lineage = "lineage",
       palette = pal_lineage
@@ -306,8 +319,8 @@ generate_from_full_examples <- function() {
     error = function(e) {
       message("[GLEAM] trajectory trend fallback: ", conditionMessage(e))
       plot_pseudotime_score(
-        sc,
-        pathway = rownames(sc$score)[1],
+        sc_vis,
+        pathway = top_sig,
         pseudotime = "pseudotime",
         lineage = NULL,
         palette = pal_lineage
@@ -397,11 +410,12 @@ generate_from_builtin_examples <- function() {
   rownames(emb) <- colnames(expr_pbmc)
 
   ct_top <- names(sort(table(meta_pbmc$celltype), decreasing = TRUE))
-  ct_top <- head(ct_top, 5L)
+  ct_top <- head(ct_top, 8L)
   keep_cells <- rownames(meta_pbmc)[meta_pbmc$celltype %in% ct_top]
   sc_vis <- sc
   sc_vis$score <- sc$score[, keep_cells, drop = FALSE]
   sc_vis$meta <- sc$meta[keep_cells, , drop = FALSE]
+  top_sig <- rownames(sc_vis$score)[1]
 
   gs_sp <- fallback_signatures(rownames(expr_sp))
   sc_sp <- score_signature(
@@ -420,11 +434,11 @@ generate_from_builtin_examples <- function() {
     nrow = 16
   ))
 
-  p1 <- plot_embedding_score(sc, pathway = rownames(sc$score)[1], embedding = emb, reduction = "umap") +
+  p1 <- plot_embedding_score(sc, pathway = top_sig, embedding = emb, reduction = "umap", point_size = 0.62) +
     ggplot2::labs(title = "Signature score on embedding")
   ggplot2::ggsave(file.path(out_dir, "embedding_signature_feature.png"), p1, width = 10.0, height = 7.0, dpi = 220)
 
-  p2 <- plot_spatial_score(sc_sp, pathway = rownames(sc_sp$score)[1], coords = coords_sp, image = tissue_bg) +
+  p2 <- plot_spatial_score(sc_sp, pathway = rownames(sc_sp$score)[1], coords = coords_sp, image = tissue_bg, point_size = 1.65) +
     ggplot2::labs(title = "Signature score on spatial slice")
   ggplot2::ggsave(file.path(out_dir, "spatial_slice_signature.png"), p2, width = 11.0, height = 8.2, dpi = 240)
 
@@ -435,11 +449,43 @@ generate_from_builtin_examples <- function() {
   p3 <- plot_dot_bar(sc_dot, by = c("group", "celltype"))
   ggplot2::ggsave(file.path(out_dir, "signature_dotbar_compare.png"), p3, width = 12.0, height = 7.8, dpi = 220)
 
+  p5 <- plot_violin(
+    score = sc_vis,
+    pathway = top_sig,
+    group = "celltype",
+    point_size = 0.25,
+    alpha = 0.7
+  ) +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30, hjust = 1)) +
+    ggplot2::labs(title = "Violin plot across major cell types")
+  ggplot2::ggsave(file.path(out_dir, "signature_violin.png"), p5, width = 11.0, height = 6.4, dpi = 220)
+
+  p6 <- plot_split_violin(
+    score = sc_vis,
+    pathway = top_sig,
+    x = "celltype",
+    split.by = "group",
+    alpha = 0.74
+  ) +
+    ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30, hjust = 1)) +
+    ggplot2::labs(title = "Split violin by group within major cell types")
+  ggplot2::ggsave(file.path(out_dir, "signature_split_violin.png"), p6, width = 11.4, height = 6.6, dpi = 220)
+
+  p7 <- tryCatch(
+    plot_ridge(sc_vis, pathway = top_sig, group = "celltype", alpha = 0.72) +
+      ggplot2::labs(title = "Ridge distribution across major cell types"),
+    error = function(e) {
+      message("[GLEAM] ridge fallback to violin: ", conditionMessage(e))
+      p5
+    }
+  )
+  ggplot2::ggsave(file.path(out_dir, "signature_ridge.png"), p7, width = 11.0, height = 6.6, dpi = 220)
+
   n_lin <- length(unique(as.character(sc_vis$meta$lineage)))
   pal_lineage <- make_discrete_palette(n_lin)
   p4 <- plot_pseudotime_score(
     sc_vis,
-    pathway = rownames(sc_vis$score)[1],
+    pathway = top_sig,
     pseudotime = "pseudotime",
     lineage = "lineage",
     palette = pal_lineage

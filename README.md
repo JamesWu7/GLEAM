@@ -25,13 +25,20 @@ devtools::install_github("JamesWu7/GLEAM")
 Figures below are generated from `scripts/GLEAM_homepage_showcase.Rmd` via `scripts/generate_homepage_figures.R`.
 
 <p align="center">
-  <img src="man/figures/embedding_signature_feature.png" alt="Feature-style signature score on embedding" width="95%"/>
+  <img src="man/figures/embedding_signature_feature.png" alt="Feature-style signature score on embedding" width="98%"/>
 </p>
 <p align="center">
-  <img src="man/figures/spatial_slice_signature.png" alt="Spatial slice-style signature score map" width="95%"/>
+  <img src="man/figures/spatial_slice_signature.png" alt="Spatial slice-style signature score map" width="98%"/>
 </p>
 <p align="center">
-  <img src="man/figures/signature_dotbar_compare.png" alt="Dot-bar signature comparison" width="49%"/>
+  <img src="man/figures/signature_dotbar_compare.png" alt="Dot-bar signature comparison" width="98%"/>
+</p>
+<p align="center">
+  <img src="man/figures/signature_violin.png" alt="Violin signature distribution" width="49%"/>
+  <img src="man/figures/signature_split_violin.png" alt="Split violin signature distribution" width="49%"/>
+</p>
+<p align="center">
+  <img src="man/figures/signature_ridge.png" alt="Ridge signature distribution" width="49%"/>
   <img src="man/figures/trajectory_signature_trend.png" alt="Trajectory signature trend" width="49%"/>
 </p>
 

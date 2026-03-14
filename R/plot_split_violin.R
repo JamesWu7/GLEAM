@@ -28,9 +28,9 @@ plot_split_violin <- function(
   tp <- resolve_text_params(theme_params)
 
   ggplot2::ggplot(df, ggplot2::aes(x = .data$x, y = .data$value, fill = .data$split)) +
-    ggplot2::geom_violin(position = ggplot2::position_dodge(width = 0.85), alpha = alpha, trim = TRUE) +
+    ggplot2::geom_violin(position = ggplot2::position_dodge(width = 0.85), alpha = alpha, trim = TRUE, color = "#1f2937", linewidth = 0.2) +
     ggplot2::geom_boxplot(width = 0.15, outlier.shape = NA, position = ggplot2::position_dodge(width = 0.85)) +
     scale_gleam_fill(palette = palette, continuous = FALSE) +
-    ggplot2::labs(title = paste("Split violin:", pathway), x = as.character(substitute(x)), y = "Signature score") +
+    ggplot2::labs(title = paste("Split violin:", pathway), x = "Group", y = "Signature score") +
     do.call(gleam_theme, tp)
 }

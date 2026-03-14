@@ -52,11 +52,20 @@ plot_violin <- function(
   df <- data.frame(group = as.factor(g[keep]), score = y[keep], stringsAsFactors = FALSE)
   tp <- resolve_text_params(theme_params)
 
-  ggplot2::ggplot(df, ggplot2::aes(x = .data$group, y = .data$score, fill = .data$group)) +
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$group, y = .data$score, fill = .data$group)) +
     ggplot2::geom_violin(trim = trim, alpha = alpha, color = NA) +
     ggplot2::geom_boxplot(width = 0.12, outlier.shape = NA, fill = "white", alpha = 0.8, linewidth = 0.3) +
-    ggplot2::geom_jitter(width = 0.08, size = point_size, alpha = min(1, alpha + 0.1), color = "#111827") +
     scale_gleam_fill(palette = palette, continuous = FALSE) +
     ggplot2::labs(x = "Group", y = "Signature score", title = paste("Signature score:", pathway)) +
     do.call(gleam_theme, tp)
+
+  if (isTRUE(point_size > 0)) {
+    p <- p + ggplot2::geom_jitter(
+      width = 0.08,
+      size = point_size,
+      alpha = min(1, alpha + 0.1),
+      color = "#111827"
+    )
+  }
+  p
 }

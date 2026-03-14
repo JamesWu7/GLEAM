@@ -122,13 +122,16 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
   bar_df$celltype_plot <- factor(as.character(bar_df$celltype), levels = levels(mean_df$celltype_plot), ordered = TRUE)
   bar_df <- bar_df[order(bar_df$celltype_plot), , drop = FALSE]
   bar_df$direction <- factor(ifelse(bar_df$delta >= 0, "increase", "decrease"), levels = c("decrease", "increase"))
+  ct_levels <- levels(bar_df$celltype_plot)
+  ct_cols <- get_palette("gleam_discrete", n = length(ct_levels), continuous = FALSE)
+  names(ct_cols) <- ct_levels
 
   bar <- ggplot2::ggplot(bar_df, ggplot2::aes(x = .data$delta, y = .data$celltype_plot)) +
-    ggplot2::geom_col(ggplot2::aes(fill = .data$direction), width = 0.64, color = NA, alpha = 0.88) +
+    ggplot2::geom_col(ggplot2::aes(fill = .data$celltype_plot), width = 0.64, color = NA, alpha = 0.9) +
     ggplot2::geom_path(ggplot2::aes(group = 1), linewidth = 0.55, color = "#111827", alpha = 0.9) +
     ggplot2::geom_point(size = 1.8, color = "#111827") +
     ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "grey35", linewidth = 0.35) +
-    scale_gleam_fill(palette = c("#2B83BA", "#D73027"), continuous = FALSE) +
+    ggplot2::scale_fill_manual(values = ct_cols, drop = FALSE) +
     ggplot2::labs(
       title = paste0("Group difference curve (", g2, " - ", g1, ")"),
       x = "Delta signature score",
@@ -145,5 +148,5 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
     return(dot)
   }
 
-  dot + bar + patchwork::plot_layout(guides = "collect", widths = c(3.2, 4.8))
+  dot + bar + patchwork::plot_layout(guides = "collect", widths = c(3.1, 4.9))
 }

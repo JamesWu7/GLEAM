@@ -22,5 +22,6 @@ plot_ridge <- function(score, pathway, group, palette = "gleam_discrete", alpha 
     ggridges::geom_density_ridges(alpha = alpha, scale = 1.2, color = "#1f2937", linewidth = 0.25) +
     scale_gleam_fill(palette = palette, continuous = FALSE) +
     ggplot2::labs(title = paste("Ridge plot:", pathway), x = "Signature score", y = "Group") +
-    do.call(gleam_theme, tp)
+    do.call(gleam_theme, tp) +
+    ggplot2::theme(legend.position = "none")
 }
