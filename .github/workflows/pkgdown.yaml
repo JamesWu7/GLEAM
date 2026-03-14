@@ -26,7 +26,7 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           needs: website
-          dependencies: '"hard"'
+          dependencies: hard
       - name: Install GLEAM package for pkgdown reference/examples
         run: R CMD INSTALL --no-build-vignettes .
       - name: Clean stale site output
@@ -42,6 +42,8 @@ jobs:
         run: |
           mkdir -p docs/assets
           cp -R assets/. docs/assets/
+          mkdir -p docs/man/figures
+          cp -R man/figures/. docs/man/figures/
       - name: Validate tutorial entry pages for branch-based Pages
         run: |
           test -f docs/index.html
