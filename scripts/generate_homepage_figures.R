@@ -240,8 +240,14 @@ generate_from_full_examples <- function() {
     ggplot2::labs(title = "Signature score on embedding")
   ggplot2::ggsave(file.path(out_dir, "embedding_signature_feature.png"), p1, width = 10.0, height = 7.0, dpi = 220)
 
-  p2 <- plot_spatial_score(sp, pathway = rownames(sp$score)[1], object = sp_obj) +
-    ggplot2::labs(title = "Signature score on spatial slice")
+  p2 <- tryCatch(
+    plot_spatial_score(sp, pathway = rownames(sp$score)[1], object = sp_obj),
+    error = function(e) {
+      message("[GLEAM] full-example spatial fallback: ", conditionMessage(e))
+      coords_sp <- extract_spatial_coords(object = sp_obj, seurat = TRUE)
+      plot_spatial_score(sp, pathway = rownames(sp$score)[1], coords = coords_sp)
+    }
+  ) + ggplot2::labs(title = "Signature score on spatial slice")
   ggplot2::ggsave(file.path(out_dir, "spatial_slice_signature.png"), p2, width = 11.0, height = 8.2, dpi = 240)
 
   p3 <- plot_dot_bar(sc, by = c(group_col, celltype_col), pathway = rownames(sc$score)[1]) +

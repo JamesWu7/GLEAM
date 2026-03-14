@@ -216,7 +216,20 @@ if (requireNamespace("Seurat", quietly = TRUE)) {
     )
   )
 }
-plot_spatial_score(sp_slice, pathway = rownames(sp_slice$score)[1], object = sp_a1)
+
+native_sp <- tryCatch(
+  plot_spatial_score(sp_slice, pathway = rownames(sp_slice$score)[1], object = sp_a1),
+  error = function(e) {
+    message("[GLEAM] native spatial plot fallback: ", conditionMessage(e))
+    coords_slice <- extract_spatial_coords(object = sp_a1, seurat = TRUE)
+    plot_spatial_score(
+      sp_slice,
+      pathway = rownames(sp_slice$score)[1],
+      coords = coords_slice
+    )
+  }
+)
+native_sp
 
 # Combined-sample coordinate view (for across-slice comparative context)
 tissue_bg <- as.raster(matrix(colorRampPalette(c("#f8f5ea", "#e8dcc4", "#d2b48c"))(256), nrow = 16))
