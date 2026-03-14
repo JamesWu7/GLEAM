@@ -20,6 +20,7 @@ Imports:
     ggplot2,
     grDevices,
     Matrix,
+    methods,
     rlang,
     stats,
     utils

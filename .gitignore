@@ -4,7 +4,6 @@
 .Rproj.user/
 .Rproj
 *.Rproj
-.Rbuildignore
 *.tar.gz
 *.Rcheck/
 renv/
@@ -12,3 +11,4 @@ renv.lock
 .DS_Store
 coverage/
 docs/tutorial_html/
+Rplots.pdf

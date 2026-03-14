@@ -19,10 +19,10 @@
   per_group <- max(1L, floor(n_target / max(1L, length(groups))))
   keep <- unlist(lapply(groups, function(ids) {
     ids <- sort(ids)
-    head(ids, per_group)
+    utils::head(ids, per_group)
   }), use.names = FALSE)
   if (length(keep) < n_target) {
-    keep <- c(keep, head(setdiff(all_ids, keep), n_target - length(keep)))
+    keep <- c(keep, utils::head(setdiff(all_ids, keep), n_target - length(keep)))
   }
   unique(keep)[seq_len(min(n_target, length(unique(keep))))]
 }

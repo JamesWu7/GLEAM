@@ -308,7 +308,7 @@ extract_spatial_meta <- function(object = NULL, meta = NULL, seurat = TRUE) {
 .as_raster_spatial_image <- function(img) {
   if (is.null(img)) return(NULL)
   if (inherits(img, "raster")) return(img)
-  if (is.matrix(img)) return(as.raster(img))
+  if (is.matrix(img)) return(grDevices::as.raster(img))
 
   if (is.array(img) && length(dim(img)) == 3L && dim(img)[3] >= 3L) {
     arr <- img[, , seq_len(3), drop = FALSE]
@@ -320,7 +320,7 @@ extract_spatial_meta <- function(object = NULL, meta = NULL, seurat = TRUE) {
     arr <- pmax(0, pmin(1, arr))
     rgb_mat <- grDevices::rgb(arr[, , 1], arr[, , 2], arr[, , 3])
     dim(rgb_mat) <- dim(arr)[1:2]
-    return(as.raster(rgb_mat))
+    return(grDevices::as.raster(rgb_mat))
   }
   NULL
 }
