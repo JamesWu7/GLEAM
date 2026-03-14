@@ -132,7 +132,8 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
   bar_df <- bar_df[order(bar_df$celltype_plot), , drop = FALSE]
   bar_df$direction <- factor(ifelse(bar_df$delta >= 0, "increase", "decrease"), levels = c("decrease", "increase"))
   ct_levels <- levels(bar_df$celltype_plot)
-  ct_cols_all <- get_palette("gleam_discrete", n = length(base_levels), continuous = FALSE)
+  # Bar panel uses reversed color order so top-to-bottom visual order aligns with violin-style comparison.
+  ct_cols_all <- rev(get_palette("gleam_discrete", n = length(base_levels), continuous = FALSE))
   names(ct_cols_all) <- base_levels
   ct_cols <- ct_cols_all[ct_levels]
 
