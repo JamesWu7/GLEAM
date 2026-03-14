@@ -24,7 +24,20 @@ plot_split_violin <- function(
 
   xv <- resolve_meta_var(score$meta, x, "x")
   sv <- resolve_meta_var(score$meta, split.by, "split.by")
-  df <- data.frame(x = as.factor(xv), split = as.factor(sv), value = as.numeric(score$score[pathway, ]), stringsAsFactors = FALSE)
+  x_chr <- as.character(xv)
+  x_levels <- if (is.factor(xv)) levels(base::droplevels(xv)) else unique(x_chr)
+  split_chr <- as.character(sv)
+  split_levels <- if (is.factor(sv)) levels(base::droplevels(sv)) else unique(split_chr)
+  if (!is.character(palette) && !is.null(names(palette)) && any(nzchar(names(palette)))) {
+    pal_levels <- names(palette)[nzchar(names(palette))]
+    split_levels <- c(pal_levels[pal_levels %in% split_chr], setdiff(split_levels, pal_levels))
+  }
+  df <- data.frame(
+    x = factor(x_chr, levels = x_levels, ordered = TRUE),
+    split = factor(split_chr, levels = split_levels, ordered = TRUE),
+    value = as.numeric(score$score[pathway, ]),
+    stringsAsFactors = FALSE
+  )
   tp <- resolve_text_params(theme_params)
 
   ggplot2::ggplot(df, ggplot2::aes(x = .data$x, y = .data$value, fill = .data$split)) +

@@ -15,7 +15,17 @@ plot_ridge <- function(score, pathway, group, palette = "gleam_discrete", alpha 
   if (!pathway %in% rownames(score$score)) stop("`signature` not found in score matrix.", call. = FALSE)
 
   g <- resolve_meta_var(score$meta, group, "group")
-  df <- data.frame(group = as.factor(g), value = as.numeric(score$score[pathway, ]), stringsAsFactors = FALSE)
+  g_chr <- as.character(g)
+  g_levels <- if (is.factor(g)) levels(base::droplevels(g)) else unique(g_chr)
+  if (!is.character(palette) && !is.null(names(palette)) && any(nzchar(names(palette)))) {
+    pal_levels <- names(palette)[nzchar(names(palette))]
+    g_levels <- c(pal_levels[pal_levels %in% g_chr], setdiff(g_levels, pal_levels))
+  }
+  df <- data.frame(
+    group = factor(g_chr, levels = g_levels, ordered = TRUE),
+    value = as.numeric(score$score[pathway, ]),
+    stringsAsFactors = FALSE
+  )
   tp <- resolve_text_params(theme_params)
 
   ggplot2::ggplot(df, ggplot2::aes(x = .data$value, y = .data$group, fill = .data$group)) +

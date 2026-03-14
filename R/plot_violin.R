@@ -49,7 +49,18 @@ plot_violin <- function(
     }
   }
 
-  df <- data.frame(group = as.factor(g[keep]), score = y[keep], stringsAsFactors = FALSE)
+  g_keep <- g[keep]
+  g_chr <- as.character(g_keep)
+  g_levels <- if (is.factor(g_keep)) levels(base::droplevels(g_keep)) else unique(g_chr)
+  if (!is.character(palette) && !is.null(names(palette)) && any(nzchar(names(palette)))) {
+    pal_levels <- names(palette)[nzchar(names(palette))]
+    g_levels <- c(pal_levels[pal_levels %in% g_chr], setdiff(g_levels, pal_levels))
+  }
+  df <- data.frame(
+    group = factor(g_chr, levels = g_levels, ordered = TRUE),
+    score = y[keep],
+    stringsAsFactors = FALSE
+  )
   tp <- resolve_text_params(theme_params)
 
   p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$group, y = .data$score, fill = .data$group)) +

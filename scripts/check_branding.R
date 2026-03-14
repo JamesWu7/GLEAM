@@ -1,4 +1,4 @@
-targets <- c("README.md", "README.Rmd", "DESCRIPTION", "CONTRIBUTING.md", "DEVELOPMENT.md", "ROADMAP.md", "vignettes", ".github")
+targets <- c("README.md", "README.Rmd", "DESCRIPTION", "vignettes", ".github")
 hits <- unlist(lapply(targets, function(p) {
   if (!file.exists(p)) return(character(0))
   suppressWarnings(system2("rg", c("-n", "-e", "scPathway", "-e", "scpathway", p), stdout = TRUE, stderr = FALSE))

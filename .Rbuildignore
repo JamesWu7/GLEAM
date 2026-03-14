@@ -3,12 +3,6 @@
 ^\.github$
 ^scripts$
 ^README\.Rmd$
-^ROADMAP\.md$
-^DEVELOPMENT\.md$
-^CONTRIBUTING\.md$
-^API_MIGRATION\.md$
-^DESIGN_AUDIT\.md$
-^MONOCLE3_INTEGRATION\.md$
 ^LICENSE\.md$
 ^_pkgdown\.yml$
 ^docs$

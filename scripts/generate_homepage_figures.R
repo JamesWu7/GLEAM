@@ -1,5 +1,10 @@
-out_dir <- file.path("man", "figures")
-dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
+out_dirs <- c(
+  file.path("assets", "figures"),
+  file.path("man", "figures")
+)
+for (d in out_dirs) {
+  dir.create(d, recursive = TRUE, showWarnings = FALSE)
+}
 
 if (requireNamespace("pkgload", quietly = TRUE) && file.exists("DESCRIPTION")) {
   pkgload::load_all(".", export_all = FALSE, quiet = TRUE)
@@ -20,7 +25,19 @@ figure_targets <- c(
 )
 
 has_existing_figures <- function() {
-  all(file.exists(file.path(out_dir, figure_targets)))
+  any(vapply(out_dirs, function(d) all(file.exists(file.path(d, figure_targets))), logical(1)))
+}
+
+save_plot_to_outputs <- function(filename, plot, width, height, dpi = 220) {
+  for (d in out_dirs) {
+    ggplot2::ggsave(file.path(d, filename), plot, width = width, height = height, dpi = dpi)
+  }
+}
+
+copy_file_to_outputs <- function(src, dest_name) {
+  for (d in out_dirs) {
+    file.copy(src, file.path(d, dest_name), overwrite = TRUE)
+  }
 }
 
 .pick_first_col <- GLEAM:::.pick_first_col
@@ -40,7 +57,7 @@ copy_vignette_figures <- function(fig_dir) {
   copy_named <- function(src_name, dest_name) {
     src <- file.path(fig_dir, src_name)
     if (!file.exists(src)) stop("Expected vignette figure not found: ", src)
-    file.copy(src, file.path(out_dir, dest_name), overwrite = TRUE)
+    copy_file_to_outputs(src, dest_name)
   }
 
   copy_named("embedding_feature-1.png", "embedding_signature_feature.png")
@@ -205,7 +222,7 @@ generate_from_full_examples <- function() {
     reduction = "umap",
     point_size = 0.62
   ) + ggplot2::labs(title = "Signature score on embedding")
-  ggplot2::ggsave(file.path(out_dir, "embedding_signature_feature.png"), p1, width = 10.0, height = 7.0, dpi = 220)
+  save_plot_to_outputs("embedding_signature_feature.png", p1, width = 10.0, height = 7.0, dpi = 220)
 
   p2 <- plot_spatial_score(
     score = sp,
@@ -213,7 +230,7 @@ generate_from_full_examples <- function() {
     object = sp_obj,
     point_size = 1.65
   ) + ggplot2::labs(title = "Signature score on spatial slice")
-  ggplot2::ggsave(file.path(out_dir, "spatial_slice_signature.png"), p2, width = 11.0, height = 8.2, dpi = 240)
+  save_plot_to_outputs("spatial_slice_signature.png", p2, width = 11.0, height = 8.2, dpi = 240)
 
   ct_rank <- names(sort(table(sc$meta[[celltype_col]]), decreasing = TRUE))
   ct_keep <- head(ct_rank, 8L)
@@ -229,7 +246,7 @@ generate_from_full_examples <- function() {
 
   p3 <- plot_dot_bar(sc_vis, by = c(group_col, celltype_col), pathway = top_sig) +
     ggplot2::labs(title = "Dot-bar signature comparison")
-  ggplot2::ggsave(file.path(out_dir, "signature_dotbar_compare.png"), p3, width = 12.8, height = 7.8, dpi = 220)
+  save_plot_to_outputs("signature_dotbar_compare.png", p3, width = 12.8, height = 7.8, dpi = 220)
 
   p5 <- plot_violin(
     score = sc_vis,
@@ -241,7 +258,7 @@ generate_from_full_examples <- function() {
   ) +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30, hjust = 1)) +
     ggplot2::labs(title = "Violin plot across major cell types")
-  ggplot2::ggsave(file.path(out_dir, "signature_violin.png"), p5, width = 11.0, height = 6.4, dpi = 220)
+  save_plot_to_outputs("signature_violin.png", p5, width = 11.0, height = 6.4, dpi = 220)
 
   p6 <- plot_split_violin(
     score = sc_vis,
@@ -253,7 +270,7 @@ generate_from_full_examples <- function() {
   ) +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30, hjust = 1)) +
     ggplot2::labs(title = "Split violin by group within major cell types")
-  ggplot2::ggsave(file.path(out_dir, "signature_split_violin.png"), p6, width = 11.4, height = 6.6, dpi = 220)
+  save_plot_to_outputs("signature_split_violin.png", p6, width = 11.4, height = 6.6, dpi = 220)
 
   p7 <- tryCatch(
     plot_ridge(sc_vis, pathway = top_sig, group = celltype_col, alpha = 0.72, palette = pal_celltype_vis) +
@@ -263,7 +280,7 @@ generate_from_full_examples <- function() {
       p5
     }
   )
-  ggplot2::ggsave(file.path(out_dir, "signature_ridge.png"), p7, width = 11.0, height = 6.6, dpi = 220)
+  save_plot_to_outputs("signature_ridge.png", p7, width = 11.0, height = 6.6, dpi = 220)
 
   pal_lineage <- .make_discrete_palette(length(unique(as.character(sc$meta$lineage))))
   p4 <- tryCatch(
@@ -285,7 +302,7 @@ generate_from_full_examples <- function() {
       ) + ggplot2::labs(title = "Trajectory-aware signature trend")
     }
   )
-  ggplot2::ggsave(file.path(out_dir, "trajectory_signature_trend.png"), p4, width = 10.0, height = 6.8, dpi = 220)
+  save_plot_to_outputs("trajectory_signature_trend.png", p4, width = 10.0, height = 6.8, dpi = 220)
 
   TRUE
 }
@@ -399,18 +416,18 @@ generate_from_builtin_examples <- function() {
 
   p1 <- plot_embedding_score(sc, pathway = top_sig, embedding = emb, reduction = "umap", point_size = 0.62) +
     ggplot2::labs(title = "Signature score on embedding")
-  ggplot2::ggsave(file.path(out_dir, "embedding_signature_feature.png"), p1, width = 10.0, height = 7.0, dpi = 220)
+  save_plot_to_outputs("embedding_signature_feature.png", p1, width = 10.0, height = 7.0, dpi = 220)
 
   p2 <- plot_spatial_score(sc_sp, pathway = rownames(sc_sp$score)[1], coords = coords_sp, image = tissue_bg, point_size = 1.65) +
     ggplot2::labs(title = "Signature score on spatial slice")
-  ggplot2::ggsave(file.path(out_dir, "spatial_slice_signature.png"), p2, width = 11.0, height = 8.2, dpi = 240)
+  save_plot_to_outputs("spatial_slice_signature.png", p2, width = 11.0, height = 8.2, dpi = 240)
 
   sig_n <- min(1L, nrow(sc_vis$score))
   sc_dot <- sc_vis
   sc_dot$score <- sc_vis$score[seq_len(sig_n), , drop = FALSE]
   rownames(sc_dot$score) <- paste0("Sig_", seq_len(sig_n))
   p3 <- plot_dot_bar(sc_dot, by = c("group", "celltype"))
-  ggplot2::ggsave(file.path(out_dir, "signature_dotbar_compare.png"), p3, width = 12.0, height = 7.8, dpi = 220)
+  save_plot_to_outputs("signature_dotbar_compare.png", p3, width = 12.0, height = 7.8, dpi = 220)
 
   p5 <- plot_violin(
     score = sc_vis,
@@ -422,7 +439,7 @@ generate_from_builtin_examples <- function() {
   ) +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30, hjust = 1)) +
     ggplot2::labs(title = "Violin plot across major cell types")
-  ggplot2::ggsave(file.path(out_dir, "signature_violin.png"), p5, width = 11.0, height = 6.4, dpi = 220)
+  save_plot_to_outputs("signature_violin.png", p5, width = 11.0, height = 6.4, dpi = 220)
 
   p6 <- plot_split_violin(
     score = sc_vis,
@@ -434,7 +451,7 @@ generate_from_builtin_examples <- function() {
   ) +
     ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30, hjust = 1)) +
     ggplot2::labs(title = "Split violin by group within major cell types")
-  ggplot2::ggsave(file.path(out_dir, "signature_split_violin.png"), p6, width = 11.4, height = 6.6, dpi = 220)
+  save_plot_to_outputs("signature_split_violin.png", p6, width = 11.4, height = 6.6, dpi = 220)
 
   p7 <- tryCatch(
     plot_ridge(sc_vis, pathway = top_sig, group = "celltype", alpha = 0.72, palette = pal_celltype_vis) +
@@ -444,7 +461,7 @@ generate_from_builtin_examples <- function() {
       p5
     }
   )
-  ggplot2::ggsave(file.path(out_dir, "signature_ridge.png"), p7, width = 11.0, height = 6.6, dpi = 220)
+  save_plot_to_outputs("signature_ridge.png", p7, width = 11.0, height = 6.6, dpi = 220)
 
   n_lin <- length(unique(as.character(sc_vis$meta$lineage)))
   pal_lineage <- .make_discrete_palette(n_lin)
@@ -455,7 +472,7 @@ generate_from_builtin_examples <- function() {
     lineage = "lineage",
     palette = pal_lineage
   ) + ggplot2::labs(title = "Trajectory-aware signature trend")
-  ggplot2::ggsave(file.path(out_dir, "trajectory_signature_trend.png"), p4, width = 10.0, height = 6.8, dpi = 220)
+  save_plot_to_outputs("trajectory_signature_trend.png", p4, width = 10.0, height = 6.8, dpi = 220)
 
   TRUE
 }
@@ -491,7 +508,7 @@ if (can_render_vignette) {
     tryCatch(
       {
         copy_vignette_figures(fig_dir)
-        message("[GLEAM] homepage figures generated from vignette output in ", out_dir)
+        message("[GLEAM] homepage figures generated from vignette output in: ", paste(out_dirs, collapse = ", "))
         ok <- TRUE
       },
       error = function(e) {
@@ -507,7 +524,7 @@ if (!ok) {
 
 if (!ok) {
   if (!requireNamespace("Seurat", quietly = TRUE) && has_existing_figures()) {
-    message("[GLEAM] Seurat unavailable; keeping existing homepage figures in ", out_dir)
+    message("[GLEAM] Seurat unavailable; keeping existing homepage figures in: ", paste(out_dirs, collapse = ", "))
     ok <- TRUE
   }
 }
@@ -517,7 +534,7 @@ if (!ok) {
 }
 
 if (!ok && has_existing_figures()) {
-  message("[GLEAM] keeping existing homepage figures in ", out_dir)
+  message("[GLEAM] keeping existing homepage figures in: ", paste(out_dirs, collapse = ", "))
   ok <- TRUE
 }
 

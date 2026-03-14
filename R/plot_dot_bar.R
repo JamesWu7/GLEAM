@@ -52,7 +52,8 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
       FUN = function(x) mean(x, na.rm = TRUE)
     ), decreasing = TRUE))
   }
-  display_levels <- rev(base_levels)
+  display_levels <- base_levels
+  y_levels <- rev(display_levels)
   mean_df$celltype_plot <- factor(as.character(mean_df[[celltype_col]]), levels = display_levels, ordered = TRUE)
 
   dot_df <- stats::aggregate(
@@ -72,6 +73,7 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
     ggplot2::geom_point(alpha = 0.95, stroke = 0.25) +
     scale_gleam_color(color_palette, continuous = TRUE) +
     ggplot2::scale_size_continuous(range = c(2.6, 10.8)) +
+    ggplot2::scale_y_discrete(limits = y_levels) +
     ggplot2::labs(
       title = "Signature score and active fraction",
       x = "Signature",
@@ -140,6 +142,7 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
     ggplot2::geom_point(size = 1.8, color = "#111827") +
     ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "grey35", linewidth = 0.35) +
     ggplot2::scale_fill_manual(values = ct_cols, drop = FALSE) +
+    ggplot2::scale_y_discrete(limits = y_levels) +
     ggplot2::labs(
       title = paste0("Group difference curve (", g2, " - ", g1, ")"),
       x = "Delta signature score",
