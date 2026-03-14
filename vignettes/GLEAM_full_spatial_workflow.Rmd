@@ -40,6 +40,8 @@ if (p1_path == "") p1_path <- file.path("inst", "extdata", "full_examples", "stx
 
 sp_a1 <- readRDS(a1_path)
 sp_p1 <- readRDS(p1_path)
+sp_a1 <- tryCatch(SeuratObject::UpdateSeuratObject(sp_a1), error = function(e) sp_a1)
+sp_p1 <- tryCatch(SeuratObject::UpdateSeuratObject(sp_p1), error = function(e) sp_p1)
 
 dim(sp_a1)
 dim(sp_p1)
@@ -49,13 +51,51 @@ sp_a1
 ## 2) Native slice view
 
 ```{r step2-slices, eval=seurat_ok}
-Seurat::SpatialDimPlot(sp_a1, group.by = "orig.ident", pt.size.factor = 1.6) +
-  ggplot2::labs(title = "Anterior slice")
+p_a1 <- tryCatch(
+  Seurat::SpatialDimPlot(sp_a1, group.by = "orig.ident", pt.size.factor = 1.6),
+  error = function(e) {
+    md <- as.data.frame(sp_a1[[]], stringsAsFactors = FALSE)
+    md$x <- as.numeric(md$imagecol)
+    md$y <- as.numeric(md$imagerow)
+    ggplot2::ggplot(md, ggplot2::aes(x = .data$x, y = .data$y, color = .data$orig.ident)) +
+      ggplot2::geom_point(size = 0.55, alpha = 0.9) +
+      ggplot2::coord_fixed() +
+      ggplot2::scale_y_reverse() +
+      ggplot2::labs(
+        title = "Anterior slice (coordinate fallback)",
+        subtitle = conditionMessage(e),
+        x = NULL,
+        y = NULL,
+        color = "orig.ident"
+      ) +
+      gleam_theme(base_size = 12)
+  }
+)
+p_a1 + ggplot2::labs(title = "Anterior slice")
 ```
 
 ```{r step2-slices-posterior, eval=seurat_ok}
-Seurat::SpatialDimPlot(sp_p1, group.by = "orig.ident", pt.size.factor = 1.6) +
-  ggplot2::labs(title = "Posterior slice")
+p_p1 <- tryCatch(
+  Seurat::SpatialDimPlot(sp_p1, group.by = "orig.ident", pt.size.factor = 1.6),
+  error = function(e) {
+    md <- as.data.frame(sp_p1[[]], stringsAsFactors = FALSE)
+    md$x <- as.numeric(md$imagecol)
+    md$y <- as.numeric(md$imagerow)
+    ggplot2::ggplot(md, ggplot2::aes(x = .data$x, y = .data$y, color = .data$orig.ident)) +
+      ggplot2::geom_point(size = 0.55, alpha = 0.9) +
+      ggplot2::coord_fixed() +
+      ggplot2::scale_y_reverse() +
+      ggplot2::labs(
+        title = "Posterior slice (coordinate fallback)",
+        subtitle = conditionMessage(e),
+        x = NULL,
+        y = NULL,
+        color = "orig.ident"
+      ) +
+      gleam_theme(base_size = 12)
+  }
+)
+p_p1 + ggplot2::labs(title = "Posterior slice")
 ```
 
 ## 3) Build matrix + metadata for combined analysis
