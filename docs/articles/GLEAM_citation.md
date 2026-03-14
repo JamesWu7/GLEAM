@@ -3,7 +3,6 @@
 ## Recommended citation
 
 ``` r
-
 citation("GLEAM")
 ```
 
@@ -12,6 +11,18 @@ Copy-ready format:
 Wu X (2026). **GLEAM: Gene-set and cell-state exploration across space
 and time in R**. R package version 0.2.0.
 <https://github.com/JamesWu7/GLEAM>
+
+BibTeX:
+
+``` bibtex
+@Manual{GLEAM,
+  title   = {GLEAM: Gene-set and cell-state exploration across space and time in R},
+  author  = {Xinjie Wu},
+  year    = {2026},
+  note    = {R package version 0.2.0},
+  url     = {https://github.com/JamesWu7/GLEAM}
+}
+```
 
 ## Citation file
 

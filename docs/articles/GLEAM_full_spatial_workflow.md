@@ -7,18 +7,7 @@ metadata at matrix level to avoid image-slot compatibility breakpoints
 across Seurat versions while retaining true spatial coordinate analysis.
 
 ``` r
-
 library(Seurat)
-#> Loading required package: SeuratObject
-#> Loading required package: sp
-#> 
-#> Attaching package: 'SeuratObject'
-#> The following object is masked from 'package:GLEAM':
-#> 
-#>     pbmc_small
-#> The following objects are masked from 'package:base':
-#> 
-#>     intersect, t
 
 a1_path <- system.file("extdata", "full_examples", "stxBrain_anterior1_seurat.rds", package = "GLEAM")
 p1_path <- system.file("extdata", "full_examples", "stxBrain_posterior1_seurat.rds", package = "GLEAM")
@@ -98,9 +87,7 @@ stratified_keep <- function(meta, n_target, strata_candidates = character()) {
 }
 
 sp1 <- prep_spatial_object(sp_a1, "anterior")
-#> Warning: Layer 'data' is empty
 sp2 <- prep_spatial_object(sp_p1, "posterior")
-#> Warning: Layer 'data' is empty
 common_genes <- intersect(rownames(sp1$expr), rownames(sp2$expr))
 sp_expr <- cbind(sp1$expr[common_genes, , drop = FALSE], sp2$expr[common_genes, , drop = FALSE])
 sp_md <- rbind(sp1$meta[colnames(sp1$expr), , drop = FALSE], sp2$meta[colnames(sp2$expr), , drop = FALSE])
@@ -137,27 +124,8 @@ if (!"lineage" %in% colnames(sp_md)) {
 
 # Show object context before scoring
 dim(sp_a1); sp_a1
-#> [1] 31053  2696
-#> An object of class Seurat 
-#> 31053 features across 2696 samples within 1 assay 
-#> Active assay: Spatial (31053 features, 0 variable features)
-#>  1 layer present: counts
-#>  1 spatial field of view present: anterior1
 dim(sp_p1); sp_p1
-#> [1] 31053  3353
-#> An object of class Seurat 
-#> 31053 features across 3353 samples within 1 assay 
-#> Active assay: Spatial (31053 features, 0 variable features)
-#>  1 layer present: counts
-#>  1 spatial field of view present: posterior1
 head(sp_md[, intersect(c("sample", "group", "region", "section", "x", "y", "imagecol", "imagerow"), colnames(sp_md))])
-#>                               sample    group   region  section x y
-#> anterior_AAACAAGTATCTCCCA-1 anterior anterior anterior anterior 1 1
-#> anterior_AAACACCAATAACTGC-1 anterior anterior anterior anterior 2 1
-#> anterior_AAACAGAGCGACTCCT-1 anterior anterior anterior anterior 3 1
-#> anterior_AAACAGCTTTCAGAAG-1 anterior anterior anterior anterior 4 1
-#> anterior_AAACAGGGTCTATATT-1 anterior anterior anterior anterior 5 1
-#> anterior_AAACATGGTGAGAGGA-1 anterior anterior anterior anterior 6 1
 if ("umap" %in% names(sp_a1@reductions)) {
   DimPlot(sp_a1, reduction = "umap", group.by = "orig.ident", pt.size = 0.35)
 }
@@ -166,7 +134,6 @@ if ("umap" %in% names(sp_a1@reductions)) {
 ## 2) Geneset scoring in spatial context
 
 ``` r
-
 sp_genes <- rownames(sp_expr)
 half_n <- max(30, floor(length(sp_genes) / 2))
 idx_a <- seq_len(min(half_n, length(sp_genes)))
@@ -185,45 +152,76 @@ sp <- score_signature(
   method = "rank",
   min_genes = 3
 )
-#> [GLEAM] matched pathways: 2
-#> [GLEAM] median matched genes: 30.0
-#> Warning in asMethod(object): sparse->dense coercion: allocating vector of size
-#> 1.4 GiB
-#> [GLEAM] scoring rank method...
+
+map_geneset_to_expr <- function(gs_in, expr_genes) {
+  expr_genes <- as.character(expr_genes)
+  expr_upper <- toupper(expr_genes)
+  mapped <- lapply(gs_in, function(g) {
+    idx <- match(toupper(unique(as.character(g))), expr_upper, nomatch = 0L)
+    unique(expr_genes[idx[idx > 0L]])
+  })
+  mapped[vapply(mapped, length, integer(1)) >= 3L]
+}
+
+gs_slice <- map_geneset_to_expr(gs, rownames(sp_a1))
+if (length(gs_slice) == 0L) {
+  g <- rownames(sp_a1)
+  n_take <- min(30L, length(g))
+  gs_slice <- list(Spatial_signature = unique(g[seq_len(n_take)]))
+}
+
+sp_slice <- score_signature(
+  object = sp_a1,
+  geneset = gs_slice,
+  geneset_source = "list",
+  seurat = TRUE,
+  layer = "counts",
+  slot = "counts",
+  method = "rank",
+  min_genes = 3
+)
 ```
 
-## 3) Spatial visualization (true spatial context)
+## 3) Spatial visualization (native slice + combined coordinates)
 
 ``` r
-
 coords <- data.frame(x = sp_md$x, y = sp_md$y, row.names = rownames(sp_md))
 
-# Slice/tissue-like background (replace with true tissue image when available)
+# Native Seurat slice/tissue rendering (recommended)
+if (requireNamespace("Seurat", quietly = TRUE)) {
+  suppressWarnings(
+    try(
+      Seurat::SpatialDimPlot(sp_a1, group.by = "orig.ident", pt.size.factor = 1.6),
+      silent = TRUE
+    )
+  )
+}
+
+native_sp <- tryCatch(
+  plot_spatial_score(sp_slice, pathway = rownames(sp_slice$score)[1], object = sp_a1),
+  error = function(e) {
+    message("[GLEAM] native spatial plot fallback: ", conditionMessage(e))
+    coords_slice <- extract_spatial_coords(object = sp_a1, seurat = TRUE)
+    plot_spatial_score(
+      sp_slice,
+      pathway = rownames(sp_slice$score)[1],
+      coords = coords_slice
+    )
+  }
+)
+native_sp
+
+# Combined-sample coordinate view (for across-slice comparative context)
 tissue_bg <- as.raster(matrix(colorRampPalette(c("#f8f5ea", "#e8dcc4", "#d2b48c"))(256), nrow = 16))
 
 plot_spatial_score(sp, pathway = rownames(sp$score)[1], coords = coords, image = tissue_bg)
-```
-
-![](GLEAM_full_spatial_workflow_files/figure-html/full-spatial-map-1.png)
-
-``` r
-
 plot_spatial_score(sp, pathway = rownames(sp$score)[2], coords = coords, split.by = "section", image = tissue_bg)
-```
-
-![](GLEAM_full_spatial_workflow_files/figure-html/full-spatial-map-2.png)
-
-``` r
-
 plot_spatial_multi(sp, pathways = rownames(sp$score)[1:4], coords = coords)
 ```
-
-![](GLEAM_full_spatial_workflow_files/figure-html/full-spatial-map-3.png)
 
 ## 4) Spatial differential analysis
 
 ``` r
-
 # region vs region
 res_region <- test_signature(sp, region = "region", level = "region", method = "wilcox")
 
@@ -239,32 +237,15 @@ res_group_region <- test_signature(
 
 top_sp <- res_group_region$table$pathway[order(res_group_region$table$p_adj)][1]
 plot_spatial_score(sp, pathway = top_sp, coords = coords, image = tissue_bg, split.by = "region")
-```
-
-![](GLEAM_full_spatial_workflow_files/figure-html/full-spatial-diff-1.png)
-
-``` r
-
 plot_spatial_compare(res_group_region)
 ```
-
-![](GLEAM_full_spatial_workflow_files/figure-html/full-spatial-diff-2.png)
 
 ## 5) Optional embedding linkage and trajectory-like display
 
 ``` r
-
 emb2 <- as.matrix(sp_md[, c("x", "y"), drop = FALSE])
 rownames(emb2) <- rownames(sp_md)
 colnames(emb2) <- c("Spatial_1", "Spatial_2")
 plot_embedding_score(sp, pathway = rownames(sp$score)[1], embedding = emb2, reduction = "umap")
-```
-
-![](GLEAM_full_spatial_workflow_files/figure-html/full-spatial-embedding-link-1.png)
-
-``` r
-
 plot_pseudotime_score(sp, pathway = rownames(sp$score)[1], pseudotime = "pseudotime", lineage = "lineage")
 ```
-
-![](GLEAM_full_spatial_workflow_files/figure-html/full-spatial-embedding-link-2.png)

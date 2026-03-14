@@ -28,7 +28,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Monocle3 Integration in GLEAM</h1>
-      <small class="dont-index">Source: <a href="https://github.com/JamesWu7/GLEAM/blob/HEAD/MONOCLE3_INTEGRATION.md" class="external-link"><code>MONOCLE3_INTEGRATION.md</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/JamesWu7/GLEAM/blob/master/MONOCLE3_INTEGRATION.md" class="external-link"><code>MONOCLE3_INTEGRATION.md</code></a></small>
     </div>
 
 <div id="monocle3-integration-in-gleam" class="section level1">
@@ -56,7 +56,7 @@
 <span><span class="co"># Optional: pin Bioconductor version when troubleshooting</span></span>
 <span><span class="co"># BiocManager::install(version = "3.21")</span></span>
 <span></span>
-<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu">install</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span><span class="fu">BiocManager</span><span class="fu">::</span><span class="fu"><a href="https://bioconductor.github.io/BiocManager/reference/install.html" class="external-link">install</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
 <span>  <span class="st">"BiocGenerics"</span>, <span class="st">"DelayedArray"</span>, <span class="st">"DelayedMatrixStats"</span>,</span>
 <span>  <span class="st">"limma"</span>, <span class="st">"lme4"</span>, <span class="st">"S4Vectors"</span>, <span class="st">"SingleCellExperiment"</span>,</span>
 <span>  <span class="st">"SummarizedExperiment"</span>, <span class="st">"batchelor"</span>, <span class="st">"HDF5Array"</span>,</span>
@@ -66,9 +66,9 @@
 <span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="fu"><a href="https://rdrr.io/r/base/ns-load.html" class="external-link">requireNamespace</a></span><span class="op">(</span><span class="st">"remotes"</span>, quietly <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
 <span><span class="op">}</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"bnprks/BPCells/r"</span><span class="op">)</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"bnprks/BPCells/r"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">'cole-trapnell-lab/monocle3'</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">'cole-trapnell-lab/monocle3'</span><span class="op">)</span></span></code></pre></div>
 <p>Notes:</p>
 <ul><li>
 <code>BiocManager::install(version = "3.21")</code> is a troubleshooting option, not a mandatory fixed version.</li>

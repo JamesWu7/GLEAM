@@ -4,7 +4,7 @@
 
 1.  `source("scripts/setup_dev.R")`
 2.  `source("scripts/check_env.R")`
-3.  `devtools::load_all()`
+3.  [`devtools::load_all()`](https://devtools.r-lib.org/reference/load_all.html)
 
 ## Development cycle
 
@@ -12,9 +12,9 @@
 2.  Update roxygen documentation.
 3.  Add/update tests under `tests/testthat`.
 4.  Run:
-    - `devtools::document()`
-    - `devtools::test()`
-    - `devtools::check()`
+    - [`devtools::document()`](https://devtools.r-lib.org/reference/document.html)
+    - [`devtools::test()`](https://devtools.r-lib.org/reference/test.html)
+    - [`devtools::check()`](https://devtools.r-lib.org/reference/check.html)
 5.  Update `NEWS.md` for user-visible changes.
 
 ## Principles
