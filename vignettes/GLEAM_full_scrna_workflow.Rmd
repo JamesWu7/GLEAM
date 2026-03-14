@@ -37,7 +37,23 @@ ifnb_path <- system.file("extdata", "full_examples", "ifnb_seurat.rds", package 
 if (ifnb_path == "") ifnb_path <- file.path("inst", "extdata", "full_examples", "ifnb_seurat.rds")
 seu <- readRDS(ifnb_path)
 
-cells_use <- colnames(seu)[seq_len(min(5000, ncol(seu)))]
+# Keep both CTRL/STIM groups in tutorial subset so group contrasts are always available.
+if ("stim" %in% colnames(seu@meta.data)) {
+  grp <- as.character(seu$stim)
+  grp_levels <- unique(grp)
+  n_target <- min(5000L, ncol(seu))
+  n_each <- max(1L, floor(n_target / length(grp_levels)))
+  cells_use <- unlist(lapply(grp_levels, function(g) {
+    ids <- colnames(seu)[grp == g]
+    ids[seq_len(min(length(ids), n_each))]
+  }), use.names = FALSE)
+  if (length(cells_use) < n_target) {
+    rem <- setdiff(colnames(seu), cells_use)
+    cells_use <- c(cells_use, rem[seq_len(min(length(rem), n_target - length(cells_use)))])
+  }
+} else {
+  cells_use <- colnames(seu)[seq_len(min(5000L, ncol(seu)))]
+}
 seu <- subset(seu, cells = cells_use)
 
 dim(seu)
@@ -48,11 +64,19 @@ seu
 
 ```{r step2-meta, eval=seurat_ok}
 seu$sample <- as.character(seu$orig.ident)
-seu$group <- as.character(seu$stim)
+if ("stim" %in% colnames(seu@meta.data)) {
+  seu$group <- tolower(as.character(seu$stim))
+} else {
+  seu$group <- as.character(seu$orig.ident)
+}
 seu$celltype <- as.character(seu$seurat_annotations)
 
 celltype_levels <- names(sort(table(seu$celltype), decreasing = TRUE))
-group_levels <- unique(seu$group)
+if (all(c("ctrl", "stim") %in% unique(seu$group))) {
+  group_levels <- c("ctrl", "stim")
+} else {
+  group_levels <- unique(seu$group)
+}
 
 seu$celltype <- factor(seu$celltype, levels = celltype_levels)
 seu$group <- factor(seu$group, levels = group_levels)
@@ -60,6 +84,7 @@ seu$group <- factor(seu$group, levels = group_levels)
 pal_celltype <- setNames(get_palette("gleam_discrete", n = length(celltype_levels), continuous = FALSE), celltype_levels)
 pal_group <- setNames(get_palette("brewer_set2", n = length(group_levels), continuous = FALSE), group_levels)
 
+table(seu$group)
 head(seu@meta.data[, c("sample", "group", "celltype")])
 ```
 
@@ -87,12 +112,12 @@ DimPlot(seu, reduction = "umap", group.by = "celltype", cols = pal_celltype, pt.
 
 ```{r step4-umap-group, eval=seurat_ok}
 DimPlot(seu, reduction = "umap", group.by = "group", cols = pal_group, pt.size = 0.35) +
-  ggplot2::labs(title = "UMAP by group")
+  ggplot2::labs(title = "UMAP by condition (ctrl/stim)")
 ```
 
 ```{r step4-tsne-group, eval=seurat_ok}
 DimPlot(seu, reduction = "tsne", group.by = "group", cols = pal_group, pt.size = 0.35) +
-  ggplot2::labs(title = "tSNE by group")
+  ggplot2::labs(title = "tSNE by condition (ctrl/stim)")
 ```
 
 ## 5) Signature scoring
@@ -136,32 +161,12 @@ head(res_pb$table)
 top_sig
 ```
 
-## 7) FeaturePlot-style signature map
+## 7) GLEAM embedding score plot (Seurat-based)
 
-```{r step7-featureplot, eval=seurat_ok}
-sig_col <- paste0("GLEAM_signature_", gsub("[^A-Za-z0-9_]+", "_", top_sig))
-score_values <- rep(NA_real_, ncol(seu))
-names(score_values) <- colnames(seu)
-overlap_cells <- intersect(colnames(seu), colnames(sc$score))
-score_values[overlap_cells] <- as.numeric(sc$score[top_sig, overlap_cells])
-seu[[sig_col]] <- score_values
-
-FeaturePlot(
-  seu,
-  features = sig_col,
-  reduction = "umap",
-  cols = get_palette("gleam_continuous", n = 128, continuous = TRUE),
-  order = TRUE,
-  pt.size = 0.7
-) + ggplot2::labs(title = paste0("FeaturePlot signature map: ", top_sig))
-```
-
-## 8) GLEAM embedding score plot
-
-```{r step8-embedding-score, eval=seurat_ok}
+```{r step7-embedding-score, eval=seurat_ok}
 plot_embedding_score(
   sc,
-  pathway = top_sig,
+  signature = top_sig,
   object = seu,
   reduction = "umap",
   point_size = 0.7,
@@ -169,23 +174,23 @@ plot_embedding_score(
 )
 ```
 
-## 9) Dot-bar plot
+## 8) Dot-bar plot
 
-```{r step9-dotbar, eval=seurat_ok, fig.width=11.8, fig.height=7.2, out.width="100%"}
+```{r step8-dotbar, eval=seurat_ok, fig.width=12.2, fig.height=7.2, out.width="100%"}
 plot_dot_bar(
   sc,
   by = c("group", "celltype"),
-  pathway = top_sig,
+  signature = top_sig,
   color_palette = "gleam_continuous"
 )
 ```
 
-## 10) Violin plot
+## 9) Violin plot
 
-```{r step10-violin, eval=seurat_ok, fig.width=10.4, fig.height=6.2}
+```{r step9-violin, eval=seurat_ok, fig.width=10.4, fig.height=6.2}
 plot_violin(
   sc,
-  pathway = top_sig,
+  signature = top_sig,
   group = "celltype",
   palette = pal_celltype,
   point_size = 0,
@@ -193,12 +198,12 @@ plot_violin(
 ) + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 28, hjust = 1))
 ```
 
-## 11) Split violin plot
+## 10) Split violin plot
 
-```{r step11-split-violin, eval=seurat_ok, fig.width=10.8, fig.height=6.4}
+```{r step10-split-violin, eval=seurat_ok, fig.width=10.8, fig.height=6.4}
 plot_split_violin(
   sc,
-  pathway = top_sig,
+  signature = top_sig,
   x = "celltype",
   split.by = "group",
   palette = pal_group,
@@ -206,21 +211,21 @@ plot_split_violin(
 ) + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 28, hjust = 1))
 ```
 
-## 12) Ridge plot
+## 11) Ridge plot
 
-```{r step12-ridge, eval=seurat_ok && requireNamespace("ggridges", quietly = TRUE), fig.width=10.8, fig.height=6.4}
+```{r step11-ridge, eval=seurat_ok && requireNamespace("ggridges", quietly = TRUE), fig.width=10.8, fig.height=6.4}
 plot_ridge(
   sc,
-  pathway = top_sig,
+  signature = top_sig,
   group = "celltype",
   palette = pal_celltype,
   alpha = 0.75
 )
 ```
 
-## 13) Trajectory-style plots
+## 12) Trajectory-style plots
 
-```{r step13-trajectory-setup, eval=seurat_ok}
+```{r step12-trajectory-setup, eval=seurat_ok}
 seu$pseudotime <- rank(Embeddings(seu, "pca")[, 1], ties.method = "average") / ncol(seu)
 seu$lineage <- as.character(seu$celltype)
 
@@ -241,20 +246,20 @@ lineage_levels <- unique(as.character(sc2$meta$lineage))
 pal_lineage <- setNames(get_palette("brewer_dark2", n = length(lineage_levels), continuous = FALSE), lineage_levels)
 ```
 
-```{r step13-pseudotime, eval=seurat_ok}
+```{r step12-pseudotime, eval=seurat_ok}
 plot_pseudotime_score(
   sc2,
-  pathway = top_sig,
+  signature = top_sig,
   pseudotime = "pseudotime",
   lineage = "lineage",
   palette = pal_lineage
 )
 ```
 
-```{r step13-trajmap, eval=seurat_ok}
+```{r step12-trajmap, eval=seurat_ok}
 plot_trajectory_score(
   sc2,
-  pathway = top_sig,
+  signature = top_sig,
   object = seu,
   reduction = "umap",
   palette = "gleam_continuous"

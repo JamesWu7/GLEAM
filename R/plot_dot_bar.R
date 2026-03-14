@@ -4,13 +4,14 @@
 #' @param by Grouping metadata columns. The first element is interpreted as
 #'   `group`, and the second as `celltype`.
 #' @param threshold Threshold for active fraction.
-#' @param pathway Optional signature filter (legacy argument name).
+#' @param signature Optional signature filter.
+#' @param pathway Legacy alias of `signature` (kept for backward compatibility).
 #' @param color_palette Continuous palette for mean score.
 #' @param theme_params Optional list passed to [gleam_theme()].
 #'
 #' @return A `ggplot` object.
 #' @export
-plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette = "gleam_continuous", theme_params = list()) {
+plot_dot_bar <- function(score, by, threshold = 0, signature = NULL, pathway = NULL, color_palette = "gleam_continuous", theme_params = list()) {
   if (!is.character(by) || length(by) < 2L) {
     stop("`by` must be character columns in order: c(group_col, celltype_col).", call. = FALSE)
   }
@@ -26,8 +27,12 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
   mean_df$signature <- mean_df$pathway
   frac_df$signature <- frac_df$pathway
 
-  sig_use <- if (is.null(pathway)) rownames(score$score)[[1]] else as.character(pathway)[[1]]
-  if (!is.null(pathway) && length(pathway) > 1L) {
+  if (is.null(signature) && is.null(pathway)) {
+    sig_use <- rownames(score$score)[[1]]
+  } else {
+    sig_use <- resolve_signature_arg(score, signature = signature, pathway = pathway)
+  }
+  if ((!is.null(signature) && length(signature) > 1L) || (!is.null(pathway) && length(pathway) > 1L)) {
     warning("`plot_dot_bar()` now supports one signature at a time; using the first signature only.", call. = FALSE)
   }
 
@@ -72,8 +77,9 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
   )) +
     ggplot2::geom_point(alpha = 0.95, stroke = 0.25) +
     scale_gleam_color(color_palette, continuous = TRUE) +
-    ggplot2::scale_size_continuous(range = c(2.6, 10.8)) +
+    ggplot2::scale_size_continuous(range = c(2.2, 8.2)) +
     ggplot2::scale_y_discrete(limits = y_levels) +
+    ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = c(0.35, 0.35))) +
     ggplot2::labs(
       title = "Signature score and active fraction",
       x = "Signature",
@@ -138,7 +144,7 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
   ct_cols <- ct_cols_all[ct_levels]
 
   bar <- ggplot2::ggplot(bar_df, ggplot2::aes(x = .data$delta, y = .data$celltype_plot)) +
-    ggplot2::geom_col(ggplot2::aes(fill = .data$celltype_plot), width = 0.64, color = NA, alpha = 0.9) +
+    ggplot2::geom_col(ggplot2::aes(fill = .data$celltype_plot), width = 0.82, color = NA, alpha = 0.92) +
     ggplot2::geom_path(ggplot2::aes(group = 1), linewidth = 0.55, color = "#111827", alpha = 0.9) +
     ggplot2::geom_point(size = 1.8, color = "#111827") +
     ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "grey35", linewidth = 0.35) +
@@ -160,5 +166,5 @@ plot_dot_bar <- function(score, by, threshold = 0, pathway = NULL, color_palette
     return(dot)
   }
 
-  dot + bar + patchwork::plot_layout(guides = "collect", widths = c(3, 5))
+  dot + bar + patchwork::plot_layout(guides = "collect", widths = c(1.6, 4.8))
 }

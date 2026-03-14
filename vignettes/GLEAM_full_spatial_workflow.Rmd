@@ -357,7 +357,7 @@ colnames(emb2) <- c("Spatial_1", "Spatial_2")
 
 plot_embedding_score(
   sp,
-  pathway = rownames(sp$score)[1],
+  signature = rownames(sp$score)[1],
   embedding = emb2,
   reduction = "umap",
   palette = "gleam_continuous"
@@ -370,7 +370,7 @@ pal_lineage <- setNames(get_palette("brewer_dark2", n = length(lineage_levels), 
 
 plot_pseudotime_score(
   sp,
-  pathway = rownames(sp$score)[1],
+  signature = rownames(sp$score)[1],
   pseudotime = "pseudotime",
   lineage = "lineage",
   palette = pal_lineage

@@ -80,7 +80,23 @@
 <span><span class="kw">if</span> <span class="op">(</span><span class="va">ifnb_path</span> <span class="op">==</span> <span class="st">""</span><span class="op">)</span> <span class="va">ifnb_path</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="st">"inst"</span>, <span class="st">"extdata"</span>, <span class="st">"full_examples"</span>, <span class="st">"ifnb_seurat.rds"</span><span class="op">)</span></span>
 <span><span class="va">seu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">ifnb_path</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">cells_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">seu</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="fl">5000</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">seu</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co"># Keep both CTRL/STIM groups in tutorial subset so group contrasts are always available.</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="st">"stim"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">seu</span><span class="op">@</span><span class="va">meta.data</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">grp</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">seu</span><span class="op">$</span><span class="va">stim</span><span class="op">)</span></span>
+<span>  <span class="va">grp_levels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">grp</span><span class="op">)</span></span>
+<span>  <span class="va">n_target</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="fl">5000L</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">seu</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">n_each</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="fl">1L</span>, <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">floor</a></span><span class="op">(</span><span class="va">n_target</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">grp_levels</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="va">cells_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unlist.html" class="external-link">unlist</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html" class="external-link">lapply</a></span><span class="op">(</span><span class="va">grp_levels</span>, <span class="kw">function</span><span class="op">(</span><span class="va">g</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">ids</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">seu</span><span class="op">)</span><span class="op">[</span><span class="va">grp</span> <span class="op">==</span> <span class="va">g</span><span class="op">]</span></span>
+<span>    <span class="va">ids</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">ids</span><span class="op">)</span>, <span class="va">n_each</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span>  <span class="op">}</span><span class="op">)</span>, use.names <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span>  <span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">cells_use</span><span class="op">)</span> <span class="op">&lt;</span> <span class="va">n_target</span><span class="op">)</span> <span class="op">{</span></span>
+<span>    <span class="va">rem</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/sets.html" class="external-link">setdiff</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">seu</span><span class="op">)</span>, <span class="va">cells_use</span><span class="op">)</span></span>
+<span>    <span class="va">cells_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="va">cells_use</span>, <span class="va">rem</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">rem</span><span class="op">)</span>, <span class="va">n_target</span> <span class="op">-</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">cells_use</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
+<span>  <span class="op">}</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  <span class="va">cells_use</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">seu</span><span class="op">)</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/seq.html" class="external-link">seq_len</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">min</a></span><span class="op">(</span><span class="fl">5000L</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">seu</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="op">}</span></span>
 <span><span class="va">seu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/subset.html" class="external-link">subset</a></span><span class="op">(</span><span class="va">seu</span>, cells <span class="op">=</span> <span class="va">cells_use</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/dim.html" class="external-link">dim</a></span><span class="op">(</span><span class="va">seu</span><span class="op">)</span></span>
@@ -96,11 +112,19 @@
 </h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">seu</span><span class="op">$</span><span class="va">sample</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">seu</span><span class="op">$</span><span class="va">orig.ident</span><span class="op">)</span></span>
-<span><span class="va">seu</span><span class="op">$</span><span class="va">group</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">seu</span><span class="op">$</span><span class="va">stim</span><span class="op">)</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="st">"stim"</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">seu</span><span class="op">@</span><span class="va">meta.data</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">seu</span><span class="op">$</span><span class="va">group</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/chartr.html" class="external-link">tolower</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">seu</span><span class="op">$</span><span class="va">stim</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  <span class="va">seu</span><span class="op">$</span><span class="va">group</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">seu</span><span class="op">$</span><span class="va">orig.ident</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
 <span><span class="va">seu</span><span class="op">$</span><span class="va">celltype</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">seu</span><span class="op">$</span><span class="va">seurat_annotations</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">celltype_levels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/sort.html" class="external-link">sort</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">seu</span><span class="op">$</span><span class="va">celltype</span><span class="op">)</span>, decreasing <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">group_levels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">seu</span><span class="op">$</span><span class="va">group</span><span class="op">)</span></span>
+<span><span class="kw">if</span> <span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ctrl"</span>, <span class="st">"stim"</span><span class="op">)</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">seu</span><span class="op">$</span><span class="va">group</span><span class="op">)</span><span class="op">)</span><span class="op">)</span> <span class="op">{</span></span>
+<span>  <span class="va">group_levels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"ctrl"</span>, <span class="st">"stim"</span><span class="op">)</span></span>
+<span><span class="op">}</span> <span class="kw">else</span> <span class="op">{</span></span>
+<span>  <span class="va">group_levels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="va">seu</span><span class="op">$</span><span class="va">group</span><span class="op">)</span></span>
+<span><span class="op">}</span></span>
 <span></span>
 <span><span class="va">seu</span><span class="op">$</span><span class="va">celltype</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">seu</span><span class="op">$</span><span class="va">celltype</span>, levels <span class="op">=</span> <span class="va">celltype_levels</span><span class="op">)</span></span>
 <span><span class="va">seu</span><span class="op">$</span><span class="va">group</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/factor.html" class="external-link">factor</a></span><span class="op">(</span><span class="va">seu</span><span class="op">$</span><span class="va">group</span>, levels <span class="op">=</span> <span class="va">group_levels</span><span class="op">)</span></span>
@@ -108,14 +132,18 @@
 <span><span class="va">pal_celltype</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="fu"><a href="../reference/get_palette.html">get_palette</a></span><span class="op">(</span><span class="st">"gleam_discrete"</span>, n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">celltype_levels</span><span class="op">)</span>, continuous <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>, <span class="va">celltype_levels</span><span class="op">)</span></span>
 <span><span class="va">pal_group</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="fu"><a href="../reference/get_palette.html">get_palette</a></span><span class="op">(</span><span class="st">"brewer_set2"</span>, n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">group_levels</span><span class="op">)</span>, continuous <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>, <span class="va">group_levels</span><span class="op">)</span></span>
 <span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">seu</span><span class="op">$</span><span class="va">group</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; ctrl stim </span></span>
+<span><span class="co">#&gt; 2500 2500</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">seu</span><span class="op">@</span><span class="va">meta.data</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"sample"</span>, <span class="st">"group"</span>, <span class="st">"celltype"</span><span class="op">)</span><span class="op">]</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                       sample group     celltype</span></span>
-<span><span class="co">#&gt; AAACATACATTTCC.1 IMMUNE_CTRL  CTRL    CD14 Mono</span></span>
-<span><span class="co">#&gt; AAACATACCAGAAA.1 IMMUNE_CTRL  CTRL    CD14 Mono</span></span>
-<span><span class="co">#&gt; AAACATACCTCGCT.1 IMMUNE_CTRL  CTRL    CD14 Mono</span></span>
-<span><span class="co">#&gt; AAACATACCTGGTA.1 IMMUNE_CTRL  CTRL          pDC</span></span>
-<span><span class="co">#&gt; AAACATACGATGAA.1 IMMUNE_CTRL  CTRL CD4 Memory T</span></span>
-<span><span class="co">#&gt; AAACATACGGCATT.1 IMMUNE_CTRL  CTRL    CD14 Mono</span></span></code></pre></div>
+<span><span class="co">#&gt; AAACATACATTTCC.1 IMMUNE_CTRL  ctrl    CD14 Mono</span></span>
+<span><span class="co">#&gt; AAACATACCAGAAA.1 IMMUNE_CTRL  ctrl    CD14 Mono</span></span>
+<span><span class="co">#&gt; AAACATACCTCGCT.1 IMMUNE_CTRL  ctrl    CD14 Mono</span></span>
+<span><span class="co">#&gt; AAACATACCTGGTA.1 IMMUNE_CTRL  ctrl          pDC</span></span>
+<span><span class="co">#&gt; AAACATACGATGAA.1 IMMUNE_CTRL  ctrl CD4 Memory T</span></span>
+<span><span class="co">#&gt; AAACATACGGCATT.1 IMMUNE_CTRL  ctrl    CD14 Mono</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="standard-seurat-preprocessing">3) Standard Seurat preprocessing<a class="anchor" aria-label="anchor" href="#standard-seurat-preprocessing"></a>
@@ -146,11 +174,11 @@
 <p><img src="GLEAM_full_scrna_workflow_files/figure-html/step4-umap-celltype-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">seu</span>, reduction <span class="op">=</span> <span class="st">"umap"</span>, group.by <span class="op">=</span> <span class="st">"group"</span>, cols <span class="op">=</span> <span class="va">pal_group</span>, pt.size <span class="op">=</span> <span class="fl">0.35</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"UMAP by group"</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"UMAP by condition (ctrl/stim)"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="GLEAM_full_scrna_workflow_files/figure-html/step4-umap-group-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">seu</span>, reduction <span class="op">=</span> <span class="st">"tsne"</span>, group.by <span class="op">=</span> <span class="st">"group"</span>, cols <span class="op">=</span> <span class="va">pal_group</span>, pt.size <span class="op">=</span> <span class="fl">0.35</span><span class="op">)</span> <span class="op">+</span></span>
-<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"tSNE by group"</span><span class="op">)</span></span></code></pre></div>
+<span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"tSNE by condition (ctrl/stim)"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="GLEAM_full_scrna_workflow_files/figure-html/step4-tsne-group-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
@@ -194,125 +222,104 @@
 <span><span class="va">top_sig</span> <span class="op">&lt;-</span> <span class="va">res_pb</span><span class="op">$</span><span class="va">table</span><span class="op">$</span><span class="va">pathway</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">res_pb</span><span class="op">$</span><span class="va">table</span><span class="op">$</span><span class="va">p_adj</span><span class="op">)</span><span class="op">]</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">res_pb</span><span class="op">$</span><span class="va">table</span><span class="op">)</span></span>
 <span><span class="co">#&gt;                              pathway comparison_type group1 group2</span></span>
-<span><span class="co">#&gt; 1                 HALLMARK_APOPTOSIS      pseudobulk   &lt;NA&gt;   &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 2   HALLMARK_IL6_JAK_STAT3_SIGNALING      pseudobulk   &lt;NA&gt;   &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 3     HALLMARK_INFLAMMATORY_RESPONSE      pseudobulk   &lt;NA&gt;   &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 4 HALLMARK_INTERFERON_GAMMA_RESPONSE      pseudobulk   &lt;NA&gt;   &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 5 HALLMARK_OXIDATIVE_PHOSPHORYLATION      pseudobulk   &lt;NA&gt;   &lt;NA&gt;</span></span>
+<span><span class="co">#&gt; 1                 HALLMARK_APOPTOSIS      pseudobulk   ctrl   stim</span></span>
+<span><span class="co">#&gt; 2   HALLMARK_IL6_JAK_STAT3_SIGNALING      pseudobulk   ctrl   stim</span></span>
+<span><span class="co">#&gt; 3     HALLMARK_INFLAMMATORY_RESPONSE      pseudobulk   ctrl   stim</span></span>
+<span><span class="co">#&gt; 4 HALLMARK_INTERFERON_GAMMA_RESPONSE      pseudobulk   ctrl   stim</span></span>
+<span><span class="co">#&gt; 5 HALLMARK_OXIDATIVE_PHOSPHORYLATION      pseudobulk   ctrl   stim</span></span>
 <span><span class="co">#&gt;                                                                                          celltype</span></span>
 <span><span class="co">#&gt; 1 B;B Activated;CD14 Mono;CD16 Mono;CD4 Memory T;CD4 Naive T;CD8 T;DC;Eryth;Mk;NK;pDC;T activated</span></span>
 <span><span class="co">#&gt; 2 B;B Activated;CD14 Mono;CD16 Mono;CD4 Memory T;CD4 Naive T;CD8 T;DC;Eryth;Mk;NK;pDC;T activated</span></span>
 <span><span class="co">#&gt; 3 B;B Activated;CD14 Mono;CD16 Mono;CD4 Memory T;CD4 Naive T;CD8 T;DC;Eryth;Mk;NK;pDC;T activated</span></span>
 <span><span class="co">#&gt; 4 B;B Activated;CD14 Mono;CD16 Mono;CD4 Memory T;CD4 Naive T;CD8 T;DC;Eryth;Mk;NK;pDC;T activated</span></span>
 <span><span class="co">#&gt; 5 B;B Activated;CD14 Mono;CD16 Mono;CD4 Memory T;CD4 Naive T;CD8 T;DC;Eryth;Mk;NK;pDC;T activated</span></span>
-<span><span class="co">#&gt;        level effect_size median_group1 median_group2 diff_median p_value p_adj</span></span>
-<span><span class="co">#&gt; 1 pseudobulk          NA            NA            NA          NA      NA    NA</span></span>
-<span><span class="co">#&gt; 2 pseudobulk          NA            NA            NA          NA      NA    NA</span></span>
-<span><span class="co">#&gt; 3 pseudobulk          NA            NA            NA          NA      NA    NA</span></span>
-<span><span class="co">#&gt; 4 pseudobulk          NA            NA            NA          NA      NA    NA</span></span>
-<span><span class="co">#&gt; 5 pseudobulk          NA            NA            NA          NA      NA    NA</span></span>
-<span><span class="co">#&gt;   n_group1 n_group2 mean_group1 mean_group2 direction</span></span>
-<span><span class="co">#&gt; 1       NA       NA          NA          NA      &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 2       NA       NA          NA          NA      &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 3       NA       NA          NA          NA      &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 4       NA       NA          NA          NA      &lt;NA&gt;</span></span>
-<span><span class="co">#&gt; 5       NA       NA          NA          NA      &lt;NA&gt;</span></span>
+<span><span class="co">#&gt;        level  effect_size median_group1 median_group2  diff_median      p_value</span></span>
+<span><span class="co">#&gt; 1 pseudobulk -0.032884879    0.14843127     0.1813161 -0.032884879 4.483009e-01</span></span>
+<span><span class="co">#&gt; 2 pseudobulk -0.050513451    0.19865376     0.2491672 -0.050513451 6.075034e-03</span></span>
+<span><span class="co">#&gt; 3 pseudobulk -0.003719168    0.11660683     0.1203260 -0.003719168 4.793229e-01</span></span>
+<span><span class="co">#&gt; 4 pseudobulk -0.534591542    0.09628314     0.6308747 -0.534591542 1.922966e-07</span></span>
+<span><span class="co">#&gt; 5 pseudobulk  0.025092576    0.33501887     0.3099263  0.025092576 7.226122e-02</span></span>
+<span><span class="co">#&gt;          p_adj n_group1 n_group2 mean_group1 mean_group2 direction</span></span>
+<span><span class="co">#&gt; 1 4.793229e-01       13       13  0.21701497   0.2228588      down</span></span>
+<span><span class="co">#&gt; 2 1.518759e-02       13       13  0.20381390   0.2522351      down</span></span>
+<span><span class="co">#&gt; 3 4.793229e-01       13       13  0.16010177   0.1737140      down</span></span>
+<span><span class="co">#&gt; 4 9.614830e-07       13       13  0.09485593   0.6676259      down</span></span>
+<span><span class="co">#&gt; 5 1.204354e-01       13       13  0.36315958   0.3009684        up</span></span>
 <span><span class="va">top_sig</span></span>
-<span><span class="co">#&gt; [1] "HALLMARK_APOPTOSIS"</span></span></code></pre></div>
+<span><span class="co">#&gt; [1] "HALLMARK_INTERFERON_GAMMA_RESPONSE"</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="featureplot-style-signature-map">7) FeaturePlot-style signature map<a class="anchor" aria-label="anchor" href="#featureplot-style-signature-map"></a>
+<h2 id="gleam-embedding-score-plot-seurat-based">7) GLEAM embedding score plot (Seurat-based)<a class="anchor" aria-label="anchor" href="#gleam-embedding-score-plot-seurat-based"></a>
 </h2>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">sig_col</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"GLEAM_signature_"</span>, <span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">gsub</a></span><span class="op">(</span><span class="st">"[^A-Za-z0-9_]+"</span>, <span class="st">"_"</span>, <span class="va">top_sig</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">score_values</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="cn">NA_real_</span>, <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">seu</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">score_values</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">seu</span><span class="op">)</span></span>
-<span><span class="va">overlap_cells</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://generics.r-lib.org/reference/setops.html" class="external-link">intersect</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">seu</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">sc</span><span class="op">$</span><span class="va">score</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">score_values</span><span class="op">[</span><span class="va">overlap_cells</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">sc</span><span class="op">$</span><span class="va">score</span><span class="op">[</span><span class="va">top_sig</span>, <span class="va">overlap_cells</span><span class="op">]</span><span class="op">)</span></span>
-<span><span class="va">seu</span><span class="op">[[</span><span class="va">sig_col</span><span class="op">]</span><span class="op">]</span> <span class="op">&lt;-</span> <span class="va">score_values</span></span>
-<span></span>
-<span><span class="fu"><a href="https://satijalab.org/seurat/reference/FeaturePlot.html" class="external-link">FeaturePlot</a></span><span class="op">(</span></span>
-<span>  <span class="va">seu</span>,</span>
-<span>  features <span class="op">=</span> <span class="va">sig_col</span>,</span>
-<span>  reduction <span class="op">=</span> <span class="st">"umap"</span>,</span>
-<span>  cols <span class="op">=</span> <span class="fu"><a href="../reference/get_palette.html">get_palette</a></span><span class="op">(</span><span class="st">"gleam_continuous"</span>, n <span class="op">=</span> <span class="fl">128</span>, continuous <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
-<span>  order <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  pt.size <span class="op">=</span> <span class="fl">0.7</span></span>
-<span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"FeaturePlot signature map: "</span>, <span class="va">top_sig</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step7-featureplot-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
-</div>
-<div class="section level2">
-<h2 id="gleam-embedding-score-plot">8) GLEAM embedding score plot<a class="anchor" aria-label="anchor" href="#gleam-embedding-score-plot"></a>
-</h2>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_embedding_score.html">plot_embedding_score</a></span><span class="op">(</span></span>
 <span>  <span class="va">sc</span>,</span>
-<span>  pathway <span class="op">=</span> <span class="va">top_sig</span>,</span>
+<span>  signature <span class="op">=</span> <span class="va">top_sig</span>,</span>
 <span>  object <span class="op">=</span> <span class="va">seu</span>,</span>
 <span>  reduction <span class="op">=</span> <span class="st">"umap"</span>,</span>
 <span>  point_size <span class="op">=</span> <span class="fl">0.7</span>,</span>
 <span>  palette <span class="op">=</span> <span class="st">"gleam_continuous"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step8-embedding-score-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step7-embedding-score-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
-<h2 id="dot-bar-plot">9) Dot-bar plot<a class="anchor" aria-label="anchor" href="#dot-bar-plot"></a>
+<h2 id="dot-bar-plot">8) Dot-bar plot<a class="anchor" aria-label="anchor" href="#dot-bar-plot"></a>
 </h2>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_dot_bar.html">plot_dot_bar</a></span><span class="op">(</span></span>
 <span>  <span class="va">sc</span>,</span>
 <span>  by <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"group"</span>, <span class="st">"celltype"</span><span class="op">)</span>,</span>
-<span>  pathway <span class="op">=</span> <span class="va">top_sig</span>,</span>
+<span>  signature <span class="op">=</span> <span class="va">top_sig</span>,</span>
 <span>  color_palette <span class="op">=</span> <span class="st">"gleam_continuous"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step9-dotbar-1.png" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step8-dotbar-1.png" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
-<h2 id="violin-plot">10) Violin plot<a class="anchor" aria-label="anchor" href="#violin-plot"></a>
+<h2 id="violin-plot">9) Violin plot<a class="anchor" aria-label="anchor" href="#violin-plot"></a>
 </h2>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_violin.html">plot_violin</a></span><span class="op">(</span></span>
 <span>  <span class="va">sc</span>,</span>
-<span>  pathway <span class="op">=</span> <span class="va">top_sig</span>,</span>
+<span>  signature <span class="op">=</span> <span class="va">top_sig</span>,</span>
 <span>  group <span class="op">=</span> <span class="st">"celltype"</span>,</span>
 <span>  palette <span class="op">=</span> <span class="va">pal_celltype</span>,</span>
 <span>  point_size <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.75</span></span>
 <span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">28</span>, hjust <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step10-violin-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step9-violin-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
-<h2 id="split-violin-plot">11) Split violin plot<a class="anchor" aria-label="anchor" href="#split-violin-plot"></a>
+<h2 id="split-violin-plot">10) Split violin plot<a class="anchor" aria-label="anchor" href="#split-violin-plot"></a>
 </h2>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_split_violin.html">plot_split_violin</a></span><span class="op">(</span></span>
 <span>  <span class="va">sc</span>,</span>
-<span>  pathway <span class="op">=</span> <span class="va">top_sig</span>,</span>
+<span>  signature <span class="op">=</span> <span class="va">top_sig</span>,</span>
 <span>  x <span class="op">=</span> <span class="st">"celltype"</span>,</span>
 <span>  split.by <span class="op">=</span> <span class="st">"group"</span>,</span>
 <span>  palette <span class="op">=</span> <span class="va">pal_group</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.72</span></span>
 <span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">28</span>, hjust <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step11-split-violin-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step10-split-violin-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
-<h2 id="ridge-plot">12) Ridge plot<a class="anchor" aria-label="anchor" href="#ridge-plot"></a>
+<h2 id="ridge-plot">11) Ridge plot<a class="anchor" aria-label="anchor" href="#ridge-plot"></a>
 </h2>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_ridge.html">plot_ridge</a></span><span class="op">(</span></span>
 <span>  <span class="va">sc</span>,</span>
-<span>  pathway <span class="op">=</span> <span class="va">top_sig</span>,</span>
+<span>  signature <span class="op">=</span> <span class="va">top_sig</span>,</span>
 <span>  group <span class="op">=</span> <span class="st">"celltype"</span>,</span>
 <span>  palette <span class="op">=</span> <span class="va">pal_celltype</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.75</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Picking joint bandwidth of 0.0443</span></span></code></pre></div>
-<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step12-ridge-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
+<span><span class="co">#&gt; Picking joint bandwidth of 0.104</span></span></code></pre></div>
+<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step11-ridge-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
-<h2 id="trajectory-style-plots">13) Trajectory-style plots<a class="anchor" aria-label="anchor" href="#trajectory-style-plots"></a>
+<h2 id="trajectory-style-plots">12) Trajectory-style plots<a class="anchor" aria-label="anchor" href="#trajectory-style-plots"></a>
 </h2>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">seu</span><span class="op">$</span><span class="va">pseudotime</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rank.html" class="external-link">rank</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SeuratObject/man/Embeddings.html" class="external-link">Embeddings</a></span><span class="op">(</span><span class="va">seu</span>, <span class="st">"pca"</span><span class="op">)</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, ties.method <span class="op">=</span> <span class="st">"average"</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">seu</span><span class="op">)</span></span>
 <span><span class="va">seu</span><span class="op">$</span><span class="va">lineage</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">seu</span><span class="op">$</span><span class="va">celltype</span><span class="op">)</span></span>
 <span></span>
@@ -331,24 +338,24 @@
 <span></span>
 <span><span class="va">lineage_levels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">sc2</span><span class="op">$</span><span class="va">meta</span><span class="op">$</span><span class="va">lineage</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">pal_lineage</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="fu"><a href="../reference/get_palette.html">get_palette</a></span><span class="op">(</span><span class="st">"brewer_dark2"</span>, n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">lineage_levels</span><span class="op">)</span>, continuous <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>, <span class="va">lineage_levels</span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_pseudotime_score.html">plot_pseudotime_score</a></span><span class="op">(</span></span>
 <span>  <span class="va">sc2</span>,</span>
-<span>  pathway <span class="op">=</span> <span class="va">top_sig</span>,</span>
+<span>  signature <span class="op">=</span> <span class="va">top_sig</span>,</span>
 <span>  pseudotime <span class="op">=</span> <span class="st">"pseudotime"</span>,</span>
 <span>  lineage <span class="op">=</span> <span class="st">"lineage"</span>,</span>
 <span>  palette <span class="op">=</span> <span class="va">pal_lineage</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step13-pseudotime-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step12-pseudotime-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_trajectory_score.html">plot_trajectory_score</a></span><span class="op">(</span></span>
 <span>  <span class="va">sc2</span>,</span>
-<span>  pathway <span class="op">=</span> <span class="va">top_sig</span>,</span>
+<span>  signature <span class="op">=</span> <span class="va">top_sig</span>,</span>
 <span>  object <span class="op">=</span> <span class="va">seu</span>,</span>
 <span>  reduction <span class="op">=</span> <span class="st">"umap"</span>,</span>
 <span>  palette <span class="op">=</span> <span class="st">"gleam_continuous"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step13-trajmap-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step12-trajmap-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

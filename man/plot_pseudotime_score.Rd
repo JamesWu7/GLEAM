@@ -6,7 +6,8 @@
 \usage{
 plot_pseudotime_score(
   score,
-  pathway,
+  signature = NULL,
+  pathway = NULL,
   pseudotime = NULL,
   lineage = NULL,
   smooth = TRUE,
@@ -19,7 +20,9 @@ plot_pseudotime_score(
 \arguments{
 \item{score}{\code{gleam_score} object.}
 
-\item{pathway}{Signature name (legacy argument name).}
+\item{signature}{Signature name.}
+
+\item{pathway}{Legacy alias of \code{signature} (kept for backward compatibility).}
 
 \item{pseudotime}{Pseudotime source.}
 

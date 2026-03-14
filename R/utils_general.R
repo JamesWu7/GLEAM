@@ -69,3 +69,23 @@ match_arg_chr <- function(arg, choices, arg_name) {
   }
   arg
 }
+
+#' @keywords internal
+resolve_signature_arg <- function(score, signature = NULL, pathway = NULL) {
+  if (!is.null(pathway) && is.null(signature)) signature <- pathway
+  if (!is.null(pathway) && !is.null(signature) &&
+      !identical(as.character(signature)[[1]], as.character(pathway)[[1]])) {
+    stop("`signature` and `pathway` were both provided but differ; please use only `signature`.", call. = FALSE)
+  }
+  if (is.null(signature) || length(signature) < 1L) {
+    stop("Provide a valid `signature`.", call. = FALSE)
+  }
+  signature <- as.character(signature)[[1]]
+  if (!nzchar(signature) || is.na(signature)) {
+    stop("Provide a valid `signature`.", call. = FALSE)
+  }
+  if (!signature %in% rownames(score$score)) {
+    stop("`signature` not found in score matrix.", call. = FALSE)
+  }
+  signature
+}

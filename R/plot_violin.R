@@ -1,7 +1,8 @@
 #' Violin plot of signature scores
 #'
 #' @param score `gleam_score` object.
-#' @param pathway Signature name (legacy argument name).
+#' @param signature Signature name.
+#' @param pathway Legacy alias of `signature` (kept for backward compatibility).
 #' @param group Group variable (metadata column name or vector).
 #' @param celltype Optional celltype filter (single label or vector).
 #' @param trim Passed to `geom_violin()`.
@@ -14,7 +15,8 @@
 #' @export
 plot_violin <- function(
   score,
-  pathway,
+  signature = NULL,
+  pathway = NULL,
   group,
   celltype = NULL,
   trim = TRUE,
@@ -24,13 +26,11 @@ plot_violin <- function(
   theme_params = list()
 ) {
   check_score_object(score)
-  if (!pathway %in% rownames(score$score)) {
-    stop("`signature` not found in score matrix.", call. = FALSE)
-  }
+  signature <- resolve_signature_arg(score, signature = signature, pathway = pathway)
 
   meta <- score$meta
   g <- resolve_meta_var(meta, group, "group")
-  y <- as.numeric(score$score[pathway, ])
+  y <- as.numeric(score$score[signature, ])
 
   keep <- rep(TRUE, length(y))
   if (!is.null(celltype)) {
@@ -67,7 +67,7 @@ plot_violin <- function(
     ggplot2::geom_violin(trim = trim, alpha = alpha, color = NA) +
     ggplot2::geom_boxplot(width = 0.12, outlier.shape = NA, fill = "white", alpha = 0.8, linewidth = 0.3) +
     scale_gleam_fill(palette = palette, continuous = FALSE) +
-    ggplot2::labs(x = "Group", y = "Signature score", title = paste("Signature score:", pathway)) +
+    ggplot2::labs(x = "Group", y = "Signature score", title = paste("Signature score:", signature)) +
     do.call(gleam_theme, tp)
 
   if (isTRUE(point_size > 0)) {

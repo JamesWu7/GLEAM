@@ -1,7 +1,8 @@
 #' Split violin plot for signature scores
 #'
 #' @param score `gleam_score` object.
-#' @param pathway Signature name (legacy argument name).
+#' @param signature Signature name.
+#' @param pathway Legacy alias of `signature` (kept for backward compatibility).
 #' @param x Grouping variable for x-axis.
 #' @param split.by Variable used for split/fill.
 #' @param palette Discrete palette name or custom colors.
@@ -12,7 +13,8 @@
 #' @export
 plot_split_violin <- function(
   score,
-  pathway,
+  signature = NULL,
+  pathway = NULL,
   x,
   split.by,
   palette = "gleam_discrete",
@@ -20,7 +22,7 @@ plot_split_violin <- function(
   theme_params = list()
 ) {
   check_score_object(score)
-  if (!pathway %in% rownames(score$score)) stop("`signature` not found in score matrix.", call. = FALSE)
+  signature <- resolve_signature_arg(score, signature = signature, pathway = pathway)
 
   xv <- resolve_meta_var(score$meta, x, "x")
   sv <- resolve_meta_var(score$meta, split.by, "split.by")
@@ -35,7 +37,7 @@ plot_split_violin <- function(
   df <- data.frame(
     x = factor(x_chr, levels = x_levels, ordered = TRUE),
     split = factor(split_chr, levels = split_levels, ordered = TRUE),
-    value = as.numeric(score$score[pathway, ]),
+    value = as.numeric(score$score[signature, ]),
     stringsAsFactors = FALSE
   )
   tp <- resolve_text_params(theme_params)
@@ -44,6 +46,6 @@ plot_split_violin <- function(
     ggplot2::geom_violin(position = ggplot2::position_dodge(width = 0.85), alpha = alpha, trim = TRUE, color = "#1f2937", linewidth = 0.2) +
     ggplot2::geom_boxplot(width = 0.15, outlier.shape = NA, position = ggplot2::position_dodge(width = 0.85)) +
     scale_gleam_fill(palette = palette, continuous = FALSE) +
-    ggplot2::labs(title = paste("Split violin:", pathway), x = "Group", y = "Signature score") +
+    ggplot2::labs(title = paste("Split violin:", signature), x = "Group", y = "Signature score") +
     do.call(gleam_theme, tp)
 }

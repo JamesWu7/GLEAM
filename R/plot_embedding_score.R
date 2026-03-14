@@ -1,7 +1,8 @@
 #' Plot signature score on embedding coordinates
 #'
 #' @param score `gleam_score` object.
-#' @param pathway Signature name (legacy argument name).
+#' @param signature Signature name.
+#' @param pathway Legacy alias of `signature` (kept for backward compatibility).
 #' @param embedding Embedding matrix with at least 2 columns.
 #' @param object Optional Seurat object.
 #' @param reduction Reduction name used when `embedding` is NULL.
@@ -15,7 +16,8 @@
 #' @export
 plot_embedding_score <- function(
   score,
-  pathway,
+  signature = NULL,
+  pathway = NULL,
   embedding = NULL,
   object = NULL,
   reduction = "umap",
@@ -26,19 +28,19 @@ plot_embedding_score <- function(
   theme_params = list()
 ) {
   check_score_object(score)
-  if (!pathway %in% rownames(score$score)) stop("`signature` not found in score matrix.", call. = FALSE)
+  signature <- resolve_signature_arg(score, signature = signature, pathway = pathway)
   tp <- resolve_text_params(theme_params)
 
   # Seurat FeaturePlot-style rendering when Seurat object is supplied.
   if (is.null(embedding) && !is.null(object) && is_seurat_object(object) && requireNamespace("Seurat", quietly = TRUE)) {
-    sig_col <- paste0("GLEAM_signature_", gsub("[^A-Za-z0-9_]+", "_", pathway))
+    sig_col <- paste0("GLEAM_signature_", gsub("[^A-Za-z0-9_]+", "_", signature))
     cells <- intersect(colnames(object), colnames(score$score))
     if (length(cells) < 1L) {
       stop("No overlapping cells between `object` and score matrix.", call. = FALSE)
     }
     vals <- rep(NA_real_, length(colnames(object)))
     names(vals) <- colnames(object)
-    vals[cells] <- as.numeric(score$score[pathway, cells])
+    vals[cells] <- as.numeric(score$score[signature, cells])
     object[[sig_col]] <- vals
 
     cols <- if (is.character(palette) && length(palette) == 1L) get_palette(palette, n = 128, continuous = TRUE) else palette
@@ -88,7 +90,7 @@ plot_embedding_score <- function(
   df <- data.frame(
     dim1 = emb[, 1],
     dim2 = emb[, 2],
-    value = as.numeric(score$score[pathway, ]),
+    value = as.numeric(score$score[signature, ]),
     stringsAsFactors = FALSE
   )
 
@@ -103,7 +105,7 @@ plot_embedding_score <- function(
     ggplot2::geom_point(size = point_size, alpha = alpha) +
     scale_gleam_color(palette = palette, continuous = TRUE) +
     ggplot2::labs(
-      title = paste("Signature:", pathway),
+      title = paste("Signature:", signature),
       x = colnames(emb)[1],
       y = colnames(emb)[2],
       color = "Signature score"

@@ -81,8 +81,8 @@ if (is.na(top_pw) || !nzchar(top_pw)) top_pw <- rownames(sc$score)[1]
 cell_levels <- names(sort(table(as.character(sc$meta[[celltype_col]])), decreasing = TRUE))
 pal_cell <- setNames(get_palette("gleam_discrete", n = length(cell_levels), continuous = FALSE), cell_levels)
 
-p1 <- plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "umap")
-p2 <- plot_violin(sc, pathway = top_pw, group = celltype_col, palette = pal_cell, point_size = 0)
+p1 <- plot_embedding_score(sc, signature = top_pw, object = seu, reduction = "umap")
+p2 <- plot_violin(sc, signature = top_pw, group = celltype_col, palette = pal_cell, point_size = 0)
 
 if (requireNamespace("patchwork", quietly = TRUE)) {
   p1 + p2 + patchwork::plot_layout(ncol = 2)

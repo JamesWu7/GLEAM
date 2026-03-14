@@ -6,7 +6,8 @@
 \usage{
 plot_split_violin(
   score,
-  pathway,
+  signature = NULL,
+  pathway = NULL,
   x,
   split.by,
   palette = "gleam_discrete",
@@ -17,7 +18,9 @@ plot_split_violin(
 \arguments{
 \item{score}{\code{gleam_score} object.}
 
-\item{pathway}{Signature name (legacy argument name).}
+\item{signature}{Signature name.}
+
+\item{pathway}{Legacy alias of \code{signature} (kept for backward compatibility).}
 
 \item{x}{Grouping variable for x-axis.}
 
