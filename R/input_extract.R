@@ -250,14 +250,80 @@ extract_spatial_coords <- function(object = NULL, meta = NULL, coords = NULL, se
     stop("No spatial coordinates found. Provide `coords` or `meta` columns x/y or row/col.", call. = FALSE)
   }
 
+  if (!is_seurat_object(object)) {
+    stop("`object` must be a Seurat object when `seurat = TRUE`.", call. = FALSE)
+  }
+
+  obj_cells <- tryCatch(colnames(object), error = function(e) NULL)
+  img_names <- tryCatch(names(object@images), error = function(e) character())
+  has_images <- length(img_names) > 0L
+
   # Seurat path: try unified spatial payload first, then metadata fallbacks.
-  payload <- tryCatch(.extract_seurat_spatial_payload(object), error = function(e) NULL)
+  payload_err <- NULL
+  payload <- tryCatch(
+    .extract_seurat_spatial_payload(object),
+    error = function(e) {
+      payload_err <<- conditionMessage(e)
+      NULL
+    }
+  )
   out <- if (!is.null(payload)) payload$coords else NULL
 
-  if (!is.null(out)) return(out)
+  if (!is.null(out)) {
+    out <- as.data.frame(out, stringsAsFactors = FALSE)
+    check_required_columns(out, c("x", "y"))
+    if (!is.null(obj_cells) && length(obj_cells) > 0L) {
+      if (is.null(rownames(out))) {
+        if (nrow(out) == length(obj_cells)) {
+          rownames(out) <- obj_cells
+        } else {
+          stop(
+            "Extracted spatial coordinates have no rownames and cannot be aligned to Seurat cells.",
+            call. = FALSE
+          )
+        }
+      }
+      if (!all(obj_cells %in% rownames(out))) {
+        miss <- setdiff(obj_cells, rownames(out))
+        stop(
+          "Extracted spatial coordinates do not align with Seurat cells; missing ",
+          length(miss),
+          " cells (e.g. ",
+          paste(utils::head(miss, 5), collapse = ", "),
+          ").",
+          call. = FALSE
+        )
+      }
+      out <- out[obj_cells, c("x", "y"), drop = FALSE]
+    }
+    return(out)
+  }
 
   md <- extract_meta(object = object, seurat = TRUE)
-  extract_spatial_coords(meta = md, seurat = FALSE)
+  md_try <- tryCatch(
+    extract_spatial_coords(meta = md, seurat = FALSE),
+    error = function(e) e
+  )
+  if (!inherits(md_try, "error")) {
+    return(md_try)
+  }
+
+  msg <- c(
+    "Failed to extract spatial coordinates from Seurat object.",
+    if (has_images) {
+      paste0(
+        "Images/FOV detected (",
+        paste(img_names, collapse = ", "),
+        ") but no coordinates were retrievable via Seurat spatial APIs."
+      )
+    } else {
+      "No spatial images/FOV found in `object@images`."
+    },
+    if (!is.null(payload_err)) paste0("Seurat spatial payload error: ", payload_err) else NULL,
+    paste0("Metadata fallback failed: ", conditionMessage(md_try)),
+    "Provide explicit `coords` (x/y) or ensure the Seurat spatial object preserves image/FOV coordinate mappings."
+  )
+  stop(paste(msg, collapse = " "), call. = FALSE)
 }
 
 #' Extract spatial metadata

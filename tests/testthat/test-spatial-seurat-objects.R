@@ -69,3 +69,22 @@ test_that("coordinate alignment remains valid through scoring + spatial join", {
   expect_false(any(is.na(js$x)))
   expect_false(any(is.na(js$y)))
 })
+
+test_that("extract_spatial_coords reports actionable diagnostics for non-spatial Seurat objects", {
+  skip_on_cran()
+  skip_if_not_installed("SeuratObject")
+  skip_if_not_installed("Matrix")
+
+  mat <- Matrix::Matrix(matrix(
+    rpois(120, lambda = 2),
+    nrow = 12,
+    ncol = 10,
+    dimnames = list(paste0("g", seq_len(12)), paste0("c", seq_len(10)))
+  ), sparse = TRUE)
+  obj <- SeuratObject::CreateSeuratObject(counts = mat)
+
+  expect_error(
+    GLEAM:::extract_spatial_coords(object = obj),
+    regexp = "No spatial images/FOV found|Provide explicit `coords`|Metadata fallback failed"
+  )
+})
