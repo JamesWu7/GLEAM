@@ -199,36 +199,36 @@ top_sig <- rownames(sc_vis$score)[1]
 ```
 
 ```{r embedding_feature, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=10.0, fig.height=7.0, out.width="98%"}
-plot_embedding_score(sc, pathway = top_sig, object = seu, reduction = "umap", point_size = 0.62) +
+plot_embedding_score(sc, signature = top_sig, object = seu, reduction = "umap", point_size = 0.62) +
   ggplot2::labs(title = "Signature score on embedding")
 ```
 
 ```{r spatial_slice, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=11.0, fig.height=8.2, out.width="100%"}
-plot_spatial_score(sp, pathway = rownames(sp$score)[1], object = sp_obj, point_size = 1.65) +
+plot_spatial_score(sp, signature = rownames(sp$score)[1], object = sp_obj, point_size = 1.65) +
   ggplot2::labs(title = "Signature score on spatial slice")
 ```
 
 ```{r dotbar_compare, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=12.8, fig.height=7.8, out.width="100%"}
-plot_dot_bar(sc_vis, by = c("group", "celltype"), pathway = top_sig) +
+plot_dot_bar(sc_vis, by = c("group", "celltype"), signature = top_sig) +
   ggplot2::labs(title = "Dot-bar signature comparison")
 ```
 
 ```{r violin_compare, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=11.0, fig.height=6.4, out.width="98%"}
-plot_violin(sc_vis, pathway = top_sig, group = "celltype", point_size = 0.25, alpha = 0.7) +
+plot_violin(sc_vis, signature = top_sig, group = "celltype", point_size = 0.25, alpha = 0.7) +
   scale_gleam_fill(palette = pal_celltype_vis, continuous = FALSE) +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30, hjust = 1)) +
   ggplot2::labs(title = "Violin plot across major cell types")
 ```
 
 ```{r split_violin_compare, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=11.4, fig.height=6.6, out.width="99%"}
-plot_split_violin(sc_vis, pathway = top_sig, x = "celltype", split.by = "group", alpha = 0.74) +
+plot_split_violin(sc_vis, signature = top_sig, x = "celltype", split.by = "group", alpha = 0.74) +
   scale_gleam_fill(palette = pal_group, continuous = FALSE) +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 30, hjust = 1)) +
   ggplot2::labs(title = "Split violin by group within major cell types")
 ```
 
 ```{r ridge_compare, eval=requireNamespace("Seurat", quietly = TRUE) && requireNamespace("ggridges", quietly = TRUE), fig.width=11.0, fig.height=6.6, out.width="98%"}
-plot_ridge(sc_vis, pathway = top_sig, group = "celltype", alpha = 0.72, palette = pal_celltype_vis) +
+plot_ridge(sc_vis, signature = top_sig, group = "celltype", alpha = 0.72, palette = pal_celltype_vis) +
   ggplot2::labs(title = "Ridge distribution across major cell types")
 ```
 
@@ -238,7 +238,7 @@ pal_lineage <- .make_discrete_palette(length(unique(as.character(sc$meta$lineage
 p_traj <- tryCatch(
   plot_pseudotime_score(
     sc,
-    pathway = rownames(sc$score)[1],
+    signature = rownames(sc$score)[1],
     pseudotime = "pseudotime",
     lineage = "lineage",
     palette = pal_lineage
@@ -247,7 +247,7 @@ p_traj <- tryCatch(
     message("[GLEAM] trajectory_trend lineage-color fallback: ", conditionMessage(e))
     plot_pseudotime_score(
       sc,
-      pathway = rownames(sc$score)[1],
+      signature = rownames(sc$score)[1],
       pseudotime = "pseudotime",
       lineage = NULL,
       palette = pal_lineage

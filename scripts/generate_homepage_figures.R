@@ -217,7 +217,7 @@ generate_from_full_examples <- function() {
   top_sig <- rownames(sc$score)[1]
   p1 <- plot_embedding_score(
     score = sc,
-    pathway = top_sig,
+    signature = top_sig,
     object = seu,
     reduction = "umap",
     point_size = 0.62
@@ -226,7 +226,7 @@ generate_from_full_examples <- function() {
 
   p2 <- plot_spatial_score(
     score = sp,
-    pathway = rownames(sp$score)[1],
+    signature = rownames(sp$score)[1],
     object = sp_obj,
     point_size = 1.65
   ) + ggplot2::labs(title = "Signature score on spatial slice")
@@ -244,13 +244,13 @@ generate_from_full_examples <- function() {
   pal_celltype_vis <- setNames(get_palette("gleam_discrete", n = length(ct_keep), continuous = FALSE), ct_keep)
   pal_group_vis <- setNames(get_palette("gleam_discrete", n = length(grp_levels), continuous = FALSE), grp_levels)
 
-  p3 <- plot_dot_bar(sc_vis, by = c(group_col, celltype_col), pathway = top_sig) +
+  p3 <- plot_dot_bar(sc_vis, by = c(group_col, celltype_col), signature = top_sig) +
     ggplot2::labs(title = "Dot-bar signature comparison")
   save_plot_to_outputs("signature_dotbar_compare.png", p3, width = 12.8, height = 7.8, dpi = 220)
 
   p5 <- plot_violin(
     score = sc_vis,
-    pathway = top_sig,
+    signature = top_sig,
     group = celltype_col,
     palette = pal_celltype_vis,
     point_size = 0.25,
@@ -262,7 +262,7 @@ generate_from_full_examples <- function() {
 
   p6 <- plot_split_violin(
     score = sc_vis,
-    pathway = top_sig,
+    signature = top_sig,
     x = celltype_col,
     split.by = group_col,
     palette = pal_group_vis,
@@ -273,7 +273,7 @@ generate_from_full_examples <- function() {
   save_plot_to_outputs("signature_split_violin.png", p6, width = 11.4, height = 6.6, dpi = 220)
 
   p7 <- tryCatch(
-    plot_ridge(sc_vis, pathway = top_sig, group = celltype_col, alpha = 0.72, palette = pal_celltype_vis) +
+    plot_ridge(sc_vis, signature = top_sig, group = celltype_col, alpha = 0.72, palette = pal_celltype_vis) +
       ggplot2::labs(title = "Ridge distribution across major cell types"),
     error = function(e) {
       message("[GLEAM] ridge fallback to violin: ", conditionMessage(e))
@@ -286,7 +286,7 @@ generate_from_full_examples <- function() {
   p4 <- tryCatch(
     plot_pseudotime_score(
       sc_vis,
-      pathway = top_sig,
+      signature = top_sig,
       pseudotime = "pseudotime",
       lineage = "lineage",
       palette = pal_lineage
@@ -295,7 +295,7 @@ generate_from_full_examples <- function() {
       message("[GLEAM] trajectory trend fallback: ", conditionMessage(e))
       plot_pseudotime_score(
         sc_vis,
-        pathway = top_sig,
+        signature = top_sig,
         pseudotime = "pseudotime",
         lineage = NULL,
         palette = pal_lineage
@@ -414,11 +414,11 @@ generate_from_builtin_examples <- function() {
     nrow = 16
   ))
 
-  p1 <- plot_embedding_score(sc, pathway = top_sig, embedding = emb, reduction = "umap", point_size = 0.62) +
+  p1 <- plot_embedding_score(sc, signature = top_sig, embedding = emb, reduction = "umap", point_size = 0.62) +
     ggplot2::labs(title = "Signature score on embedding")
   save_plot_to_outputs("embedding_signature_feature.png", p1, width = 10.0, height = 7.0, dpi = 220)
 
-  p2 <- plot_spatial_score(sc_sp, pathway = rownames(sc_sp$score)[1], coords = coords_sp, image = tissue_bg, point_size = 1.65) +
+  p2 <- plot_spatial_score(sc_sp, signature = rownames(sc_sp$score)[1], coords = coords_sp, image = tissue_bg, point_size = 1.65) +
     ggplot2::labs(title = "Signature score on spatial slice")
   save_plot_to_outputs("spatial_slice_signature.png", p2, width = 11.0, height = 8.2, dpi = 240)
 
@@ -431,7 +431,7 @@ generate_from_builtin_examples <- function() {
 
   p5 <- plot_violin(
     score = sc_vis,
-    pathway = top_sig,
+    signature = top_sig,
     group = "celltype",
     palette = pal_celltype_vis,
     point_size = 0.25,
@@ -443,7 +443,7 @@ generate_from_builtin_examples <- function() {
 
   p6 <- plot_split_violin(
     score = sc_vis,
-    pathway = top_sig,
+    signature = top_sig,
     x = "celltype",
     split.by = "group",
     palette = pal_group_vis,
@@ -454,7 +454,7 @@ generate_from_builtin_examples <- function() {
   save_plot_to_outputs("signature_split_violin.png", p6, width = 11.4, height = 6.6, dpi = 220)
 
   p7 <- tryCatch(
-    plot_ridge(sc_vis, pathway = top_sig, group = "celltype", alpha = 0.72, palette = pal_celltype_vis) +
+    plot_ridge(sc_vis, signature = top_sig, group = "celltype", alpha = 0.72, palette = pal_celltype_vis) +
       ggplot2::labs(title = "Ridge distribution across major cell types"),
     error = function(e) {
       message("[GLEAM] ridge fallback to violin: ", conditionMessage(e))
@@ -467,7 +467,7 @@ generate_from_builtin_examples <- function() {
   pal_lineage <- .make_discrete_palette(n_lin)
   p4 <- plot_pseudotime_score(
     sc_vis,
-    pathway = top_sig,
+    signature = top_sig,
     pseudotime = "pseudotime",
     lineage = "lineage",
     palette = pal_lineage
