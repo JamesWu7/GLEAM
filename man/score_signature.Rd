@@ -19,13 +19,17 @@ score_signature(
   assay = NULL,
   layer = NULL,
   slot = NULL,
-  method = c("rank", "auc", "zmean", "mean", "scaled_mean", "robust", "singscore_like",
-    "ssgsea_like", "ensemble", "addmodulescore", "ucell", "aucell", "gsva", "singscore"),
+  method = c("rank", "mean", "zscore", "scaled_mean", "robust_mean", "ensemble",
+    "AddModuleScore", "UCell", "AUCell", "ssGSEA", "GSVA", "singscore", "auc",
+    "zmean", "robust", "singscore_like", "ssgsea_like", "addmodulescore",
+    "ucell", "aucell", "gsva"),
   min_genes = 5,
   max_genes = 500,
   auc_max_rank = 0.05,
-  ensemble_methods = c("rank", "auc", "zmean"),
+  ensemble_methods = c("rank", "zscore", "mean"),
   ensemble_combine = c("mean", "median"),
+  ensemble_standardize = c("zscore", "rank"),
+  ensemble_weights = NULL,
   method_params = list(),
   verbose = TRUE
 )
@@ -37,7 +41,8 @@ score_signature(
 
 \item{meta}{Metadata data.frame for matrix mode.}
 
-\item{geneset}{Geneset input.}
+\item{geneset}{Geneset input. Also supports signed signatures:
+\code{list(signatureA = list(up = c(...), down = c(...)))}.}
 
 \item{geneset_source}{Geneset source (\code{auto}, \code{builtin}, \code{list}, \code{gmt}, \code{data.frame},
 \code{msigdb}, \code{go}, \code{kegg}, \code{reactome}).}
@@ -58,19 +63,33 @@ score_signature(
 
 \item{slot}{Legacy Seurat slot fallback.}
 
-\item{method}{Scoring method. See \code{\link[=list_scoring_methods]{list_scoring_methods()}}.}
+\item{method}{Scoring method. Canonical methods include:
+\code{rank}, \code{mean}, \code{zscore}, \code{scaled_mean}, \code{robust_mean}, \code{ensemble},
+\code{AddModuleScore}, \code{UCell}, \code{AUCell}, \code{ssGSEA}, \code{GSVA}, \code{singscore}.
+Legacy aliases (\code{zmean}, \code{robust}, \code{addmodulescore}, \code{ucell}, \code{aucell})
+are accepted for backward compatibility.}
 
 \item{min_genes}{Minimum genes per pathway.}
 
 \item{max_genes}{Maximum genes per pathway.}
 
-\item{auc_max_rank}{AUC top-rank proportion.}
+\item{auc_max_rank}{AUC top-rank proportion used by native \code{auc} and
+optional \code{AUCell}.}
 
 \item{ensemble_methods}{Methods used by ensemble.}
 
 \item{ensemble_combine}{Ensemble combine strategy.}
 
-\item{method_params}{Optional named list for method-specific parameters.}
+\item{ensemble_standardize}{Harmonization before ensemble aggregation:
+\code{zscore} (recommended) or \code{rank}.}
+
+\item{ensemble_weights}{Optional named numeric vector of per-method weights.}
+
+\item{method_params}{Optional named list for method-specific parameters.
+Supported keys include:
+\code{auc_max_rank} (AUCell/native auc), \code{alpha} or \code{ssgsea_alpha} (ssGSEA),
+\code{nbin}/\code{ctrl}/\code{seed} (AddModuleScore), \code{kcdf} (GSVA),
+\code{ucell_max_rank} (UCell).}
 
 \item{verbose}{Whether to print messages.}
 }
@@ -79,4 +98,27 @@ An object of class \code{gleam_score}.
 }
 \description{
 Canonical signature scoring interface
+}
+\section{Method Guide}{
+\tabular{lll}{
+Method \tab Best for \tab Notes \cr
+\code{rank} \tab Fast robust baseline \tab Rank aggregation concept aligned with singscore \cr
+\code{UCell} \tab Large single-cell data \tab Mann-Whitney U-based robust scoring \cr
+\code{AUCell} \tab Rank-enrichment scoring \tab SCENIC/AUCell implementation \cr
+\code{AddModuleScore} \tab Seurat-native workflows \tab Signature minus control-bin expression \cr
+\code{ssGSEA} \tab Bulk-like enrichment workflows \tab GSVA package ssGSEA implementation \cr
+\code{GSVA} \tab Bulk expression matrices \tab GSVA kernel-based pathway variation \cr
+\code{mean} \tab Simple signatures \tab Mean expression aggregation \cr
+\code{zscore} \tab Cross-signature comparability \tab Per-gene z-score then aggregate \cr
+\code{robust_mean} \tab Outlier-prone data \tab Median/MAD-scaled robust aggregation \cr
+\code{ensemble} \tab Consensus scoring \tab Harmonize each method (\code{zscore} or \code{rank}) before averaging \cr
+}
+}
+
+\section{Method Parameters (\code{method_params})}{
+Supported keys include:
+\code{auc_max_rank} (AUCell/native auc), \code{alpha} or \code{ssgsea_alpha} (ssGSEA),
+\code{nbin}/\code{ctrl}/\code{seed} (AddModuleScore), \code{kcdf} (GSVA), \code{ucell_max_rank} (UCell).
+For ensemble, use \code{ensemble_methods}, \code{ensemble_standardize}, and optional
+\code{ensemble_weights}.
 }

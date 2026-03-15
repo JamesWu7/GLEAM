@@ -6,7 +6,8 @@
 #' @param object Seurat object when `seurat = TRUE`.
 #' @param expr Expression matrix or `dgCMatrix` when `seurat = FALSE`.
 #' @param meta Metadata data.frame for matrix mode.
-#' @param geneset Geneset input.
+#' @param geneset Geneset input. Also supports signed signatures:
+#'   `list(signatureA = list(up = c(...), down = c(...)))`.
 #' @param geneset_source Geneset source (`auto`, `builtin`, `list`, `gmt`, `data.frame`,
 #'   `msigdb`, `go`, `kegg`, `reactome`).
 #' @param species Species label for source-aware geneset loading.
@@ -17,13 +18,25 @@
 #' @param assay Seurat assay name.
 #' @param layer Seurat v5 layer name. If `NULL`, tries `data` then `counts`.
 #' @param slot Legacy Seurat slot fallback.
-#' @param method Scoring method. See [list_scoring_methods()].
+#' @param method Scoring method. Canonical methods include:
+#'   `rank`, `mean`, `zscore`, `scaled_mean`, `robust_mean`, `ensemble`,
+#'   `AddModuleScore`, `UCell`, `AUCell`, `ssGSEA`, `GSVA`, `singscore`.
+#'   Legacy aliases (`zmean`, `robust`, `addmodulescore`, `ucell`, `aucell`)
+#'   are accepted for backward compatibility.
 #' @param min_genes Minimum genes per pathway.
 #' @param max_genes Maximum genes per pathway.
-#' @param auc_max_rank AUC top-rank proportion.
+#' @param auc_max_rank AUC top-rank proportion used by native `auc` and
+#'   optional `AUCell`.
 #' @param ensemble_methods Methods used by ensemble.
 #' @param ensemble_combine Ensemble combine strategy.
+#' @param ensemble_standardize Harmonization before ensemble aggregation:
+#'   `zscore` (recommended) or `rank`.
+#' @param ensemble_weights Optional named numeric vector of per-method weights.
 #' @param method_params Optional named list for method-specific parameters.
+#'   Supported keys include:
+#'   `auc_max_rank` (AUCell/native auc), `alpha` or `ssgsea_alpha` (ssGSEA),
+#'   `nbin`/`ctrl`/`seed` (AddModuleScore), `kcdf` (GSVA),
+#'   `ucell_max_rank` (UCell).
 #' @param verbose Whether to print messages.
 #'
 #' @return An object of class `gleam_score`.
@@ -44,21 +57,30 @@ score_pathway <- function(
   layer = NULL,
   slot = NULL,
   method = c(
-    "rank", "auc", "zmean", "mean", "scaled_mean", "robust", "singscore_like", "ssgsea_like", "ensemble",
-    "addmodulescore", "ucell", "aucell", "gsva", "singscore"
+    "rank", "mean", "zscore", "scaled_mean", "robust_mean", "ensemble",
+    "AddModuleScore", "UCell", "AUCell", "ssGSEA", "GSVA", "singscore",
+    "auc", "zmean", "robust", "singscore_like", "ssgsea_like", "addmodulescore", "ucell", "aucell", "gsva"
   ),
   min_genes = 5,
   max_genes = 500,
   auc_max_rank = 0.05,
-  ensemble_methods = c("rank", "auc", "zmean"),
+  ensemble_methods = c("rank", "zscore", "mean"),
   ensemble_combine = c("mean", "median"),
+  ensemble_standardize = c("zscore", "rank"),
+  ensemble_weights = NULL,
   method_params = list(),
   verbose = TRUE
 ) {
   geneset_source <- match.arg(geneset_source)
   ontology <- match.arg(ontology)
-  method <- tolower(match.arg(method))
   ensemble_combine <- match.arg(ensemble_combine)
+  ensemble_standardize <- match.arg(ensemble_standardize)
+  method <- canonicalize_scoring_method(as.character(method)[1])
+  ensemble_methods <- canonicalize_scoring_methods(ensemble_methods)
+
+  if (!is.list(method_params)) {
+    stop("`method_params` must be a named list.", call. = FALSE)
+  }
 
   check_input_mode(object = object, expr = expr, seurat = seurat)
 
@@ -70,6 +92,7 @@ score_pathway <- function(
     slot = slot,
     seurat = seurat
   )
+  expr_info <- attr(expr_use, "gleam_expr_info")
 
   meta_use <- extract_meta(
     object = object,
@@ -91,71 +114,172 @@ score_pathway <- function(
     subcollection = subcollection,
     ontology = ontology
   )
-  gs <- check_geneset(gs, min_genes = min_genes, max_genes = max_genes)
-  matched <- match_geneset(gs, expr_genes = rownames(expr_use), verbose = verbose)
-  gs_match <- matched$geneset
+  gs_norm <- .normalize_signed_genesets(gs)
+  base_meta <- get_geneset_metadata(gs)
 
-  keep <- vapply(gs_match, length, integer(1)) > 0L
+  gs_combined <- lapply(gs_norm, function(x) unique(c(x$up, x$down)))
+  gs_combined <- check_geneset(gs_combined, min_genes = min_genes, max_genes = max_genes)
+  pathways <- names(gs_combined)
+  gs_norm <- gs_norm[pathways]
+  gs_up <- lapply(gs_norm, `[[`, "up")
+  gs_down <- lapply(gs_norm, `[[`, "down")
+
+  expr_genes <- rownames(expr_use)
+  gs_up_match <- lapply(gs_up, intersect, y = expr_genes)
+  gs_down_match <- lapply(gs_down, intersect, y = expr_genes)
+  n_input <- vapply(gs_combined, length, integer(1))
+  n_up_input <- vapply(gs_up, length, integer(1))
+  n_down_input <- vapply(gs_down, length, integer(1))
+  n_up_match <- vapply(gs_up_match, length, integer(1))
+  n_down_match <- vapply(gs_down_match, length, integer(1))
+  n_match <- n_up_match + n_down_match
+
+  keep <- n_match > 0L
   if (!any(keep)) {
     stop("No geneset overlaps with expression matrix genes.", call. = FALSE)
   }
-  gs_match <- gs_match[keep]
 
-  .score_one <- function(meth) {
-    meth <- tolower(meth)
+  pathways <- pathways[keep]
+  gs_up_match <- gs_up_match[pathways]
+  gs_down_match <- gs_down_match[pathways]
+  n_input <- n_input[pathways]
+  n_match <- n_match[pathways]
+  n_up_input <- n_up_input[pathways]
+  n_down_input <- n_down_input[pathways]
+  n_up_match <- n_up_match[pathways]
+  n_down_match <- n_down_match[pathways]
+
+  genes_dropped <- lapply(pathways, function(pw) {
+    orig <- unique(c(gs_up[[pw]], gs_down[[pw]]))
+    hit <- unique(c(gs_up_match[[pw]], gs_down_match[[pw]]))
+    setdiff(orig, hit)
+  })
+  names(genes_dropped) <- pathways
+
+  info <- data.frame(
+    pathway = pathways,
+    n_genes_input = as.integer(n_input),
+    n_genes_matched = as.integer(n_match),
+    frac_matched = as.numeric(n_match / pmax(1L, n_input)),
+    n_genes_up_input = as.integer(n_up_input),
+    n_genes_down_input = as.integer(n_down_input),
+    n_genes_up_matched = as.integer(n_up_match),
+    n_genes_down_matched = as.integer(n_down_match),
+    stringsAsFactors = FALSE
+  )
+  if (!is.null(base_meta) && "pathway" %in% colnames(base_meta)) {
+    info <- merge(base_meta, info, by = "pathway", all.y = TRUE, sort = FALSE)
+    info <- info[match(pathways, info$pathway), , drop = FALSE]
+  }
+
+  if (verbose) {
+    message(sprintf("[GLEAM] matched pathways: %d", length(pathways)))
+    message(sprintf("[GLEAM] median matched genes: %.1f", stats::median(n_match)))
+  }
+
+  .score_unsigned <- function(meth, genesets_use, params_use) {
+    if (length(genesets_use) == 0L) {
+      return(matrix(numeric(0), nrow = 0, ncol = ncol(expr_use)))
+    }
     if (meth != "ensemble") check_scoring_method(meth)
 
     if (meth == "rank") {
-      return(score_rank_matrix(expr_use, gs_match, verbose = verbose))
+      return(score_rank_matrix(expr_use, genesets_use, verbose = verbose))
     }
     if (meth == "auc") {
-      max_rank <- method_params$auc_max_rank %||% auc_max_rank
-      return(score_auc_matrix(expr_use, gs_match, auc_max_rank = max_rank, verbose = verbose))
+      return(score_auc_matrix(expr_use, genesets_use, auc_max_rank = params_use$auc_max_rank, verbose = verbose))
     }
-    if (meth == "zmean") {
-      return(score_zmean_matrix(expr_use, gs_match, verbose = verbose))
+    if (meth == "zscore") {
+      return(score_zmean_matrix(expr_use, genesets_use, verbose = verbose))
     }
     if (meth == "mean") {
-      return(score_mean_matrix(expr_use, gs_match, verbose = verbose))
+      return(score_mean_matrix(expr_use, genesets_use, verbose = verbose))
     }
     if (meth == "scaled_mean") {
-      return(score_scaled_mean_matrix(expr_use, gs_match, verbose = verbose))
+      return(score_scaled_mean_matrix(expr_use, genesets_use, verbose = verbose))
     }
-    if (meth == "robust") {
-      return(score_robust_matrix(expr_use, gs_match, verbose = verbose))
+    if (meth == "robust_mean") {
+      return(score_robust_matrix(expr_use, genesets_use, verbose = verbose))
     }
     if (meth == "singscore_like") {
-      return(score_singscore_like_matrix(expr_use, gs_match, verbose = verbose))
+      return(score_singscore_like_matrix(expr_use, genesets_use, verbose = verbose))
     }
     if (meth == "ssgsea_like") {
-      alpha <- method_params$ssgsea_alpha %||% 0.25
-      return(score_ssgsea_like_matrix(expr_use, gs_match, alpha = alpha, verbose = verbose))
+      return(score_ssgsea_like_matrix(expr_use, genesets_use, alpha = params_use$alpha, verbose = verbose))
     }
 
     score_optional_wrapper(
       method = meth,
       object = object,
       expr = expr_use,
-      genesets = gs_match,
+      genesets = genesets_use,
       seurat = seurat,
       assay = assay,
-      slot = slot %||% "data"
+      slot = slot %||% "data",
+      method_params = params_use
     )
   }
 
+  .score_signed <- function(meth) {
+    params_use <- .resolve_method_params(method = meth, method_params = method_params, auc_max_rank = auc_max_rank)
+    out <- matrix(0, nrow = length(pathways), ncol = ncol(expr_use), dimnames = list(pathways, colnames(expr_use)))
+
+    up_nonempty <- pathways[vapply(gs_up_match[pathways], length, integer(1)) > 0L]
+    down_nonempty <- pathways[vapply(gs_down_match[pathways], length, integer(1)) > 0L]
+
+    if (length(up_nonempty) > 0L) {
+      up_mat <- .score_unsigned(meth, gs_up_match[up_nonempty], params_use)
+      out[rownames(up_mat), ] <- out[rownames(up_mat), , drop = FALSE] + up_mat
+    }
+    if (length(down_nonempty) > 0L) {
+      down_mat <- .score_unsigned(meth, gs_down_match[down_nonempty], params_use)
+      out[rownames(down_mat), ] <- out[rownames(down_mat), , drop = FALSE] - down_mat
+    }
+
+    list(score = out, params = params_use)
+  }
+
+  method_parameters_used <- NULL
   score_mat <- if (method == "ensemble") {
-    mats <- lapply(ensemble_methods, .score_one)
-    arr <- simplify2array(mats)
-    out <- if (ensemble_combine == "mean") {
-      apply(arr, c(1, 2), function(v) mean(v, na.rm = TRUE))
+    em <- setdiff(ensemble_methods, "ensemble")
+    if (length(em) == 0L) {
+      stop("`ensemble_methods` must include at least one non-ensemble method.", call. = FALSE)
+    }
+    scored <- lapply(em, .score_signed)
+    mats <- lapply(scored, `[[`, "score")
+    names(mats) <- em
+    params_by_method <- lapply(scored, `[[`, "params")
+    names(params_by_method) <- em
+    method_parameters_used <- list(
+      ensemble_methods = em,
+      ensemble_combine = ensemble_combine,
+      ensemble_standardize = ensemble_standardize,
+      ensemble_weights = ensemble_weights,
+      method_params_by_method = params_by_method
+    )
+
+    mats_h <- lapply(mats, function(x) .harmonize_score_matrix(x, mode = ensemble_standardize))
+    w <- .resolve_ensemble_weights(methods = names(mats_h), weights = ensemble_weights)
+    arr <- simplify2array(mats_h)
+
+    out <- if (ensemble_combine == "mean" || !is.null(ensemble_weights)) {
+      apply(arr, c(1, 2), function(v) {
+        ok <- !is.na(v)
+        if (!any(ok)) return(NA_real_)
+        ww <- w[ok]
+        if (all(ww == 0)) return(NA_real_)
+        sum(v[ok] * ww) / sum(ww)
+      })
     } else {
       apply(arr, c(1, 2), function(v) stats::median(v, na.rm = TRUE))
     }
-    rownames(out) <- rownames(mats[[1]])
-    colnames(out) <- colnames(mats[[1]])
+    rownames(out) <- rownames(mats_h[[1]])
+    colnames(out) <- colnames(mats_h[[1]])
     out
   } else {
-    .score_one(method)
+    scored <- .score_signed(method)
+    method_parameters_used <- scored$params
+    scored$score
   }
 
   new_gleam_score(
@@ -163,7 +287,7 @@ score_pathway <- function(
     meta = meta_use,
     method = method,
     geneset_name = if (is.character(geneset) && length(geneset) == 1L) geneset else "custom",
-    geneset_info = matched$info,
+    geneset_info = info,
     params = list(
       seurat = seurat,
       seurat_version = if (seurat) detect_seurat_version(object) else NA_integer_,
@@ -180,7 +304,78 @@ score_pathway <- function(
       auc_max_rank = auc_max_rank,
       ensemble_methods = ensemble_methods,
       ensemble_combine = ensemble_combine,
-      method_params = method_params
+      ensemble_standardize = ensemble_standardize,
+      ensemble_weights = ensemble_weights,
+      method_params = method_params,
+      geneset_size_original = n_input,
+      geneset_size_matched = n_match,
+      genes_dropped = genes_dropped,
+      expression_layer_used = expr_info,
+      method_parameters_used = method_parameters_used
     )
   )
+}
+
+#' @keywords internal
+.normalize_signed_genesets <- function(gs) {
+  out <- lapply(gs, function(x) {
+    up <- character(0)
+    down <- character(0)
+
+    if (is.list(x) && !is.data.frame(x)) {
+      nm <- tolower(names(x) %||% rep("", length(x)))
+      if (any(nm == "up") || any(nm == "down")) {
+        if (any(nm == "up")) up <- x[[which(nm == "up")[1]]]
+        if (any(nm == "down")) down <- x[[which(nm == "down")[1]]]
+      } else {
+        up <- unlist(x, use.names = FALSE)
+      }
+    } else {
+      up <- x
+    }
+
+    up <- unique(as.character(up))
+    down <- unique(as.character(down))
+    up <- up[!is.na(up) & nzchar(up)]
+    down <- down[!is.na(down) & nzchar(down)]
+    list(up = up, down = down)
+  })
+
+  names(out) <- names(gs)
+  out
+}
+
+#' @keywords internal
+.resolve_method_params <- function(method, method_params, auc_max_rank) {
+  mp <- method_params %||% list()
+  method_key <- tolower(method)
+  nested <- mp[[method]]
+  if (is.null(nested)) nested <- mp[[method_key]]
+  if (is.list(nested)) {
+    mp <- utils::modifyList(mp, nested)
+  }
+
+  if (method %in% c("auc", "AUCell")) {
+    return(list(auc_max_rank = mp$auc_max_rank %||% auc_max_rank))
+  }
+  if (method %in% c("ssGSEA", "ssgsea_like")) {
+    return(list(
+      alpha = mp$alpha %||% mp$ssgsea_alpha %||% 0.25,
+      normalize = mp$normalize %||% TRUE
+    ))
+  }
+  if (method == "AddModuleScore") {
+    return(list(
+      nbin = mp$nbin %||% 24,
+      ctrl = mp$ctrl %||% 100,
+      seed = mp$seed %||% 1
+    ))
+  }
+  if (method == "GSVA") {
+    return(list(kcdf = mp$kcdf %||% "Gaussian"))
+  }
+  if (method == "UCell") {
+    return(list(ucell_max_rank = mp$ucell_max_rank %||% NULL))
+  }
+  list()
 }

@@ -58,10 +58,25 @@ resolve_seurat_layer <- function(object, assay = NULL, layer = NULL, slot = NULL
 #' @keywords internal
 extract_expr <- function(object = NULL, expr = NULL, assay = NULL, layer = NULL, slot = NULL, seurat = TRUE) {
   if (!seurat) {
-    return(as_expr_matrix(expr))
+    mat <- as_expr_matrix(expr)
+    attr(mat, "gleam_expr_info") <- list(
+      mode = "matrix",
+      assay = NA_character_,
+      layer = NA_character_,
+      slot = NA_character_,
+      source = "matrix_input"
+    )
+    return(mat)
   }
 
   info <- resolve_seurat_layer(object, assay = assay, layer = layer, slot = slot)
+  expr_info <- list(
+    mode = "seurat",
+    assay = info$assay %||% NA_character_,
+    layer = info$layer %||% NA_character_,
+    slot = info$slot %||% NA_character_,
+    source = if (!is.null(info$layer)) paste0("layer:", info$layer) else paste0("slot:", info$slot %||% "data")
+  )
 
   mat <- tryCatch(
     {
@@ -95,6 +110,9 @@ extract_expr <- function(object = NULL, expr = NULL, assay = NULL, layer = NULL,
       )
       if (.is_valid_expr_matrix(cand)) {
         fallback_expr <- cand
+        expr_info$layer <- ly
+        expr_info$slot <- NA_character_
+        expr_info$source <- paste0("layer:", ly)
         break
       }
     }
@@ -106,6 +124,9 @@ extract_expr <- function(object = NULL, expr = NULL, assay = NULL, layer = NULL,
         )
         if (.is_valid_expr_matrix(cand)) {
           fallback_expr <- cand
+          expr_info$layer <- NA_character_
+          expr_info$slot <- sl
+          expr_info$source <- paste0("slot:", sl)
           break
         }
       }
@@ -123,7 +144,9 @@ extract_expr <- function(object = NULL, expr = NULL, assay = NULL, layer = NULL,
     )
   }
 
-  as_expr_matrix(mat)
+  mat <- as_expr_matrix(mat)
+  attr(mat, "gleam_expr_info") <- expr_info
+  mat
 }
 
 #' Extract metadata from input
@@ -461,7 +484,8 @@ extract_spatial_meta <- function(object = NULL, meta = NULL, seurat = TRUE) {
     if (is.null(bg)) {
       bg <- tryCatch(img_obj@image, error = function(e) NULL)
     }
-    if (is.null(bg) && isS4(img_obj) && "image" %in% methods::slotNames(img_obj)) {
+    is_s4_obj <- tryCatch(length(methods::slotNames(img_obj)) > 0, error = function(e) FALSE)
+    if (is.null(bg) && is_s4_obj && "image" %in% methods::slotNames(img_obj)) {
       bg <- tryCatch(methods::slot(img_obj, "image"), error = function(e) NULL)
     }
     bg <- tryCatch(.as_raster_spatial_image(bg), error = function(e) NULL)

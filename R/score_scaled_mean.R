@@ -22,7 +22,7 @@ score_scaled_mean_matrix <- function(expr, genesets, verbose = TRUE) {
 score_robust_matrix <- function(expr, genesets, verbose = TRUE) {
   expr <- as_expr_matrix(expr)
   dense <- as_dense_matrix(expr)
-  if (verbose) message("[GLEAM] scoring robust method...")
+  if (verbose) message("[GLEAM] scoring robust_mean method...")
 
   med <- apply(dense, 1, stats::median, na.rm = TRUE)
   madv <- apply(dense, 1, stats::mad, na.rm = TRUE)

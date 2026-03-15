@@ -7,8 +7,10 @@
 score_ensemble_matrix(
   expr,
   genesets,
-  methods = c("rank", "auc", "zmean"),
+  methods = c("rank", "zscore", "mean"),
   combine = c("mean", "median"),
+  standardize = c("zscore", "rank"),
+  weights = NULL,
   auc_max_rank = 0.05,
   verbose = TRUE
 )
@@ -21,6 +23,10 @@ score_ensemble_matrix(
 \item{methods}{Methods to combine.}
 
 \item{combine}{Combination strategy: mean or median.}
+
+\item{standardize}{Ensemble harmonization (\code{zscore} or \code{rank}).}
+
+\item{weights}{Optional named numeric vector of per-method weights.}
 
 \item{auc_max_rank}{Fraction of top ranked genes for auc method.}
 

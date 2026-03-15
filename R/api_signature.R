@@ -1,6 +1,28 @@
 #' Canonical signature scoring interface
 #'
 #' @inheritParams score_pathway
+#'
+#' @section Method Guide:
+#' \tabular{lll}{
+#' Method \tab Best for \tab Notes \cr
+#' `rank` \tab Fast robust baseline \tab Rank aggregation concept aligned with singscore \cr
+#' `UCell` \tab Large single-cell data \tab Mann-Whitney U-based robust scoring \cr
+#' `AUCell` \tab Rank-enrichment scoring \tab SCENIC/AUCell implementation \cr
+#' `AddModuleScore` \tab Seurat-native workflows \tab Signature minus control-bin expression \cr
+#' `ssGSEA` \tab Bulk-like enrichment workflows \tab GSVA package ssGSEA implementation \cr
+#' `GSVA` \tab Bulk expression matrices \tab GSVA kernel-based pathway variation \cr
+#' `mean` \tab Simple signatures \tab Mean expression aggregation \cr
+#' `zscore` \tab Cross-signature comparability \tab Per-gene z-score then aggregate \cr
+#' `robust_mean` \tab Outlier-prone data \tab Median/MAD-scaled robust aggregation \cr
+#' `ensemble` \tab Consensus scoring \tab Harmonize each method (`zscore` or `rank`) before averaging \cr
+#' }
+#'
+#' @section Method Parameters (`method_params`):
+#' Supported keys include:
+#' `auc_max_rank` (AUCell/native auc), `alpha` or `ssgsea_alpha` (ssGSEA),
+#' `nbin`/`ctrl`/`seed` (AddModuleScore), `kcdf` (GSVA), `ucell_max_rank` (UCell).
+#' For ensemble, use `ensemble_methods`, `ensemble_standardize`, and optional
+#' `ensemble_weights`.
 #' @return An object of class `gleam_score`.
 #' @export
 score_signature <- function(
@@ -18,14 +40,17 @@ score_signature <- function(
   layer = NULL,
   slot = NULL,
   method = c(
-    "rank", "auc", "zmean", "mean", "scaled_mean", "robust", "singscore_like", "ssgsea_like", "ensemble",
-    "addmodulescore", "ucell", "aucell", "gsva", "singscore"
+    "rank", "mean", "zscore", "scaled_mean", "robust_mean", "ensemble",
+    "AddModuleScore", "UCell", "AUCell", "ssGSEA", "GSVA", "singscore",
+    "auc", "zmean", "robust", "singscore_like", "ssgsea_like", "addmodulescore", "ucell", "aucell", "gsva"
   ),
   min_genes = 5,
   max_genes = 500,
   auc_max_rank = 0.05,
-  ensemble_methods = c("rank", "auc", "zmean"),
+  ensemble_methods = c("rank", "zscore", "mean"),
   ensemble_combine = c("mean", "median"),
+  ensemble_standardize = c("zscore", "rank"),
+  ensemble_weights = NULL,
   method_params = list(),
   verbose = TRUE
 ) {
@@ -49,6 +74,8 @@ score_signature <- function(
     auc_max_rank = auc_max_rank,
     ensemble_methods = ensemble_methods,
     ensemble_combine = ensemble_combine,
+    ensemble_standardize = ensemble_standardize,
+    ensemble_weights = ensemble_weights,
     method_params = method_params,
     verbose = verbose
   )

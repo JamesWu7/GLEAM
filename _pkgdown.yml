@@ -106,6 +106,10 @@ articles:
     contents:
       - GLEAM_full_scrna_workflow
       - GLEAM_full_spatial_workflow
+  - title: Method benchmarking
+    navbar: Tutorials
+    contents:
+      - GLEAM_scoring_benchmark
   - title: Citation
     contents:
       - GLEAM_citation

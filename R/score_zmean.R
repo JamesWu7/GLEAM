@@ -1,4 +1,4 @@
-#' Z-mean pathway scoring on matrix input
+#' Z-score pathway scoring on matrix input
 #'
 #' @param expr Gene-by-cell matrix.
 #' @param genesets Named list of pathways.
@@ -11,7 +11,7 @@ score_zmean_matrix <- function(expr, genesets, verbose = TRUE) {
   z <- zscore_by_row(expr)
 
   if (verbose) {
-    message("[GLEAM] scoring zmean method...")
+    message("[GLEAM] scoring zscore method...")
   }
 
   out <- lapply(names(genesets), function(pw) {
