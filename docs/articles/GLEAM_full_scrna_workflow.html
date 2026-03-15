@@ -51,7 +51,7 @@
       <h1>GLEAM full scRNA-seq workflow</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/JamesWu7/GLEAM/blob/HEAD/vignettes/GLEAM_full_scrna_workflow.Rmd" class="external-link"><code>vignettes/GLEAM_full_scrna_workflow.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/JamesWu7/GLEAM/blob/master/vignettes/GLEAM_full_scrna_workflow.Rmd" class="external-link"><code>vignettes/GLEAM_full_scrna_workflow.Rmd</code></a></small>
       <div class="d-none name"><code>GLEAM_full_scrna_workflow.Rmd</code></div>
     </div>
 
@@ -62,11 +62,8 @@
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://satijalab.org/seurat" class="external-link">Seurat</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: package 'Seurat' was built under R version 4.5.2</span></span>
 <span><span class="co">#&gt; Loading required package: SeuratObject</span></span>
-<span><span class="co">#&gt; Warning: package 'SeuratObject' was built under R version 4.5.2</span></span>
 <span><span class="co">#&gt; Loading required package: sp</span></span>
-<span><span class="co">#&gt; Warning: package 'sp' was built under R version 4.5.2</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attaching package: 'SeuratObject'</span></span>
 <span><span class="co">#&gt; The following object is masked from 'package:GLEAM':</span></span>
@@ -154,7 +151,6 @@
 <span><span class="va">seu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/ScaleData.html" class="external-link">ScaleData</a></span><span class="op">(</span><span class="va">seu</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">seu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/RunPCA.html" class="external-link">RunPCA</a></span><span class="op">(</span><span class="va">seu</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">seu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/FindNeighbors.html" class="external-link">FindNeighbors</a></span><span class="op">(</span><span class="va">seu</span>, dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">20</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: package 'future' was built under R version 4.5.2</span></span>
 <span><span class="va">seu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/FindClusters.html" class="external-link">FindClusters</a></span><span class="op">(</span><span class="va">seu</span>, resolution <span class="op">=</span> <span class="fl">0.5</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="va">seu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/RunUMAP.html" class="external-link">RunUMAP</a></span><span class="op">(</span><span class="va">seu</span>, dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">20</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Warning: The default method for RunUMAP has changed from calling Python UMAP via reticulate to the R-native UWOT using the cosine metric</span></span>
@@ -163,7 +159,7 @@
 <span><span class="va">seu</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://satijalab.org/seurat/reference/RunTSNE.html" class="external-link">RunTSNE</a></span><span class="op">(</span><span class="va">seu</span>, dims <span class="op">=</span> <span class="fl">1</span><span class="op">:</span><span class="fl">20</span>, verbose <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://satijalab.org/seurat/reference/ElbowPlot.html" class="external-link">ElbowPlot</a></span><span class="op">(</span><span class="va">seu</span>, ndims <span class="op">=</span> <span class="fl">30</span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step3-preprocess-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step3-preprocess-1.png" class="r-plt" alt="" width="92%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="umap-and-tsne-overview">4) UMAP and tSNE overview<a class="anchor" aria-label="anchor" href="#umap-and-tsne-overview"></a>
@@ -171,15 +167,15 @@
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">seu</span>, reduction <span class="op">=</span> <span class="st">"umap"</span>, group.by <span class="op">=</span> <span class="st">"celltype"</span>, cols <span class="op">=</span> <span class="va">pal_celltype</span>, pt.size <span class="op">=</span> <span class="fl">0.35</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"UMAP by cell type"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step4-umap-celltype-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step4-umap-celltype-1.png" class="r-plt" alt="" width="92%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">seu</span>, reduction <span class="op">=</span> <span class="st">"umap"</span>, group.by <span class="op">=</span> <span class="st">"group"</span>, cols <span class="op">=</span> <span class="va">pal_group</span>, pt.size <span class="op">=</span> <span class="fl">0.35</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"UMAP by condition (ctrl/stim)"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step4-umap-group-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step4-umap-group-1.png" class="r-plt" alt="" width="92%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://satijalab.org/seurat/reference/DimPlot.html" class="external-link">DimPlot</a></span><span class="op">(</span><span class="va">seu</span>, reduction <span class="op">=</span> <span class="st">"tsne"</span>, group.by <span class="op">=</span> <span class="st">"group"</span>, cols <span class="op">=</span> <span class="va">pal_group</span>, pt.size <span class="op">=</span> <span class="fl">0.35</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"tSNE by condition (ctrl/stim)"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step4-tsne-group-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step4-tsne-group-1.png" class="r-plt" alt="" width="92%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="signature-scoring">5) Signature scoring<a class="anchor" aria-label="anchor" href="#signature-scoring"></a>
@@ -233,18 +229,18 @@
 <span><span class="co">#&gt; 3 B;B Activated;CD14 Mono;CD16 Mono;CD4 Memory T;CD4 Naive T;CD8 T;DC;Eryth;Mk;NK;pDC;T activated</span></span>
 <span><span class="co">#&gt; 4 B;B Activated;CD14 Mono;CD16 Mono;CD4 Memory T;CD4 Naive T;CD8 T;DC;Eryth;Mk;NK;pDC;T activated</span></span>
 <span><span class="co">#&gt; 5 B;B Activated;CD14 Mono;CD16 Mono;CD4 Memory T;CD4 Naive T;CD8 T;DC;Eryth;Mk;NK;pDC;T activated</span></span>
-<span><span class="co">#&gt;        level  effect_size median_group1 median_group2  diff_median      p_value</span></span>
-<span><span class="co">#&gt; 1 pseudobulk -0.032884879    0.14843127     0.1813161 -0.032884879 4.483009e-01</span></span>
-<span><span class="co">#&gt; 2 pseudobulk -0.050513451    0.19865376     0.2491672 -0.050513451 6.075034e-03</span></span>
-<span><span class="co">#&gt; 3 pseudobulk -0.003719168    0.11660683     0.1203260 -0.003719168 4.793229e-01</span></span>
-<span><span class="co">#&gt; 4 pseudobulk -0.534591542    0.09628314     0.6308747 -0.534591542 1.922966e-07</span></span>
-<span><span class="co">#&gt; 5 pseudobulk  0.025092576    0.33501887     0.3099263  0.025092576 7.226122e-02</span></span>
-<span><span class="co">#&gt;          p_adj n_group1 n_group2 mean_group1 mean_group2 direction</span></span>
-<span><span class="co">#&gt; 1 4.793229e-01       13       13  0.21701497   0.2228588      down</span></span>
-<span><span class="co">#&gt; 2 1.518759e-02       13       13  0.20381390   0.2522351      down</span></span>
-<span><span class="co">#&gt; 3 4.793229e-01       13       13  0.16010177   0.1737140      down</span></span>
-<span><span class="co">#&gt; 4 9.614830e-07       13       13  0.09485593   0.6676259      down</span></span>
-<span><span class="co">#&gt; 5 1.204354e-01       13       13  0.36315958   0.3009684        up</span></span>
+<span><span class="co">#&gt;        level effect_size median_group1 median_group2 diff_median      p_value</span></span>
+<span><span class="co">#&gt; 1 pseudobulk -0.06469235   -0.30914632   -0.24445397 -0.06469235 4.793229e-01</span></span>
+<span><span class="co">#&gt; 2 pseudobulk -0.15232254   -0.10254860    0.04977394 -0.15232254 1.248390e-03</span></span>
+<span><span class="co">#&gt; 3 pseudobulk -0.05986874   -0.47481564   -0.41494690 -0.05986874 3.358339e-01</span></span>
+<span><span class="co">#&gt; 4 pseudobulk -1.45054630   -0.85607494    0.59447136 -1.45054630 1.922966e-07</span></span>
+<span><span class="co">#&gt; 5 pseudobulk  0.01956142   -0.04851678   -0.06807820  0.01956142 1.533835e-01</span></span>
+<span><span class="co">#&gt;          p_adj n_group1 n_group2   mean_group1 mean_group2 direction</span></span>
+<span><span class="co">#&gt; 1 4.793229e-01       13       13  0.0004961131  0.01732366      down</span></span>
+<span><span class="co">#&gt; 2 3.120974e-03       13       13 -0.0972541324  0.11437032      down</span></span>
+<span><span class="co">#&gt; 3 4.197924e-01       13       13 -0.2717065892 -0.17290130      down</span></span>
+<span><span class="co">#&gt; 4 9.614830e-07       13       13 -0.8724480174  0.73448574      down</span></span>
+<span><span class="co">#&gt; 5 2.556391e-01       13       13  0.1037860590 -0.12311728        up</span></span>
 <span><span class="va">top_sig</span></span>
 <span><span class="co">#&gt; [1] "HALLMARK_INTERFERON_GAMMA_RESPONSE"</span></span></code></pre></div>
 </div>
@@ -260,7 +256,7 @@
 <span>  point_size <span class="op">=</span> <span class="fl">0.7</span>,</span>
 <span>  palette <span class="op">=</span> <span class="st">"gleam_continuous"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step7-embedding-score-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step7-embedding-score-1.png" class="r-plt" alt="" width="92%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="dot-bar-plot">8) Dot-bar plot<a class="anchor" aria-label="anchor" href="#dot-bar-plot"></a>
@@ -272,7 +268,7 @@
 <span>  signature <span class="op">=</span> <span class="va">top_sig</span>,</span>
 <span>  color_palette <span class="op">=</span> <span class="st">"gleam_continuous"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step8-dotbar-1.png" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step8-dotbar-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="violin-plot">9) Violin plot<a class="anchor" aria-label="anchor" href="#violin-plot"></a>
@@ -286,7 +282,7 @@
 <span>  point_size <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.75</span></span>
 <span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">28</span>, hjust <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step9-violin-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step9-violin-1.png" class="r-plt" alt="" width="92%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="split-violin-plot">10) Split violin plot<a class="anchor" aria-label="anchor" href="#split-violin-plot"></a>
@@ -300,7 +296,7 @@
 <span>  palette <span class="op">=</span> <span class="va">pal_group</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.72</span></span>
 <span><span class="op">)</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>axis.text.x <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_text</a></span><span class="op">(</span>angle <span class="op">=</span> <span class="fl">28</span>, hjust <span class="op">=</span> <span class="fl">1</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step10-split-violin-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step10-split-violin-1.png" class="r-plt" alt="" width="92%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="ridge-plot">11) Ridge plot<a class="anchor" aria-label="anchor" href="#ridge-plot"></a>
@@ -313,14 +309,14 @@
 <span>  palette <span class="op">=</span> <span class="va">pal_celltype</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.75</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Picking joint bandwidth of 0.104</span></span></code></pre></div>
-<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step11-ridge-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
+<span><span class="co">#&gt; Picking joint bandwidth of 0.284</span></span></code></pre></div>
+<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step11-ridge-1.png" class="r-plt" alt="" width="92%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="trajectory-style-plots">12) Trajectory-style plots<a class="anchor" aria-label="anchor" href="#trajectory-style-plots"></a>
 </h2>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">seu</span><span class="op">$</span><span class="va">pseudotime</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rank.html" class="external-link">rank</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/SeuratObject/man/Embeddings.html" class="external-link">Embeddings</a></span><span class="op">(</span><span class="va">seu</span>, <span class="st">"pca"</span><span class="op">)</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, ties.method <span class="op">=</span> <span class="st">"average"</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">seu</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">seu</span><span class="op">$</span><span class="va">pseudotime</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/rank.html" class="external-link">rank</a></span><span class="op">(</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/Embeddings.html" class="external-link">Embeddings</a></span><span class="op">(</span><span class="va">seu</span>, <span class="st">"pca"</span><span class="op">)</span><span class="op">[</span>, <span class="fl">1</span><span class="op">]</span>, ties.method <span class="op">=</span> <span class="st">"average"</span><span class="op">)</span> <span class="op">/</span> <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">seu</span><span class="op">)</span></span>
 <span><span class="va">seu</span><span class="op">$</span><span class="va">lineage</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">seu</span><span class="op">$</span><span class="va">celltype</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">sc2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/score_signature.html">score_signature</a></span><span class="op">(</span></span>
@@ -346,7 +342,7 @@
 <span>  lineage <span class="op">=</span> <span class="st">"lineage"</span>,</span>
 <span>  palette <span class="op">=</span> <span class="va">pal_lineage</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step12-pseudotime-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step12-pseudotime-1.png" class="r-plt" alt="" width="92%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_trajectory_score.html">plot_trajectory_score</a></span><span class="op">(</span></span>
 <span>  <span class="va">sc2</span>,</span>
@@ -355,7 +351,7 @@
 <span>  reduction <span class="op">=</span> <span class="st">"umap"</span>,</span>
 <span>  palette <span class="op">=</span> <span class="st">"gleam_continuous"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step12-trajmap-1.png" alt="" width="92%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_scrna_workflow_files/figure-html/step12-trajmap-1.png" class="r-plt" alt="" width="92%" style="display: block; margin: auto;"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -368,7 +364,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

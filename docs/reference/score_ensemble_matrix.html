@@ -28,7 +28,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Ensemble pathway scoring on matrix input</h1>
-      <small class="dont-index">Source: <a href="https://github.com/JamesWu7/GLEAM/blob/HEAD/R/score_ensemble.R" class="external-link"><code>R/score_ensemble.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/JamesWu7/GLEAM/blob/master/R/score_ensemble.R" class="external-link"><code>R/score_ensemble.R</code></a></small>
       <div class="d-none name"><code>score_ensemble_matrix.Rd</code></div>
     </div>
 
@@ -41,9 +41,10 @@
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">score_ensemble_matrix</span><span class="op">(</span></span>
 <span>  <span class="va">expr</span>,</span>
 <span>  <span class="va">genesets</span>,</span>
-<span>  methods <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rank"</span>, <span class="st">"auc"</span>, <span class="st">"zmean"</span><span class="op">)</span>,</span>
+<span>  methods <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rank"</span>, <span class="st">"zscore"</span>, <span class="st">"mean"</span><span class="op">)</span>,</span>
 <span>  combine <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mean"</span>, <span class="st">"median"</span><span class="op">)</span>,</span>
-<span>  auc_max_rank <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  standardize <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"zscore"</span>, <span class="st">"rank"</span><span class="op">)</span>,</span>
+<span>  weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -68,8 +69,12 @@
 <dd><p>Combination strategy: mean or median.</p></dd>
 
 
-<dt id="arg-auc-max-rank">auc_max_rank<a class="anchor" aria-label="anchor" href="#arg-auc-max-rank"></a></dt>
-<dd><p>Fraction of top ranked genes for auc method.</p></dd>
+<dt id="arg-standardize">standardize<a class="anchor" aria-label="anchor" href="#arg-standardize"></a></dt>
+<dd><p>Ensemble harmonization (<code>zscore</code> or <code>rank</code>).</p></dd>
+
+
+<dt id="arg-weights">weights<a class="anchor" aria-label="anchor" href="#arg-weights"></a></dt>
+<dd><p>Optional named numeric vector of per-method weights.</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
@@ -90,7 +95,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

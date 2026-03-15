@@ -51,7 +51,7 @@
       <h1>GLEAM full spatial transcriptomics workflow</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/JamesWu7/GLEAM/blob/HEAD/vignettes/GLEAM_full_spatial_workflow.Rmd" class="external-link"><code>vignettes/GLEAM_full_spatial_workflow.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/JamesWu7/GLEAM/blob/master/vignettes/GLEAM_full_spatial_workflow.Rmd" class="external-link"><code>vignettes/GLEAM_full_spatial_workflow.Rmd</code></a></small>
       <div class="d-none name"><code>GLEAM_full_spatial_workflow.Rmd</code></div>
     </div>
 
@@ -62,11 +62,8 @@
 </h2>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://satijalab.org/seurat" class="external-link">Seurat</a></span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: package 'Seurat' was built under R version 4.5.2</span></span>
 <span><span class="co">#&gt; Loading required package: SeuratObject</span></span>
-<span><span class="co">#&gt; Warning: package 'SeuratObject' was built under R version 4.5.2</span></span>
 <span><span class="co">#&gt; Loading required package: sp</span></span>
-<span><span class="co">#&gt; Warning: package 'sp' was built under R version 4.5.2</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; Attaching package: 'SeuratObject'</span></span>
 <span><span class="co">#&gt; The following object is masked from 'package:GLEAM':</span></span>
@@ -83,7 +80,7 @@
 <span></span>
 <span><span class="va">sp_a1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">a1_path</span><span class="op">)</span></span>
 <span><span class="va">sp_p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readRDS.html" class="external-link">readRDS</a></span><span class="op">(</span><span class="va">p1_path</span><span class="op">)</span></span>
-<span><span class="va">sp_a1</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span><span class="fu">SeuratObject</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/SeuratObject/man/UpdateSeuratObject.html" class="external-link">UpdateSeuratObject</a></span><span class="op">(</span><span class="va">sp_a1</span><span class="op">)</span>, error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="va">sp_a1</span><span class="op">)</span></span>
+<span><span class="va">sp_a1</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span><span class="fu">SeuratObject</span><span class="fu">::</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/UpdateSeuratObject.html" class="external-link">UpdateSeuratObject</a></span><span class="op">(</span><span class="va">sp_a1</span><span class="op">)</span>, error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="va">sp_a1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Validating object structure</span></span>
 <span><span class="co">#&gt; Updating object slots</span></span>
 <span><span class="co">#&gt; Ensuring keys are in the proper structure</span></span>
@@ -97,7 +94,7 @@
 <span><span class="co">#&gt; Validating object structure for Assay5 'Spatial'</span></span>
 <span><span class="co">#&gt; Validating object structure for VisiumV2 'anterior1'</span></span>
 <span><span class="co">#&gt; Object representation is consistent with the most current Seurat version</span></span>
-<span><span class="va">sp_p1</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span><span class="fu">SeuratObject</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/SeuratObject/man/UpdateSeuratObject.html" class="external-link">UpdateSeuratObject</a></span><span class="op">(</span><span class="va">sp_p1</span><span class="op">)</span>, error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="va">sp_p1</span><span class="op">)</span></span>
+<span><span class="va">sp_p1</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span><span class="fu">SeuratObject</span><span class="fu">::</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/UpdateSeuratObject.html" class="external-link">UpdateSeuratObject</a></span><span class="op">(</span><span class="va">sp_p1</span><span class="op">)</span>, error <span class="op">=</span> <span class="kw">function</span><span class="op">(</span><span class="va">e</span><span class="op">)</span> <span class="va">sp_p1</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Validating object structure</span></span>
 <span><span class="co">#&gt; Updating object slots</span></span>
 <span><span class="co">#&gt; Ensuring keys are in the proper structure</span></span>
@@ -191,7 +188,7 @@
 <span>  <span class="op">}</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">p_a1</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Anterior slice"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step2-slices-1.png" alt="" width="98%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step2-slices-1.png" class="r-plt" alt="" width="98%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p_p1</span> <span class="op">&lt;-</span> <span class="kw"><a href="https://rdrr.io/r/base/conditions.html" class="external-link">tryCatch</a></span><span class="op">(</span></span>
 <span>  <span class="fu">Seurat</span><span class="fu">::</span><span class="fu"><a href="https://satijalab.org/seurat/reference/SpatialPlot.html" class="external-link">SpatialDimPlot</a></span><span class="op">(</span><span class="va">sp_p1</span>, group.by <span class="op">=</span> <span class="st">"orig.ident"</span>, pt.size.factor <span class="op">=</span> <span class="fl">1.6</span><span class="op">)</span>,</span>
@@ -226,17 +223,17 @@
 <span>  <span class="op">}</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">p_p1</span> <span class="op">+</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Posterior slice"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step2-slices-posterior-1.png" alt="" width="98%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step2-slices-posterior-1.png" class="r-plt" alt="" width="98%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="build-matrix-metadata-for-combined-analysis">3) Build matrix + metadata for combined analysis<a class="anchor" aria-label="anchor" href="#build-matrix-metadata-for-combined-analysis"></a>
 </h2>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">assay_a1</span> <span class="op">&lt;-</span> <span class="fu">SeuratObject</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/SeuratObject/man/DefaultAssay.html" class="external-link">DefaultAssay</a></span><span class="op">(</span><span class="va">sp_a1</span><span class="op">)</span></span>
-<span><span class="va">assay_p1</span> <span class="op">&lt;-</span> <span class="fu">SeuratObject</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/SeuratObject/man/DefaultAssay.html" class="external-link">DefaultAssay</a></span><span class="op">(</span><span class="va">sp_p1</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">assay_a1</span> <span class="op">&lt;-</span> <span class="fu">SeuratObject</span><span class="fu">::</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/DefaultAssay.html" class="external-link">DefaultAssay</a></span><span class="op">(</span><span class="va">sp_a1</span><span class="op">)</span></span>
+<span><span class="va">assay_p1</span> <span class="op">&lt;-</span> <span class="fu">SeuratObject</span><span class="fu">::</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/DefaultAssay.html" class="external-link">DefaultAssay</a></span><span class="op">(</span><span class="va">sp_p1</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">expr_a1</span> <span class="op">&lt;-</span> <span class="fu">SeuratObject</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/SeuratObject/man/Layers.html" class="external-link">LayerData</a></span><span class="op">(</span><span class="va">sp_a1</span>, assay <span class="op">=</span> <span class="va">assay_a1</span>, layer <span class="op">=</span> <span class="st">"counts"</span><span class="op">)</span></span>
-<span><span class="va">expr_p1</span> <span class="op">&lt;-</span> <span class="fu">SeuratObject</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/SeuratObject/man/Layers.html" class="external-link">LayerData</a></span><span class="op">(</span><span class="va">sp_p1</span>, assay <span class="op">=</span> <span class="va">assay_p1</span>, layer <span class="op">=</span> <span class="st">"counts"</span><span class="op">)</span></span>
+<span><span class="va">expr_a1</span> <span class="op">&lt;-</span> <span class="fu">SeuratObject</span><span class="fu">::</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/Layers.html" class="external-link">LayerData</a></span><span class="op">(</span><span class="va">sp_a1</span>, assay <span class="op">=</span> <span class="va">assay_a1</span>, layer <span class="op">=</span> <span class="st">"counts"</span><span class="op">)</span></span>
+<span><span class="va">expr_p1</span> <span class="op">&lt;-</span> <span class="fu">SeuratObject</span><span class="fu">::</span><span class="fu"><a href="https://satijalab.github.io/seurat-object/reference/Layers.html" class="external-link">LayerData</a></span><span class="op">(</span><span class="va">sp_p1</span>, assay <span class="op">=</span> <span class="va">assay_p1</span>, layer <span class="op">=</span> <span class="st">"counts"</span><span class="op">)</span></span>
 <span><span class="va">orig_cells_a1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">expr_a1</span><span class="op">)</span></span>
 <span><span class="va">orig_cells_p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">expr_p1</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">colnames</a></span><span class="op">(</span><span class="va">expr_a1</span><span class="op">)</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="st">"anterior_"</span>, <span class="va">orig_cells_a1</span><span class="op">)</span></span>
@@ -319,7 +316,7 @@
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">labs</a></span><span class="op">(</span>title <span class="op">=</span> <span class="st">"Combined spatial coordinates"</span>, x <span class="op">=</span> <span class="cn">NULL</span>, y <span class="op">=</span> <span class="cn">NULL</span>, color <span class="op">=</span> <span class="st">"Group"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="../reference/gleam_theme.html">gleam_theme</a></span><span class="op">(</span>base_size <span class="op">=</span> <span class="fl">12</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>panel.grid <span class="op">=</span> <span class="fu">ggplot2</span><span class="fu">::</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step4-combined-coords-1.png" alt="" width="98%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step4-combined-coords-1.png" class="r-plt" alt="" width="98%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="signature-scoring">5) Signature scoring<a class="anchor" aria-label="anchor" href="#signature-scoring"></a>
@@ -372,13 +369,13 @@
 <code class="sourceCode R"><span><span class="va">top_sig</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sp_slice</span><span class="op">$</span><span class="va">score</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span></span>
 <span><span class="fu"><a href="../reference/plot_spatial_score.html">plot_spatial_score</a></span><span class="op">(</span></span>
 <span>  <span class="va">sp_slice</span>,</span>
-<span>  pathway <span class="op">=</span> <span class="va">top_sig</span>,</span>
+<span>  signature <span class="op">=</span> <span class="va">top_sig</span>,</span>
 <span>  object <span class="op">=</span> <span class="va">sp_a1</span>,</span>
 <span>  point_size <span class="op">=</span> <span class="fl">1.7</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.92</span>,</span>
 <span>  palette <span class="op">=</span> <span class="st">"gleam_continuous"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step6-slice-map-1.png" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step6-slice-map-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="combined-spatial-score-maps">7) Combined spatial score maps<a class="anchor" aria-label="anchor" href="#combined-spatial-score-maps"></a>
@@ -387,14 +384,14 @@
 <code class="sourceCode R"><span><span class="va">coords</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">meta</span><span class="op">$</span><span class="va">x</span>, y <span class="op">=</span> <span class="va">meta</span><span class="op">$</span><span class="va">y</span>, row.names <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">meta</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/plot_spatial_score.html">plot_spatial_score</a></span><span class="op">(</span></span>
 <span>  <span class="va">sp</span>,</span>
-<span>  pathway <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sp</span><span class="op">$</span><span class="va">score</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
+<span>  signature <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/colnames.html" class="external-link">rownames</a></span><span class="op">(</span><span class="va">sp</span><span class="op">$</span><span class="va">score</span><span class="op">)</span><span class="op">[</span><span class="fl">1</span><span class="op">]</span>,</span>
 <span>  coords <span class="op">=</span> <span class="va">coords</span>,</span>
 <span>  split.by <span class="op">=</span> <span class="st">"section"</span>,</span>
 <span>  point_size <span class="op">=</span> <span class="fl">1.25</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.9</span>,</span>
 <span>  palette <span class="op">=</span> <span class="st">"gleam_continuous"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step7-combined-map-1.png" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step7-combined-map-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plot_spatial_multi.html">plot_spatial_multi</a></span><span class="op">(</span></span>
 <span>  <span class="va">sp</span>,</span>
@@ -404,7 +401,7 @@
 <span>  alpha <span class="op">=</span> <span class="fl">0.88</span>,</span>
 <span>  palette <span class="op">=</span> <span class="st">"gleam_continuous"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step7-multi-1.png" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step7-multi-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="spatial-differential-analysis">8) Spatial differential analysis<a class="anchor" aria-label="anchor" href="#spatial-differential-analysis"></a>
@@ -435,7 +432,7 @@
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_spatial_score.html">plot_spatial_score</a></span><span class="op">(</span></span>
 <span>  <span class="va">sp</span>,</span>
-<span>  pathway <span class="op">=</span> <span class="va">top_sp</span>,</span>
+<span>  signature <span class="op">=</span> <span class="va">top_sp</span>,</span>
 <span>  coords <span class="op">=</span> <span class="va">coords</span>,</span>
 <span>  split.by <span class="op">=</span> <span class="st">"region"</span>,</span>
 <span>  point_size <span class="op">=</span> <span class="fl">1.3</span>,</span>
@@ -445,10 +442,10 @@
 <span><span class="va">p2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_spatial_compare.html">plot_spatial_compare</a></span><span class="op">(</span><span class="va">res_group_region</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">p1</span></span></code></pre></div>
-<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step8-diff-plot-1.png" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step8-diff-plot-1.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">p2</span></span></code></pre></div>
-<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step8-diff-plot-2.png" alt="" width="100%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step8-diff-plot-2.png" class="r-plt" alt="" width="100%" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level2">
 <h2 id="embedding-style-and-pseudotime-style-views">9) Embedding-style and pseudotime-style views<a class="anchor" aria-label="anchor" href="#embedding-style-and-pseudotime-style-views"></a>
@@ -465,7 +462,7 @@
 <span>  reduction <span class="op">=</span> <span class="st">"umap"</span>,</span>
 <span>  palette <span class="op">=</span> <span class="st">"gleam_continuous"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step9-embed-1.png" alt="" width="98%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step9-embed-1.png" class="r-plt" alt="" width="98%" style="display: block; margin: auto;"></p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">lineage_levels</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/unique.html" class="external-link">unique</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">meta</span><span class="op">$</span><span class="va">lineage</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">pal_lineage</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/setNames.html" class="external-link">setNames</a></span><span class="op">(</span><span class="fu"><a href="../reference/get_palette.html">get_palette</a></span><span class="op">(</span><span class="st">"brewer_dark2"</span>, n <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/length.html" class="external-link">length</a></span><span class="op">(</span><span class="va">lineage_levels</span><span class="op">)</span>, continuous <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span>, <span class="va">lineage_levels</span><span class="op">)</span></span>
@@ -477,7 +474,7 @@
 <span>  lineage <span class="op">=</span> <span class="st">"lineage"</span>,</span>
 <span>  palette <span class="op">=</span> <span class="va">pal_lineage</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step9-pseudotime-1.png" alt="" width="98%" style="display: block; margin: auto;"></p>
+<p><img src="GLEAM_full_spatial_workflow_files/figure-html/step9-pseudotime-1.png" class="r-plt" alt="" width="98%" style="display: block; margin: auto;"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -490,7 +487,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer>

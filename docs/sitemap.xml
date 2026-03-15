@@ -6,6 +6,7 @@
 <url><loc>https://jameswu7.github.io/GLEAM/articles/GLEAM_citation.html</loc></url>
 <url><loc>https://jameswu7.github.io/GLEAM/articles/GLEAM_full_scrna_workflow.html</loc></url>
 <url><loc>https://jameswu7.github.io/GLEAM/articles/GLEAM_full_spatial_workflow.html</loc></url>
+<url><loc>https://jameswu7.github.io/GLEAM/articles/GLEAM_scoring_benchmark.html</loc></url>
 <url><loc>https://jameswu7.github.io/GLEAM/articles/index.html</loc></url>
 <url><loc>https://jameswu7.github.io/GLEAM/authors.html</loc></url>
 <url><loc>https://jameswu7.github.io/GLEAM/index.html</loc></url>
@@ -76,16 +77,13 @@
 <url><loc>https://jameswu7.github.io/GLEAM/reference/run_gleam.html</loc></url>
 <url><loc>https://jameswu7.github.io/GLEAM/reference/scale_gleam_color.html</loc></url>
 <url><loc>https://jameswu7.github.io/GLEAM/reference/scale_gleam_fill.html</loc></url>
-<url><loc>https://jameswu7.github.io/GLEAM/reference/score_auc_matrix.html</loc></url>
 <url><loc>https://jameswu7.github.io/GLEAM/reference/score_ensemble_matrix.html</loc></url>
 <url><loc>https://jameswu7.github.io/GLEAM/reference/score_mean_matrix.html</loc></url>
 <url><loc>https://jameswu7.github.io/GLEAM/reference/score_rank_matrix.html</loc></url>
 <url><loc>https://jameswu7.github.io/GLEAM/reference/score_robust_matrix.html</loc></url>
 <url><loc>https://jameswu7.github.io/GLEAM/reference/score_scaled_mean_matrix.html</loc></url>
 <url><loc>https://jameswu7.github.io/GLEAM/reference/score_signature.html</loc></url>
-<url><loc>https://jameswu7.github.io/GLEAM/reference/score_singscore_like_matrix.html</loc></url>
-<url><loc>https://jameswu7.github.io/GLEAM/reference/score_ssgsea_like_matrix.html</loc></url>
-<url><loc>https://jameswu7.github.io/GLEAM/reference/score_zmean_matrix.html</loc></url>
+<url><loc>https://jameswu7.github.io/GLEAM/reference/score_zscore_matrix.html</loc></url>
 <url><loc>https://jameswu7.github.io/GLEAM/reference/search_geneset.html</loc></url>
 <url><loc>https://jameswu7.github.io/GLEAM/reference/seurat_mode.html</loc></url>
 <url><loc>https://jameswu7.github.io/GLEAM/reference/spatial_medium_coords.html</loc></url>
