@@ -6,7 +6,7 @@ test_that("score_signature stores canonical method names and provenance fields",
     meta = toy_expr$meta,
     geneset = "immune_small",
     seurat = FALSE,
-    method = "zmean",
+    method = "zscore",
     min_genes = 3,
     verbose = FALSE
   )

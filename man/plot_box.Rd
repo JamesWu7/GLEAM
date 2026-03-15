@@ -6,7 +6,7 @@
 \usage{
 plot_box(
   score,
-  pathway,
+  signature,
   group,
   sample,
   palette = "gleam_discrete",
@@ -18,7 +18,7 @@ plot_box(
 \arguments{
 \item{score}{\code{gleam_score} object.}
 
-\item{pathway}{Signature name (legacy argument name).}
+\item{signature}{Signature name.}
 
 \item{group}{Group variable (metadata column name or vector).}
 

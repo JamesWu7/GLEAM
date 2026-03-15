@@ -8,6 +8,6 @@ test_that("trajectory mapping and testing work", {
   tt <- test_signature_trajectory(sc, pseudotime = "pseudotime", lineage = "lineage", method = "spearman", verbose = FALSE)
   expect_s3_class(tt, "gleam_test")
 
-  p <- plot_pseudotime_score(sc, pathway = rownames(sc$score)[1], pseudotime = "pseudotime", lineage = "lineage")
+  p <- plot_pseudotime_score(sc, signature = rownames(sc$score)[1], pseudotime = "pseudotime", lineage = "lineage")
   expect_s3_class(p, "ggplot")
 })

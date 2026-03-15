@@ -6,7 +6,6 @@
 #' @param combine Combination strategy: mean or median.
 #' @param standardize Ensemble harmonization (`zscore` or `rank`).
 #' @param weights Optional named numeric vector of per-method weights.
-#' @param auc_max_rank Fraction of top ranked genes for auc method.
 #' @param verbose Whether to print progress.
 #'
 #' @return Pathway-by-cell numeric matrix.
@@ -18,7 +17,6 @@ score_ensemble_matrix <- function(
   combine = c("mean", "median"),
   standardize = c("zscore", "rank"),
   weights = NULL,
-  auc_max_rank = 0.05,
   verbose = TRUE
 ) {
   methods <- canonicalize_scoring_methods(methods)
@@ -31,10 +29,9 @@ score_ensemble_matrix <- function(
       m,
       rank = score_rank_matrix(expr, genesets, verbose = verbose),
       mean = score_mean_matrix(expr, genesets, verbose = verbose),
-      zscore = score_zmean_matrix(expr, genesets, verbose = verbose),
+      zscore = score_zscore_matrix(expr, genesets, verbose = verbose),
       scaled_mean = score_scaled_mean_matrix(expr, genesets, verbose = verbose),
       robust_mean = score_robust_matrix(expr, genesets, verbose = verbose),
-      auc = score_auc_matrix(expr, genesets, auc_max_rank = auc_max_rank, verbose = verbose),
       stop("Unsupported ensemble method: ", m, call. = FALSE)
     )
   }

@@ -11,7 +11,6 @@ score_ensemble_matrix(
   combine = c("mean", "median"),
   standardize = c("zscore", "rank"),
   weights = NULL,
-  auc_max_rank = 0.05,
   verbose = TRUE
 )
 }
@@ -27,8 +26,6 @@ score_ensemble_matrix(
 \item{standardize}{Ensemble harmonization (\code{zscore} or \code{rank}).}
 
 \item{weights}{Optional named numeric vector of per-method weights.}
-
-\item{auc_max_rank}{Fraction of top ranked genes for auc method.}
 
 \item{verbose}{Whether to print progress.}
 }

@@ -2,7 +2,6 @@
 #'
 #' @param score `gleam_score` object.
 #' @param signature Signature name.
-#' @param pathway Legacy alias of `signature` (kept for backward compatibility).
 #' @param x Grouping variable for x-axis.
 #' @param split.by Variable used for split/fill.
 #' @param palette Discrete palette name or custom colors.
@@ -14,7 +13,6 @@
 plot_split_violin <- function(
   score,
   signature = NULL,
-  pathway = NULL,
   x,
   split.by,
   palette = "gleam_discrete",
@@ -22,7 +20,7 @@ plot_split_violin <- function(
   theme_params = list()
 ) {
   check_score_object(score)
-  signature <- resolve_signature_arg(score, signature = signature, pathway = pathway)
+  signature <- resolve_signature_arg(score, signature = signature)
 
   xv <- resolve_meta_var(score$meta, x, "x")
   sv <- resolve_meta_var(score$meta, split.by, "split.by")

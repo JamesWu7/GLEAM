@@ -9,7 +9,7 @@ test_that("scoring method registry is available", {
   expect_true("AUCell" %in% m$method_name)
 })
 
-test_that("native scoring methods run and aliases canonicalize", {
+test_that("native scoring methods run", {
   data("toy_expr", package = "GLEAM")
   meths <- c("mean", "scaled_mean", "robust_mean", "zscore", "rank")
   for (m in meths) {
@@ -24,26 +24,4 @@ test_that("native scoring methods run and aliases canonicalize", {
     )
     expect_s3_class(sc, "gleam_score")
   }
-
-  sc_alias <- score_signature(
-    expr = toy_expr$expr,
-    meta = toy_expr$meta,
-    geneset = "immune_small",
-    seurat = FALSE,
-    method = "zmean",
-    min_genes = 3,
-    verbose = FALSE
-  )
-  expect_identical(sc_alias$method, "zscore")
-
-  sc_alias2 <- score_signature(
-    expr = toy_expr$expr,
-    meta = toy_expr$meta,
-    geneset = "immune_small",
-    seurat = FALSE,
-    method = "robust",
-    min_genes = 3,
-    verbose = FALSE
-  )
-  expect_identical(sc_alias2$method, "robust_mean")
 })

@@ -7,7 +7,6 @@
 plot_embedding_score(
   score,
   signature = NULL,
-  pathway = NULL,
   embedding = NULL,
   object = NULL,
   reduction = "umap",
@@ -22,8 +21,6 @@ plot_embedding_score(
 \item{score}{\code{gleam_score} object.}
 
 \item{signature}{Signature name.}
-
-\item{pathway}{Legacy alias of \code{signature} (kept for backward compatibility).}
 
 \item{embedding}{Embedding matrix with at least 2 columns.}
 

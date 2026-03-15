@@ -13,6 +13,10 @@ GLEAM: Gene-set and cell-state exploration across space and time in R
 
 GLEAM provides pathway/signature scoring, cell-state exploration, differential analysis after scoring, trajectory-aware mapping, and spatial transcriptomics analysis for both matrix-native and Seurat workflows. Built-in geneset examples focus on human and mouse, and custom genesets remain fully supported for other species.
 
+Current scoring methods are standardized to canonical names:
+`rank`, `mean`, `zscore`, `scaled_mean`, `robust_mean`, `ensemble`,
+`AddModuleScore`, `UCell`, `AUCell`, `ssGSEA`, `GSVA`, `singscore`.
+
 ## Installation
 
 ```r
@@ -140,7 +144,7 @@ sp <- score_signature(
 )
 
 top_sig <- rownames(sp$score)[1]
-p1 <- plot_spatial_score(sp, pathway = top_sig, object = st)
+p1 <- plot_spatial_score(sp, signature = top_sig, object = st)
 p2 <- plot_dot(sp, by = region_col)
 
 if (requireNamespace("patchwork", quietly = TRUE)) {

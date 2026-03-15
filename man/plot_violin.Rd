@@ -7,7 +7,6 @@
 plot_violin(
   score,
   signature = NULL,
-  pathway = NULL,
   group,
   celltype = NULL,
   trim = TRUE,
@@ -21,8 +20,6 @@ plot_violin(
 \item{score}{\code{gleam_score} object.}
 
 \item{signature}{Signature name.}
-
-\item{pathway}{Legacy alias of \code{signature} (kept for backward compatibility).}
 
 \item{group}{Group variable (metadata column name or vector).}
 

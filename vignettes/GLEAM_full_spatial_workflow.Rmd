@@ -281,7 +281,7 @@ dim(sp$score)
 top_sig <- rownames(sp_slice$score)[1]
 plot_spatial_score(
   sp_slice,
-  pathway = top_sig,
+  signature = top_sig,
   object = sp_a1,
   point_size = 1.7,
   alpha = 0.92,
@@ -295,7 +295,7 @@ plot_spatial_score(
 coords <- data.frame(x = meta$x, y = meta$y, row.names = rownames(meta))
 plot_spatial_score(
   sp,
-  pathway = rownames(sp$score)[1],
+  signature = rownames(sp$score)[1],
   coords = coords,
   split.by = "section",
   point_size = 1.25,
@@ -335,7 +335,7 @@ top_sp
 ```{r step8-diff-plot, eval=seurat_ok, fig.width=11.6, fig.height=8.2, out.width="100%"}
 p1 <- plot_spatial_score(
   sp,
-  pathway = top_sp,
+  signature = top_sp,
   coords = coords,
   split.by = "region",
   point_size = 1.3,

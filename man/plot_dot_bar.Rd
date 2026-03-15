@@ -9,7 +9,6 @@ plot_dot_bar(
   by,
   threshold = 0,
   signature = NULL,
-  pathway = NULL,
   color_palette = "gleam_continuous",
   theme_params = list()
 )
@@ -22,8 +21,6 @@ plot_dot_bar(
 \item{threshold}{Threshold for active fraction.}
 
 \item{signature}{Optional signature filter.}
-
-\item{pathway}{Legacy alias of \code{signature} (kept for backward compatibility).}
 
 \item{color_palette}{Continuous palette for mean score.}
 

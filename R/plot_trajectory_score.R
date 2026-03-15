@@ -2,7 +2,6 @@
 #'
 #' @param score `gleam_score` object.
 #' @param signature Signature name.
-#' @param pathway Legacy alias of `signature` (kept for backward compatibility).
 #' @param embeddings Embedding matrix with at least 2 columns.
 #' @param reduction Reduction name for Seurat extraction when `embeddings` is NULL.
 #' @param object Optional Seurat object for reduction extraction.
@@ -16,7 +15,6 @@
 plot_trajectory_score <- function(
   score,
   signature = NULL,
-  pathway = NULL,
   embeddings = NULL,
   reduction = "umap",
   object = NULL,
@@ -26,7 +24,7 @@ plot_trajectory_score <- function(
   theme_params = list()
 ) {
   check_score_object(score)
-  signature <- resolve_signature_arg(score, signature = signature, pathway = pathway)
+  signature <- resolve_signature_arg(score, signature = signature)
 
   if (is.null(embeddings) && is.null(object)) {
     stop("Provide `embeddings` or a Seurat `object`.", call. = FALSE)

@@ -5,13 +5,12 @@
 #'   `group`, and the second as `celltype`.
 #' @param threshold Threshold for active fraction.
 #' @param signature Optional signature filter.
-#' @param pathway Legacy alias of `signature` (kept for backward compatibility).
 #' @param color_palette Continuous palette for mean score.
 #' @param theme_params Optional list passed to [gleam_theme()].
 #'
 #' @return A `ggplot` object.
 #' @export
-plot_dot_bar <- function(score, by, threshold = 0, signature = NULL, pathway = NULL, color_palette = "gleam_continuous", theme_params = list()) {
+plot_dot_bar <- function(score, by, threshold = 0, signature = NULL, color_palette = "gleam_continuous", theme_params = list()) {
   if (!is.character(by) || length(by) < 2L) {
     stop("`by` must be character columns in order: c(group_col, celltype_col).", call. = FALSE)
   }
@@ -27,12 +26,12 @@ plot_dot_bar <- function(score, by, threshold = 0, signature = NULL, pathway = N
   mean_df$signature <- mean_df$pathway
   frac_df$signature <- frac_df$pathway
 
-  if (is.null(signature) && is.null(pathway)) {
+  if (is.null(signature)) {
     sig_use <- rownames(score$score)[[1]]
   } else {
-    sig_use <- resolve_signature_arg(score, signature = signature, pathway = pathway)
+    sig_use <- resolve_signature_arg(score, signature = signature)
   }
-  if ((!is.null(signature) && length(signature) > 1L) || (!is.null(pathway) && length(pathway) > 1L)) {
+  if (!is.null(signature) && length(signature) > 1L) {
     warning("`plot_dot_bar()` now supports one signature at a time; using the first signature only.", call. = FALSE)
   }
 

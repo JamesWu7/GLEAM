@@ -7,7 +7,6 @@
 plot_ridge(
   score,
   signature = NULL,
-  pathway = NULL,
   group,
   palette = "gleam_discrete",
   alpha = 0.75,
@@ -18,8 +17,6 @@ plot_ridge(
 \item{score}{\code{gleam_score} object.}
 
 \item{signature}{Signature name.}
-
-\item{pathway}{Legacy alias of \code{signature} (kept for backward compatibility).}
 
 \item{group}{Group variable.}
 

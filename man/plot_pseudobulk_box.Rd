@@ -6,7 +6,7 @@
 \usage{
 plot_pseudobulk_box(
   score,
-  pathway,
+  signature,
   group,
   sample,
   celltype = NULL,
@@ -19,7 +19,7 @@ plot_pseudobulk_box(
 \arguments{
 \item{score}{\code{gleam_score} object.}
 
-\item{pathway}{Signature name (legacy argument name).}
+\item{signature}{Signature name.}
 
 \item{group}{Group variable.}
 

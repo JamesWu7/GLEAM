@@ -2,7 +2,6 @@
 #'
 #' @param score `gleam_score` object.
 #' @param signature Signature name.
-#' @param pathway Legacy alias of `signature` (kept for backward compatibility).
 #' @param group Group variable (metadata column name or vector).
 #' @param celltype Optional celltype filter (single label or vector).
 #' @param trim Passed to `geom_violin()`.
@@ -16,7 +15,6 @@
 plot_violin <- function(
   score,
   signature = NULL,
-  pathway = NULL,
   group,
   celltype = NULL,
   trim = TRUE,
@@ -26,7 +24,7 @@ plot_violin <- function(
   theme_params = list()
 ) {
   check_score_object(score)
-  signature <- resolve_signature_arg(score, signature = signature, pathway = pathway)
+  signature <- resolve_signature_arg(score, signature = signature)
 
   meta <- score$meta
   g <- resolve_meta_var(meta, group, "group")

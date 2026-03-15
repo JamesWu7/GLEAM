@@ -20,9 +20,7 @@ score_signature(
   layer = NULL,
   slot = NULL,
   method = c("rank", "mean", "zscore", "scaled_mean", "robust_mean", "ensemble",
-    "AddModuleScore", "UCell", "AUCell", "ssGSEA", "GSVA", "singscore", "auc",
-    "zmean", "robust", "singscore_like", "ssgsea_like", "addmodulescore",
-    "ucell", "aucell", "gsva"),
+    "AddModuleScore", "UCell", "AUCell", "ssGSEA", "GSVA", "singscore"),
   min_genes = 5,
   max_genes = 500,
   auc_max_rank = 0.05,
@@ -65,16 +63,13 @@ score_signature(
 
 \item{method}{Scoring method. Canonical methods include:
 \code{rank}, \code{mean}, \code{zscore}, \code{scaled_mean}, \code{robust_mean}, \code{ensemble},
-\code{AddModuleScore}, \code{UCell}, \code{AUCell}, \code{ssGSEA}, \code{GSVA}, \code{singscore}.
-Legacy aliases (\code{zmean}, \code{robust}, \code{addmodulescore}, \code{ucell}, \code{aucell})
-are accepted for backward compatibility.}
+\code{AddModuleScore}, \code{UCell}, \code{AUCell}, \code{ssGSEA}, \code{GSVA}, \code{singscore}.}
 
 \item{min_genes}{Minimum genes per pathway.}
 
 \item{max_genes}{Maximum genes per pathway.}
 
-\item{auc_max_rank}{AUC top-rank proportion used by native \code{auc} and
-optional \code{AUCell}.}
+\item{auc_max_rank}{AUC top-rank proportion used by \code{AUCell}.}
 
 \item{ensemble_methods}{Methods used by ensemble.}
 
@@ -87,7 +82,7 @@ optional \code{AUCell}.}
 
 \item{method_params}{Optional named list for method-specific parameters.
 Supported keys include:
-\code{auc_max_rank} (AUCell/native auc), \code{alpha} or \code{ssgsea_alpha} (ssGSEA),
+\code{auc_max_rank} (AUCell), \code{alpha} or \code{ssgsea_alpha} (ssGSEA),
 \code{nbin}/\code{ctrl}/\code{seed} (AddModuleScore), \code{kcdf} (GSVA),
 \code{ucell_max_rank} (UCell).}
 
@@ -117,7 +112,7 @@ Method \tab Best for \tab Notes \cr
 
 \section{Method Parameters (\code{method_params})}{
 Supported keys include:
-\code{auc_max_rank} (AUCell/native auc), \code{alpha} or \code{ssgsea_alpha} (ssGSEA),
+\code{auc_max_rank} (AUCell), \code{alpha} or \code{ssgsea_alpha} (ssGSEA),
 \code{nbin}/\code{ctrl}/\code{seed} (AddModuleScore), \code{kcdf} (GSVA), \code{ucell_max_rank} (UCell).
 For ensemble, use \code{ensemble_methods}, \code{ensemble_standardize}, and optional
 \code{ensemble_weights}.

@@ -2,7 +2,6 @@
 #'
 #' @param score `gleam_score` object.
 #' @param signature Signature name.
-#' @param pathway Legacy alias of `signature` (kept for backward compatibility).
 #' @param pseudotime Pseudotime source.
 #' @param lineage Optional lineage source for coloring.
 #' @param smooth Add smoothing line.
@@ -16,7 +15,6 @@
 plot_pseudotime_score <- function(
   score,
   signature = NULL,
-  pathway = NULL,
   pseudotime = NULL,
   lineage = NULL,
   smooth = TRUE,
@@ -26,7 +24,7 @@ plot_pseudotime_score <- function(
   theme_params = list()
 ) {
   check_score_object(score)
-  signature <- resolve_signature_arg(score, signature = signature, pathway = pathway)
+  signature <- resolve_signature_arg(score, signature = signature)
   pt <- extract_pseudotime(score, pseudotime = pseudotime)
   ln <- extract_lineage(score, lineage = lineage)
 

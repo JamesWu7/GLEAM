@@ -1,7 +1,7 @@
 #' Pseudobulk boxplot for signature scores
 #'
 #' @param score `gleam_score` object.
-#' @param pathway Signature name (legacy argument name).
+#' @param signature Signature name.
 #' @param group Group variable.
 #' @param sample Sample variable.
 #' @param celltype Optional celltype variable.
@@ -14,7 +14,7 @@
 #' @export
 plot_pseudobulk_box <- function(
   score,
-  pathway,
+  signature,
   group,
   sample,
   celltype = NULL,
@@ -24,7 +24,7 @@ plot_pseudobulk_box <- function(
   theme_params = list()
 ) {
   check_score_object(score)
-  if (!pathway %in% rownames(score$score)) stop("`signature` not found in score matrix.", call. = FALSE)
+  signature <- resolve_signature_arg(score, signature = signature)
 
   g <- resolve_meta_var(score$meta, group, "group")
   s <- resolve_meta_var(score$meta, sample, "sample")
@@ -34,7 +34,7 @@ plot_pseudobulk_box <- function(
     sample = as.character(s),
     group = as.character(g),
     celltype = as.character(ctv),
-    value = as.numeric(score$score[pathway, ]),
+    value = as.numeric(score$score[signature, ]),
     stringsAsFactors = FALSE
   )
 
@@ -46,6 +46,6 @@ plot_pseudobulk_box <- function(
     ggplot2::geom_boxplot(outlier.shape = NA, alpha = alpha) +
     ggplot2::geom_jitter(width = 0.12, size = point_size, alpha = min(1, alpha + 0.15)) +
     scale_gleam_fill(palette = palette, continuous = FALSE) +
-    ggplot2::labs(title = paste("Pseudobulk:", pathway), x = "Group-Celltype", y = "Mean signature score") +
+    ggplot2::labs(title = paste("Pseudobulk:", signature), x = "Group-Celltype", y = "Mean signature score") +
     do.call(gleam_theme, tp)
 }

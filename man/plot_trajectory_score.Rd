@@ -7,7 +7,6 @@
 plot_trajectory_score(
   score,
   signature = NULL,
-  pathway = NULL,
   embeddings = NULL,
   reduction = "umap",
   object = NULL,
@@ -21,8 +20,6 @@ plot_trajectory_score(
 \item{score}{\code{gleam_score} object.}
 
 \item{signature}{Signature name.}
-
-\item{pathway}{Legacy alias of \code{signature} (kept for backward compatibility).}
 
 \item{embeddings}{Embedding matrix with at least 2 columns.}
 

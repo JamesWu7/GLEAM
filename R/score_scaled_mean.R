@@ -8,7 +8,7 @@
 #' @keywords internal
 score_scaled_mean_matrix <- function(expr, genesets, verbose = TRUE) {
   if (verbose) message("[GLEAM] scoring scaled_mean method...")
-  score_zmean_matrix(expr = expr, genesets = genesets, verbose = FALSE)
+  score_zscore_matrix(expr = expr, genesets = genesets, verbose = FALSE)
 }
 
 #' Robust normalized pathway scoring

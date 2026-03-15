@@ -1,7 +1,7 @@
 #' Box plot of sample-level signature scores
 #'
 #' @param score `gleam_score` object.
-#' @param pathway Signature name (legacy argument name).
+#' @param signature Signature name.
 #' @param group Group variable (metadata column name or vector).
 #' @param sample Sample variable (metadata column name or vector).
 #' @param palette Discrete palette name or custom colors.
@@ -13,7 +13,7 @@
 #' @export
 plot_box <- function(
   score,
-  pathway,
+  signature,
   group,
   sample,
   palette = "gleam_discrete",
@@ -22,14 +22,12 @@ plot_box <- function(
   theme_params = list()
 ) {
   check_score_object(score)
-  if (!pathway %in% rownames(score$score)) {
-    stop("`signature` not found in score matrix.", call. = FALSE)
-  }
+  signature <- resolve_signature_arg(score, signature = signature)
 
   meta <- score$meta
   g <- resolve_meta_var(meta, group, "group")
   s <- resolve_meta_var(meta, sample, "sample")
-  y <- as.numeric(score$score[pathway, ])
+  y <- as.numeric(score$score[signature, ])
 
   df <- data.frame(sample = as.character(s), group = as.character(g), score = y, stringsAsFactors = FALSE)
   samp <- stats::aggregate(score ~ sample + group, data = df, FUN = mean)
@@ -39,6 +37,6 @@ plot_box <- function(
     ggplot2::geom_boxplot(alpha = alpha, outlier.shape = NA) +
     ggplot2::geom_jitter(width = 0.12, size = point_size, alpha = min(1, alpha + 0.1)) +
     scale_gleam_fill(palette = palette, continuous = FALSE) +
-    ggplot2::labs(x = "Group", y = "Signature score", title = paste("Sample-level signature:", pathway)) +
+    ggplot2::labs(x = "Group", y = "Signature score", title = paste("Sample-level signature:", signature)) +
     do.call(gleam_theme, tp)
 }

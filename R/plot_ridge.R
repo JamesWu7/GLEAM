@@ -2,7 +2,6 @@
 #'
 #' @param score `gleam_score` object.
 #' @param signature Signature name.
-#' @param pathway Legacy alias of `signature` (kept for backward compatibility).
 #' @param group Group variable.
 #' @param palette Discrete palette name or custom colors.
 #' @param alpha Transparency of ridges.
@@ -10,10 +9,10 @@
 #'
 #' @return A `ggplot` object.
 #' @export
-plot_ridge <- function(score, signature = NULL, pathway = NULL, group, palette = "gleam_discrete", alpha = 0.75, theme_params = list()) {
+plot_ridge <- function(score, signature = NULL, group, palette = "gleam_discrete", alpha = 0.75, theme_params = list()) {
   check_score_object(score)
   check_plot_dependency("plot_ridge", "ggridges")
-  signature <- resolve_signature_arg(score, signature = signature, pathway = pathway)
+  signature <- resolve_signature_arg(score, signature = signature)
 
   g <- resolve_meta_var(score$meta, group, "group")
   g_chr <- as.character(g)

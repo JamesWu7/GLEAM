@@ -19,7 +19,7 @@
 #'
 #' @section Method Parameters (`method_params`):
 #' Supported keys include:
-#' `auc_max_rank` (AUCell/native auc), `alpha` or `ssgsea_alpha` (ssGSEA),
+#' `auc_max_rank` (AUCell), `alpha` or `ssgsea_alpha` (ssGSEA),
 #' `nbin`/`ctrl`/`seed` (AddModuleScore), `kcdf` (GSVA), `ucell_max_rank` (UCell).
 #' For ensemble, use `ensemble_methods`, `ensemble_standardize`, and optional
 #' `ensemble_weights`.
@@ -41,8 +41,7 @@ score_signature <- function(
   slot = NULL,
   method = c(
     "rank", "mean", "zscore", "scaled_mean", "robust_mean", "ensemble",
-    "AddModuleScore", "UCell", "AUCell", "ssGSEA", "GSVA", "singscore",
-    "auc", "zmean", "robust", "singscore_like", "ssgsea_like", "addmodulescore", "ucell", "aucell", "gsva"
+    "AddModuleScore", "UCell", "AUCell", "ssGSEA", "GSVA", "singscore"
   ),
   min_genes = 5,
   max_genes = 500,

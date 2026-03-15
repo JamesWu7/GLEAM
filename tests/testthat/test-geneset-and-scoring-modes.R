@@ -24,7 +24,7 @@ test_that("geneset supports data.frame and gmt path", {
     meta = toy_expr$meta,
     geneset = gmt,
     seurat = FALSE,
-    method = "auc",
+    method = "rank",
     min_genes = 3,
     verbose = FALSE
   )

@@ -24,13 +24,8 @@ canonicalize_scoring_method <- function(method) {
     rank = "rank",
     mean = "mean",
     zscore = "zscore",
-    zmean = "zscore",
     scaled_mean = "scaled_mean",
     robust_mean = "robust_mean",
-    robust = "robust_mean",
-    auc = "auc",
-    singscore_like = "singscore_like",
-    ssgsea_like = "ssgsea_like",
     ensemble = "ensemble",
     addmodulescore = "AddModuleScore",
     ucell = "UCell",
@@ -62,9 +57,6 @@ get_scoring_registry <- function() {
       "zscore",
       "scaled_mean",
       "robust_mean",
-      "auc",
-      "singscore_like",
-      "ssgsea_like",
       "ensemble",
       "AddModuleScore",
       "UCell",
@@ -73,20 +65,17 @@ get_scoring_registry <- function() {
       "GSVA",
       "singscore"
     ),
-    category = c(rep("native", 9), rep("optional", 6)),
+    category = c(rep("native", 6), rep("optional", 6)),
     dependency = c(
-      rep(NA_character_, 9),
+      rep(NA_character_, 6),
       "Seurat", "UCell", "AUCell", "GSVA", "GSVA", "singscore"
     ),
     description = c(
       "Rank-based aggregate score (singscore-style concept)",
       "Average expression across signature genes",
       "Per-gene z-score followed by pathway aggregation",
-      "Alias of zscore for backward compatibility",
+      "Scaled mean score (equivalent to zscore aggregation)",
       "Robust aggregation using median/MAD scaling",
-      "Top-rank AUC-like native approximation (legacy)",
-      "Singscore-like native approximation (legacy)",
-      "ssGSEA-like native approximation (legacy)",
       "Ensemble of multiple methods after scale harmonization",
       "Seurat AddModuleScore integration",
       "UCell integration",
@@ -96,15 +85,12 @@ get_scoring_registry <- function() {
       "singscore integration"
     ),
     input_assumption = c(
-      rep("gene_by_cell matrix", 9),
+      rep("gene_by_cell matrix", 6),
       "Seurat object", "gene_by_cell matrix", "gene_by_cell matrix", "gene_by_cell matrix", "gene_by_cell matrix", "gene_by_cell matrix"
     ),
     aliases = c(
       "",
       "",
-      "zmean",
-      "",
-      "robust",
       "",
       "",
       "",
@@ -116,11 +102,7 @@ get_scoring_registry <- function() {
       "gsva",
       ""
     ),
-    is_legacy = c(
-      FALSE, FALSE, FALSE, FALSE, FALSE,
-      TRUE, TRUE, TRUE, FALSE,
-      FALSE, FALSE, FALSE, FALSE, FALSE, FALSE
-    ),
+    is_legacy = rep(FALSE, 12),
     stringsAsFactors = FALSE
   )
 }

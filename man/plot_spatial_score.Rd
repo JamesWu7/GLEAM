@@ -6,7 +6,7 @@
 \usage{
 plot_spatial_score(
   score,
-  pathway,
+  signature,
   coords = NULL,
   object = NULL,
   image = NULL,
@@ -20,7 +20,7 @@ plot_spatial_score(
 \arguments{
 \item{score}{\code{gleam_score} object.}
 
-\item{pathway}{Signature name (legacy argument name).}
+\item{signature}{Signature name.}
 
 \item{coords}{Spatial coordinates data.frame with x/y.}
 

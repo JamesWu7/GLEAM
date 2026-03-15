@@ -21,12 +21,9 @@
 #' @param method Scoring method. Canonical methods include:
 #'   `rank`, `mean`, `zscore`, `scaled_mean`, `robust_mean`, `ensemble`,
 #'   `AddModuleScore`, `UCell`, `AUCell`, `ssGSEA`, `GSVA`, `singscore`.
-#'   Legacy aliases (`zmean`, `robust`, `addmodulescore`, `ucell`, `aucell`)
-#'   are accepted for backward compatibility.
 #' @param min_genes Minimum genes per pathway.
 #' @param max_genes Maximum genes per pathway.
-#' @param auc_max_rank AUC top-rank proportion used by native `auc` and
-#'   optional `AUCell`.
+#' @param auc_max_rank AUC top-rank proportion used by `AUCell`.
 #' @param ensemble_methods Methods used by ensemble.
 #' @param ensemble_combine Ensemble combine strategy.
 #' @param ensemble_standardize Harmonization before ensemble aggregation:
@@ -34,7 +31,7 @@
 #' @param ensemble_weights Optional named numeric vector of per-method weights.
 #' @param method_params Optional named list for method-specific parameters.
 #'   Supported keys include:
-#'   `auc_max_rank` (AUCell/native auc), `alpha` or `ssgsea_alpha` (ssGSEA),
+#'   `auc_max_rank` (AUCell), `alpha` or `ssgsea_alpha` (ssGSEA),
 #'   `nbin`/`ctrl`/`seed` (AddModuleScore), `kcdf` (GSVA),
 #'   `ucell_max_rank` (UCell).
 #' @param verbose Whether to print messages.
@@ -58,8 +55,7 @@ score_pathway <- function(
   slot = NULL,
   method = c(
     "rank", "mean", "zscore", "scaled_mean", "robust_mean", "ensemble",
-    "AddModuleScore", "UCell", "AUCell", "ssGSEA", "GSVA", "singscore",
-    "auc", "zmean", "robust", "singscore_like", "ssgsea_like", "addmodulescore", "ucell", "aucell", "gsva"
+    "AddModuleScore", "UCell", "AUCell", "ssGSEA", "GSVA", "singscore"
   ),
   min_genes = 5,
   max_genes = 500,
@@ -186,11 +182,8 @@ score_pathway <- function(
     if (meth == "rank") {
       return(score_rank_matrix(expr_use, genesets_use, verbose = verbose))
     }
-    if (meth == "auc") {
-      return(score_auc_matrix(expr_use, genesets_use, auc_max_rank = params_use$auc_max_rank, verbose = verbose))
-    }
     if (meth == "zscore") {
-      return(score_zmean_matrix(expr_use, genesets_use, verbose = verbose))
+      return(score_zscore_matrix(expr_use, genesets_use, verbose = verbose))
     }
     if (meth == "mean") {
       return(score_mean_matrix(expr_use, genesets_use, verbose = verbose))
@@ -200,12 +193,6 @@ score_pathway <- function(
     }
     if (meth == "robust_mean") {
       return(score_robust_matrix(expr_use, genesets_use, verbose = verbose))
-    }
-    if (meth == "singscore_like") {
-      return(score_singscore_like_matrix(expr_use, genesets_use, verbose = verbose))
-    }
-    if (meth == "ssgsea_like") {
-      return(score_ssgsea_like_matrix(expr_use, genesets_use, alpha = params_use$alpha, verbose = verbose))
     }
 
     score_optional_wrapper(
@@ -355,10 +342,10 @@ score_pathway <- function(
     mp <- utils::modifyList(mp, nested)
   }
 
-  if (method %in% c("auc", "AUCell")) {
+  if (method == "AUCell") {
     return(list(auc_max_rank = mp$auc_max_rank %||% auc_max_rank))
   }
-  if (method %in% c("ssGSEA", "ssgsea_like")) {
+  if (method == "ssGSEA") {
     return(list(
       alpha = mp$alpha %||% mp$ssgsea_alpha %||% 0.25,
       normalize = mp$normalize %||% TRUE

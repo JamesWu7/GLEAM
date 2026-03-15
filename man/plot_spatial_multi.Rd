@@ -18,7 +18,7 @@ plot_spatial_multi(
 \arguments{
 \item{score}{\code{gleam_score} object.}
 
-\item{pathways}{Character vector of signature names (legacy argument name).}
+\item{pathways}{Character vector of signature names.}
 
 \item{coords}{Spatial coordinates data.frame with x/y.}
 

@@ -12,6 +12,6 @@ test_that("plot_violin returns ggplot object", {
     verbose = FALSE
   )
 
-  p <- plot_violin(sc, pathway = rownames(sc$score)[1], group = "group")
+  p <- plot_violin(sc, signature = rownames(sc$score)[1], group = "group")
   expect_s3_class(p, "ggplot")
 })

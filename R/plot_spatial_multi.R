@@ -1,7 +1,7 @@
 #' Plot multiple signatures on spatial coordinates
 #'
 #' @param score `gleam_score` object.
-#' @param pathways Character vector of signature names (legacy argument name).
+#' @param pathways Character vector of signature names.
 #' @param coords Spatial coordinates data.frame with x/y.
 #' @param object Optional Seurat spatial object for in-slice plotting.
 #' @param palette Continuous palette.
