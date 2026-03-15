@@ -96,14 +96,32 @@ read_gmt <- function(path) {
 #'
 #' @param x Geneset input.
 #'
-#' @return Named list.
+#' @return Named list. Supports standard pathways (`list(pathway = c(...))`) and
+#' signed pathways (`list(pathway = list(up = c(...), down = c(...)))`).
 #' @export
 as_geneset <- function(x) {
   if (is.list(x) && !is.data.frame(x)) {
     if (is.null(names(x)) || any(names(x) == "")) {
       stop("Geneset list must be a named list.", call. = FALSE)
     }
-    return(lapply(x, function(v) unique(as.character(v[!is.na(v)]))))
+    out <- lapply(x, function(v) {
+      # Preserve signed geneset structure for downstream up/down scoring.
+      if (is.list(v) && !is.data.frame(v)) {
+        nm <- tolower(names(v) %||% rep("", length(v)))
+        if (any(nm == "up") || any(nm == "down")) {
+          up <- if (any(nm == "up")) v[[which(nm == "up")[1]]] else character(0)
+          down <- if (any(nm == "down")) v[[which(nm == "down")[1]]] else character(0)
+          up <- unique(as.character(up))
+          down <- unique(as.character(down))
+          up <- up[!is.na(up) & nzchar(up)]
+          down <- down[!is.na(down) & nzchar(down)]
+          return(list(up = up, down = down))
+        }
+      }
+      genes <- unique(as.character(unlist(v, use.names = FALSE)))
+      genes[!is.na(genes) & nzchar(genes)]
+    })
+    return(out)
   }
 
   if (length(x) == 1L && is.character(x) && file.exists(x)) {

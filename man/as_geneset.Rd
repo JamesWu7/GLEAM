@@ -10,7 +10,8 @@ as_geneset(x)
 \item{x}{Geneset input.}
 }
 \value{
-Named list.
+Named list. Supports standard pathways (\code{list(pathway = c(...))}) and
+signed pathways (\code{list(pathway = list(up = c(...), down = c(...)))}).
 }
 \description{
 Coerce geneset input to named list

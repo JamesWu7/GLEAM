@@ -99,3 +99,16 @@ test_that("signed up/down signatures are supported", {
   expect_true("expression_layer_used" %in% names(sc$params))
   expect_true("method_parameters_used" %in% names(sc$params))
 })
+
+test_that("as_geneset preserves signed up/down structure", {
+  sig <- list(
+    IFN_signed = list(
+      up = c("STAT1", "IRF1", "ISG15"),
+      down = c("LYZ", "S100A8")
+    )
+  )
+  gs <- as_geneset(sig)
+  expect_true(is.list(gs$IFN_signed))
+  expect_setequal(gs$IFN_signed$up, c("STAT1", "IRF1", "ISG15"))
+  expect_setequal(gs$IFN_signed$down, c("LYZ", "S100A8"))
+})
