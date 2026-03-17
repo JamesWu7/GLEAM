@@ -76,11 +76,10 @@ plot_dot_bar <- function(score, by, threshold = 0, signature = NULL, color_palet
   )) +
     ggplot2::geom_point(alpha = 0.95, stroke = 0.25) +
     scale_gleam_color(color_palette, continuous = TRUE) +
-    ggplot2::scale_size_continuous(range = c(2.2, 8.2)) +
+    ggplot2::scale_size_continuous(range = c(2.0, 7.0)) +
     ggplot2::scale_y_discrete(limits = y_levels) +
-    ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = c(0.35, 0.35))) +
+    ggplot2::scale_x_discrete(expand = ggplot2::expansion(mult = c(0.12, 0.12))) +
     ggplot2::labs(
-      title = "Signature score and active fraction",
       x = "Signature",
       y = "Cell type",
       color = "Mean score",
@@ -88,7 +87,7 @@ plot_dot_bar <- function(score, by, threshold = 0, signature = NULL, color_palet
     ) +
     do.call(gleam_theme, tp) +
     ggplot2::theme(
-      plot.margin = ggplot2::margin(6, 8, 6, 8),
+      plot.margin = ggplot2::margin(6, 2, 6, 8),
       panel.grid.major.x = ggplot2::element_blank(),
       panel.grid.minor = ggplot2::element_blank(),
       axis.text.x = ggplot2::element_text(angle = 20, hjust = 1, vjust = 1),
@@ -150,20 +149,25 @@ plot_dot_bar <- function(score, by, threshold = 0, signature = NULL, color_palet
     ggplot2::scale_fill_manual(values = ct_cols, drop = FALSE) +
     ggplot2::scale_y_discrete(limits = y_levels) +
     ggplot2::labs(
-      title = paste0("Group difference curve (", g2, " - ", g1, ")"),
-      x = "Delta signature score",
-      y = "Cell type"
+      x = paste0("Delta signature score (", g2, " - ", g1, ")"),
+      y = NULL
     ) +
     do.call(gleam_theme, tp) +
     ggplot2::theme(
       plot.margin = ggplot2::margin(6, 6, 6, 2),
-      legend.position = "none"
+      legend.position = "none",
+      axis.title.y = ggplot2::element_blank(),
+      axis.text.y = ggplot2::element_blank(),
+      axis.ticks.y = ggplot2::element_blank()
     )
+
+  main_title <- paste0("Dot-bar signature comparison: ", sig_use)
 
   if (!requireNamespace("patchwork", quietly = TRUE)) {
     warning("Package 'patchwork' not installed; returning dot panel only.", call. = FALSE)
-    return(dot)
+    return(dot + ggplot2::labs(title = main_title))
   }
 
-  dot + bar + patchwork::plot_layout(guides = "collect", widths = c(1.6, 4.8))
+  (dot + bar + patchwork::plot_layout(guides = "collect", widths = c(0.85, 5.15))) +
+    patchwork::plot_annotation(title = main_title)
 }

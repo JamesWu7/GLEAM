@@ -244,8 +244,7 @@ generate_from_full_examples <- function() {
   pal_celltype_vis <- setNames(get_palette("gleam_discrete", n = length(ct_keep), continuous = FALSE), ct_keep)
   pal_group_vis <- setNames(get_palette("gleam_discrete", n = length(grp_levels), continuous = FALSE), grp_levels)
 
-  p3 <- plot_dot_bar(sc_vis, by = c(group_col, celltype_col), signature = top_sig) +
-    ggplot2::labs(title = "Dot-bar signature comparison")
+  p3 <- plot_dot_bar(sc_vis, by = c(group_col, celltype_col), signature = top_sig)
   save_plot_to_outputs("signature_dotbar_compare.png", p3, width = 12.8, height = 7.8, dpi = 220)
 
   p5 <- plot_violin(

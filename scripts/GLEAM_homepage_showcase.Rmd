@@ -209,8 +209,7 @@ plot_spatial_score(sp, signature = rownames(sp$score)[1], object = sp_obj, point
 ```
 
 ```{r dotbar_compare, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=12.8, fig.height=7.8, out.width="100%"}
-plot_dot_bar(sc_vis, by = c("group", "celltype"), signature = top_sig) +
-  ggplot2::labs(title = "Dot-bar signature comparison")
+plot_dot_bar(sc_vis, by = c("group", "celltype"), signature = top_sig)
 ```
 
 ```{r violin_compare, eval=requireNamespace("Seurat", quietly = TRUE), fig.width=11.0, fig.height=6.4, out.width="98%"}
