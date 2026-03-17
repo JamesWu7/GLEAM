@@ -28,7 +28,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Canonical signature scoring interface</h1>
-      <small class="dont-index">Source: <a href="https://github.com/JamesWu7/GLEAM/blob/HEAD/R/api_signature.R" class="external-link"><code>R/api_signature.R</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/JamesWu7/GLEAM/blob/master/R/api_signature.R" class="external-link"><code>R/api_signature.R</code></a></small>
       <div class="d-none name"><code>score_signature.Rd</code></div>
     </div>
 
@@ -53,13 +53,15 @@
 <span>  assay <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  layer <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  slot <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rank"</span>, <span class="st">"auc"</span>, <span class="st">"zmean"</span>, <span class="st">"mean"</span>, <span class="st">"scaled_mean"</span>, <span class="st">"robust"</span>, <span class="st">"singscore_like"</span>,</span>
-<span>    <span class="st">"ssgsea_like"</span>, <span class="st">"ensemble"</span>, <span class="st">"addmodulescore"</span>, <span class="st">"ucell"</span>, <span class="st">"aucell"</span>, <span class="st">"gsva"</span>, <span class="st">"singscore"</span><span class="op">)</span>,</span>
+<span>  method <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rank"</span>, <span class="st">"mean"</span>, <span class="st">"zscore"</span>, <span class="st">"scaled_mean"</span>, <span class="st">"robust_mean"</span>, <span class="st">"ensemble"</span>,</span>
+<span>    <span class="st">"AddModuleScore"</span>, <span class="st">"UCell"</span>, <span class="st">"AUCell"</span>, <span class="st">"ssGSEA"</span>, <span class="st">"GSVA"</span>, <span class="st">"singscore"</span><span class="op">)</span>,</span>
 <span>  min_genes <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  max_genes <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>  auc_max_rank <span class="op">=</span> <span class="fl">0.05</span>,</span>
-<span>  ensemble_methods <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rank"</span>, <span class="st">"auc"</span>, <span class="st">"zmean"</span><span class="op">)</span>,</span>
+<span>  ensemble_methods <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"rank"</span>, <span class="st">"zscore"</span>, <span class="st">"mean"</span><span class="op">)</span>,</span>
 <span>  ensemble_combine <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"mean"</span>, <span class="st">"median"</span><span class="op">)</span>,</span>
+<span>  ensemble_standardize <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"zscore"</span>, <span class="st">"rank"</span><span class="op">)</span>,</span>
+<span>  ensemble_weights <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  method_params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
 <span>  verbose <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -82,7 +84,8 @@
 
 
 <dt id="arg-geneset">geneset<a class="anchor" aria-label="anchor" href="#arg-geneset"></a></dt>
-<dd><p>Geneset input.</p></dd>
+<dd><p>Geneset input. Also supports signed signatures:
+<code>list(signatureA = list(up = c(...), down = c(...)))</code>.</p></dd>
 
 
 <dt id="arg-geneset-source">geneset_source<a class="anchor" aria-label="anchor" href="#arg-geneset-source"></a></dt>
@@ -123,7 +126,9 @@
 
 
 <dt id="arg-method">method<a class="anchor" aria-label="anchor" href="#arg-method"></a></dt>
-<dd><p>Scoring method. See <code><a href="list_scoring_methods.html">list_scoring_methods()</a></code>.</p></dd>
+<dd><p>Scoring method. Canonical methods include:
+<code>rank</code>, <code>mean</code>, <code>zscore</code>, <code>scaled_mean</code>, <code>robust_mean</code>, <code>ensemble</code>,
+<code>AddModuleScore</code>, <code>UCell</code>, <code>AUCell</code>, <code>ssGSEA</code>, <code>GSVA</code>, <code>singscore</code>.</p></dd>
 
 
 <dt id="arg-min-genes">min_genes<a class="anchor" aria-label="anchor" href="#arg-min-genes"></a></dt>
@@ -135,7 +140,7 @@
 
 
 <dt id="arg-auc-max-rank">auc_max_rank<a class="anchor" aria-label="anchor" href="#arg-auc-max-rank"></a></dt>
-<dd><p>AUC top-rank proportion.</p></dd>
+<dd><p>AUC top-rank proportion used by <code>AUCell</code>.</p></dd>
 
 
 <dt id="arg-ensemble-methods">ensemble_methods<a class="anchor" aria-label="anchor" href="#arg-ensemble-methods"></a></dt>
@@ -146,8 +151,21 @@
 <dd><p>Ensemble combine strategy.</p></dd>
 
 
+<dt id="arg-ensemble-standardize">ensemble_standardize<a class="anchor" aria-label="anchor" href="#arg-ensemble-standardize"></a></dt>
+<dd><p>Harmonization before ensemble aggregation:
+<code>zscore</code> (recommended) or <code>rank</code>.</p></dd>
+
+
+<dt id="arg-ensemble-weights">ensemble_weights<a class="anchor" aria-label="anchor" href="#arg-ensemble-weights"></a></dt>
+<dd><p>Optional named numeric vector of per-method weights.</p></dd>
+
+
 <dt id="arg-method-params">method_params<a class="anchor" aria-label="anchor" href="#arg-method-params"></a></dt>
-<dd><p>Optional named list for method-specific parameters.</p></dd>
+<dd><p>Optional named list for method-specific parameters.
+Supported keys include:
+<code>auc_max_rank</code> (AUCell), <code>alpha</code> or <code>ssgsea_alpha</code> (ssGSEA),
+<code>nbin</code>/<code>ctrl</code>/<code>seed</code> (AddModuleScore), <code>kcdf</code> (GSVA),
+<code>ucell_max_rank</code> (UCell).</p></dd>
 
 
 <dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
@@ -157,6 +175,18 @@
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>An object of class <code>gleam_score</code>.</p>
+    </div>
+    <div class="section level2">
+    <h2 id="method-guide">Method Guide<a class="anchor" aria-label="anchor" href="#method-guide"></a></h2>
+
+<table class="table table"><tr><td>Method</td><td>Best for</td><td>Notes</td></tr><tr><td><code>rank</code></td><td>Fast robust baseline</td><td>Rank aggregation concept aligned with singscore</td></tr><tr><td><code>UCell</code></td><td>Large single-cell data</td><td>Mann-Whitney U-based robust scoring</td></tr><tr><td><code>AUCell</code></td><td>Rank-enrichment scoring</td><td>SCENIC/AUCell implementation</td></tr><tr><td><code>AddModuleScore</code></td><td>Seurat-native workflows</td><td>Signature minus control-bin expression</td></tr><tr><td><code>ssGSEA</code></td><td>Bulk-like enrichment workflows</td><td>GSVA package ssGSEA implementation</td></tr><tr><td><code>GSVA</code></td><td>Bulk expression matrices</td><td>GSVA kernel-based pathway variation</td></tr><tr><td><code>mean</code></td><td>Simple signatures</td><td>Mean expression aggregation</td></tr><tr><td><code>zscore</code></td><td>Cross-signature comparability</td><td>Per-gene z-score then aggregate</td></tr><tr><td><code>robust_mean</code></td><td>Outlier-prone data</td><td>Median/MAD-scaled robust aggregation</td></tr><tr><td><code>ensemble</code></td><td>Consensus scoring</td><td>Harmonize each method (<code>zscore</code> or <code>rank</code>) before averaging</td></tr></table></div>
+    <div class="section level2">
+    <h2 id="method-parameters-method-params-">Method Parameters (<code>method_params</code>)<a class="anchor" aria-label="anchor" href="#method-parameters-method-params-"></a></h2>
+    <p>Supported keys include:
+<code>auc_max_rank</code> (AUCell), <code>alpha</code> or <code>ssgsea_alpha</code> (ssGSEA),
+<code>nbin</code>/<code>ctrl</code>/<code>seed</code> (AddModuleScore), <code>kcdf</code> (GSVA), <code>ucell_max_rank</code> (UCell).
+For ensemble, use <code>ensemble_methods</code>, <code>ensemble_standardize</code>, and optional
+<code>ensemble_weights</code>.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
@@ -168,7 +198,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>
