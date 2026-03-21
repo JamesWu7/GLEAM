@@ -30,7 +30,10 @@ score_signature <- function(
   expr = NULL,
   meta = NULL,
   geneset,
-  geneset_source = c("auto", "builtin", "list", "gmt", "data.frame", "msigdb", "go", "kegg", "reactome"),
+  geneset_source = c(
+    "auto", "builtin", "list", "gmt", "data.frame", "msigdb",
+    "go", "kegg", "reactome", "wikipathways", "biocarta"
+  ),
   species = "Homo sapiens",
   collection = "H",
   subcollection = NULL,

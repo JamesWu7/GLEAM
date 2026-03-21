@@ -7,7 +7,7 @@
 get_geneset(
   geneset,
   source = c("auto", "builtin", "list", "gmt", "data.frame", "msigdb", "go", "kegg",
-    "reactome"),
+    "reactome", "wikipathways", "biocarta"),
   species = "Homo sapiens",
   collection = "H",
   subcollection = NULL,
@@ -19,7 +19,8 @@ get_geneset(
 \item{geneset}{Geneset input.}
 
 \item{source}{Geneset source. One of \code{auto}, \code{builtin}, \code{list}, \code{gmt},
-\code{data.frame}, \code{msigdb}, \code{go}, \code{kegg}, \code{reactome}.}
+\code{data.frame}, \code{msigdb}, \code{go}, \code{kegg}, \code{reactome},
+\code{wikipathways}, \code{biocarta}.}
 
 \item{species}{Species label used by external geneset sources.}
 

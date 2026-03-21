@@ -129,11 +129,11 @@
 <span><span class="va">runtime_df</span> <span class="op">&lt;-</span> <span class="va">runtime_df</span><span class="op">[</span><span class="fu"><a href="https://rdrr.io/r/base/order.html" class="external-link">order</a></span><span class="op">(</span><span class="va">runtime_df</span><span class="op">$</span><span class="va">elapsed_sec</span><span class="op">)</span>, , drop <span class="op">=</span> <span class="cn">FALSE</span><span class="op">]</span></span>
 <span><span class="va">runtime_df</span></span>
 <span><span class="co">#&gt;        method elapsed_sec</span></span>
-<span><span class="co">#&gt; 3      zscore       0.006</span></span>
-<span><span class="co">#&gt; 4 robust_mean       0.016</span></span>
+<span><span class="co">#&gt; 3      zscore       0.007</span></span>
+<span><span class="co">#&gt; 4 robust_mean       0.015</span></span>
 <span><span class="co">#&gt; 1        rank       0.020</span></span>
 <span><span class="co">#&gt; 5    ensemble       0.054</span></span>
-<span><span class="co">#&gt; 2        mean       0.214</span></span>
+<span><span class="co">#&gt; 2        mean       0.208</span></span>
 <span></span>
 <span><span class="fu">ggplot</span><span class="op">(</span><span class="va">runtime_df</span>, <span class="fu">aes</span><span class="op">(</span>x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/reorder.factor.html" class="external-link">reorder</a></span><span class="op">(</span><span class="va">method</span>, <span class="va">elapsed_sec</span><span class="op">)</span>, y <span class="op">=</span> <span class="va">elapsed_sec</span>, fill <span class="op">=</span> <span class="va">method</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu">geom_col</span><span class="op">(</span>width <span class="op">=</span> <span class="fl">0.72</span>, show.legend <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span></span>

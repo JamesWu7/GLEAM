@@ -183,7 +183,7 @@ plot_dot(sc_custom, by = c("group", "celltype"))
 - `list`: user-provided named list.
 - `gmt`: GMT file input via `read_gmt()`.
 - `data.frame`: tabular input with `pathway` + `gene` columns.
-- `msigdb`, `go`, `kegg`, `reactome`: optional curated sources (dependency-gated, no silent internet-only behavior).
+- `msigdb`, `go`, `kegg`, `reactome`, `wikipathways`, `biocarta`: optional curated sources (dependency-gated, no silent internet-only behavior).
 
 ## Visualization parameter guide
 

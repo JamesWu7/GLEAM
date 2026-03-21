@@ -6,6 +6,8 @@ list_palettes <- function() {
   c(
     "gleam_discrete",
     "gleam_continuous",
+    "okabe_ito",
+    "tableau10",
     "viridis",
     "magma",
     "plasma",
@@ -49,7 +51,15 @@ get_palette <- function(name = "gleam_discrete", n = 8, continuous = FALSE, reve
   cols <- switch(
     name,
     gleam_discrete = {
-      base <- c("#1f3b73", "#2a9d8f", "#e9c46a", "#e76f51", "#8ab17d", "#264653", "#f4a261", "#6d597a")
+      base <- c("#0072B2", "#E69F00", "#009E73", "#D55E00", "#CC79A7", "#56B4E9", "#F0E442", "#000000")
+      if (n <= length(base)) base[seq_len(n)] else grDevices::colorRampPalette(base)(n)
+    },
+    okabe_ito = {
+      base <- c("#0072B2", "#E69F00", "#009E73", "#D55E00", "#CC79A7", "#56B4E9", "#F0E442", "#000000")
+      if (n <= length(base)) base[seq_len(n)] else grDevices::colorRampPalette(base)(n)
+    },
+    tableau10 = {
+      base <- c("#4E79A7", "#F28E2B", "#59A14F", "#E15759", "#B07AA1", "#76B7B2", "#EDC948", "#FF9DA7", "#9C755F", "#BAB0AC")
       if (n <= length(base)) base[seq_len(n)] else grDevices::colorRampPalette(base)(n)
     },
     gleam_continuous = grDevices::colorRampPalette(c("#1f3b73", "#f4f1de", "#e63946"))(max(2, n)),
@@ -94,6 +104,44 @@ get_palette <- function(name = "gleam_discrete", n = 8, continuous = FALSE, reve
   }
   if (reverse) cols <- rev(cols)
   cols
+}
+
+#' @keywords internal
+resolve_discrete_levels <- function(values, palette = "gleam_discrete") {
+  vals <- as.character(values)
+  vals <- vals[!is.na(vals)]
+  if (length(vals) == 0L) return(character(0))
+  base_levels <- if (is.factor(values)) levels(base::droplevels(values)) else unique(vals)
+  if (!is.character(palette) && !is.null(names(palette)) && any(nzchar(names(palette)))) {
+    pal_levels <- names(palette)[nzchar(names(palette))]
+    return(c(pal_levels[pal_levels %in% vals], setdiff(base_levels, pal_levels)))
+  }
+  base_levels
+}
+
+#' @keywords internal
+resolve_discrete_palette_values <- function(levels, palette = "gleam_discrete", reverse = FALSE) {
+  lv <- as.character(levels)
+  lv <- lv[nzchar(lv)]
+  if (length(lv) == 0L) return(stats::setNames(character(0), character(0)))
+  if (!is.character(palette) && !is.null(names(palette)) && any(nzchar(names(palette)))) {
+    vals <- as.character(palette)
+    names(vals) <- names(palette)
+    out <- vals[lv]
+    miss <- is.na(out) | !nzchar(out)
+    if (any(miss)) {
+      out[miss] <- get_palette(name = "gleam_discrete", n = sum(miss), continuous = FALSE)
+    }
+    return(stats::setNames(as.character(out), lv))
+  }
+  cols <- if (is.character(palette) && length(palette) == 1L) {
+    get_palette(name = palette, n = length(lv), continuous = FALSE, reverse = reverse)
+  } else {
+    pal <- as.character(palette)
+    if (reverse) pal <- rev(pal)
+    if (length(pal) >= length(lv)) pal[seq_len(length(lv))] else grDevices::colorRampPalette(pal)(length(lv))
+  }
+  stats::setNames(cols, lv)
 }
 
 #' GLEAM color scale helper

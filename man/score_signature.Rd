@@ -10,7 +10,7 @@ score_signature(
   meta = NULL,
   geneset,
   geneset_source = c("auto", "builtin", "list", "gmt", "data.frame", "msigdb", "go",
-    "kegg", "reactome"),
+    "kegg", "reactome", "wikipathways", "biocarta"),
   species = "Homo sapiens",
   collection = "H",
   subcollection = NULL,
@@ -43,7 +43,7 @@ score_signature(
 \code{list(signatureA = list(up = c(...), down = c(...)))}.}
 
 \item{geneset_source}{Geneset source (\code{auto}, \code{builtin}, \code{list}, \code{gmt}, \code{data.frame},
-\code{msigdb}, \code{go}, \code{kegg}, \code{reactome}).}
+\code{msigdb}, \code{go}, \code{kegg}, \code{reactome}, \code{wikipathways}, \code{biocarta}).}
 
 \item{species}{Species label for source-aware geneset loading.}
 

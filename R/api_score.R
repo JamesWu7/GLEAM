@@ -9,7 +9,7 @@
 #' @param geneset Geneset input. Also supports signed signatures:
 #'   `list(signatureA = list(up = c(...), down = c(...)))`.
 #' @param geneset_source Geneset source (`auto`, `builtin`, `list`, `gmt`, `data.frame`,
-#'   `msigdb`, `go`, `kegg`, `reactome`).
+#'   `msigdb`, `go`, `kegg`, `reactome`, `wikipathways`, `biocarta`).
 #' @param species Species label for source-aware geneset loading.
 #' @param collection Collection parameter for source-aware geneset loading.
 #' @param subcollection Subcollection parameter for source-aware geneset loading.
@@ -44,7 +44,10 @@ score_pathway <- function(
   expr = NULL,
   meta = NULL,
   geneset,
-  geneset_source = c("auto", "builtin", "list", "gmt", "data.frame", "msigdb", "go", "kegg", "reactome"),
+  geneset_source = c(
+    "auto", "builtin", "list", "gmt", "data.frame", "msigdb",
+    "go", "kegg", "reactome", "wikipathways", "biocarta"
+  ),
   species = "Homo sapiens",
   collection = "H",
   subcollection = NULL,

@@ -2,7 +2,8 @@
 #'
 #' @param geneset Geneset input.
 #' @param source Geneset source. One of `auto`, `builtin`, `list`, `gmt`,
-#'   `data.frame`, `msigdb`, `go`, `kegg`, `reactome`.
+#'   `data.frame`, `msigdb`, `go`, `kegg`, `reactome`, `wikipathways`,
+#'   `biocarta`.
 #' @param species Species label used by external geneset sources.
 #' @param collection MSigDB collection (for source = `msigdb`).
 #' @param subcollection MSigDB subcollection (for source = `msigdb`).
@@ -13,7 +14,10 @@
 #' @export
 get_geneset <- function(
   geneset,
-  source = c("auto", "builtin", "list", "gmt", "data.frame", "msigdb", "go", "kegg", "reactome"),
+  source = c(
+    "auto", "builtin", "list", "gmt", "data.frame", "msigdb",
+    "go", "kegg", "reactome", "wikipathways", "biocarta"
+  ),
   species = "Homo sapiens",
   collection = "H",
   subcollection = NULL,
@@ -28,7 +32,7 @@ get_geneset <- function(
     source <- infer_geneset_source(geneset)
   }
 
-  if (source %in% c("builtin", "msigdb", "go", "kegg", "reactome") && !sp$supported_builtin) {
+  if (source %in% c("builtin", "msigdb", "go", "kegg", "reactome", "wikipathways", "biocarta") && !sp$supported_builtin) {
     stop(
       sprintf(
         "Built-in geneset sources currently support only human/mouse. Received species '%s'. Use source='list'/'gmt'/'data.frame' for custom species genesets.",
@@ -51,6 +55,8 @@ get_geneset <- function(
     go = get_geneset_go(species = species_msigdb, ontology = ontology),
     kegg = get_geneset_kegg(species = species_msigdb),
     reactome = get_geneset_reactome(species = species_msigdb),
+    wikipathways = get_geneset_wikipathways(species = species_msigdb),
+    biocarta = get_geneset_biocarta(species = species_msigdb),
     stop(sprintf("Unsupported geneset source: %s", source), call. = FALSE)
   )
 
@@ -216,6 +222,8 @@ infer_geneset_source <- function(geneset) {
   if (length(geneset) == 1L && is.character(geneset) && geneset %in% c("hallmark", "immune_small")) return("builtin")
   if (length(geneset) == 1L && is.character(geneset) && tolower(geneset) == "kegg") return("kegg")
   if (length(geneset) == 1L && is.character(geneset) && tolower(geneset) == "reactome") return("reactome")
+  if (length(geneset) == 1L && is.character(geneset) && tolower(geneset) %in% c("wikipathways", "wiki", "wp")) return("wikipathways")
+  if (length(geneset) == 1L && is.character(geneset) && tolower(geneset) == "biocarta") return("biocarta")
   if (length(geneset) == 1L && is.character(geneset) && tolower(geneset) %in% c("go", "go_bp", "go_mf", "go_cc")) return("go")
   if (is.list(geneset) && !is.data.frame(geneset)) return("list")
   if (length(geneset) == 1L && is.character(geneset) && file.exists(geneset)) return("gmt")
