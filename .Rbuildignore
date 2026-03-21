@@ -12,5 +12,7 @@
 ^\.DS_Store$
 ^tests/\.DS_Store$
 ^\.Rcheck$
+^\.\.Rcheck$
+^GLEAM\.Rcheck$
 ^\.git$
 ^Rplots\.pdf$

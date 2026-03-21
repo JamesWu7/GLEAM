@@ -29,10 +29,6 @@ devtools::install_github("JamesWu7/GLEAM")
 [Reference](https://jameswu7.github.io/GLEAM/reference/) \|
 [Tutorials](https://jameswu7.github.io/GLEAM/articles/) \|
 [Citation](https://jameswu7.github.io/GLEAM/articles/GLEAM_citation.html)
-**Subagents:**
-[中文分工清单](https://github.com/JamesWu7/GLEAM/blob/main/scripts/subagents/README.md)
-\|
-[机器可读YAML](https://github.com/JamesWu7/GLEAM/blob/main/scripts/subagents/subagents_zh.yaml)
 
 ## Workflow highlights
 

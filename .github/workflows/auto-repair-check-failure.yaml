@@ -1,0 +1,177 @@
+name: auto-repair-check-failure
+
+on:
+  workflow_run:
+    workflows:
+      - R-CMD-check
+      - pkgdown
+    types: [completed]
+
+permissions:
+  contents: write
+  actions: read
+  pull-requests: write
+
+concurrency:
+  group: auto-repair-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
+jobs:
+  repair_failed_checks:
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.head_repository.full_name == github.repository &&
+      startsWith(github.event.workflow_run.head_branch, 'codex/')
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      BRANCH_NAME: ${{ github.event.workflow_run.head_branch }}
+      REPO: ${{ github.repository }}
+      TRIGGER_RUN_ID: ${{ github.event.workflow_run.id }}
+      TRIGGER_WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+      HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_branch }}
+          fetch-depth: 0
+
+      - id: collect
+        name: Collect failed check logs from GitHub
+        run: |
+          set -euo pipefail
+          mkdir -p pipeline_inputs/ci_explorer_agent pipeline_inputs/pkgdown_explorer_agent
+
+          if [ -z "${TRIGGER_RUN_ID:-}" ]; then
+            echo "has_logs=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          trigger_log="$(mktemp)"
+          gh run view "$TRIGGER_RUN_ID" --repo "$REPO" --log > "$trigger_log" || true
+          if [ -s "$trigger_log" ]; then
+            if [ "${TRIGGER_WORKFLOW_NAME:-}" = "R-CMD-check" ]; then
+              cp "$trigger_log" pipeline_inputs/ci_explorer_agent/check.log
+            elif [ "${TRIGGER_WORKFLOW_NAME:-}" = "pkgdown" ]; then
+              cp "$trigger_log" pipeline_inputs/pkgdown_explorer_agent/pkgdown.log
+            fi
+          fi
+
+          # Try to collect the companion failed workflow on the same head SHA.
+          for wf in "R-CMD-check" "pkgdown"; do
+            if [ "$wf" = "${TRIGGER_WORKFLOW_NAME:-}" ]; then
+              continue
+            fi
+            runs="$(gh run list \
+              --repo "$REPO" \
+              --branch "$BRANCH_NAME" \
+              --workflow "$wf" \
+              --limit 30 \
+              --json databaseId,workflowName,status,conclusion,headSha || echo '[]')"
+            rid="$(echo "$runs" | jq -r --arg sha "${HEAD_SHA:-}" '[.[] | select(.status == "completed" and .conclusion == "failure" and .headSha == $sha)][0].databaseId // empty')"
+            if [ -n "$rid" ]; then
+              if [ "$wf" = "R-CMD-check" ] && [ ! -s pipeline_inputs/ci_explorer_agent/check.log ]; then
+                gh run view "$rid" --repo "$REPO" --log > pipeline_inputs/ci_explorer_agent/check.log || true
+              elif [ "$wf" = "pkgdown" ] && [ ! -s pipeline_inputs/pkgdown_explorer_agent/pkgdown.log ]; then
+                gh run view "$rid" --repo "$REPO" --log > pipeline_inputs/pkgdown_explorer_agent/pkgdown.log || true
+              fi
+            fi
+          done
+
+          if [ ! -s pipeline_inputs/ci_explorer_agent/check.log ] && [ ! -s pipeline_inputs/pkgdown_explorer_agent/pkgdown.log ]; then
+            echo "No failed check log captured; exiting." >&2
+            echo "has_logs=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          jq -n \
+            --arg trigger_run_id "${TRIGGER_RUN_ID:-}" \
+            --arg trigger_workflow "${TRIGGER_WORKFLOW_NAME:-}" \
+            --arg head_sha "${HEAD_SHA:-}" \
+            '{trigger_run_id:$trigger_run_id, trigger_workflow:$trigger_workflow, head_sha:$head_sha}' \
+            > pipeline_inputs/github_failed_runs.json
+          echo "has_logs=true" >> "$GITHUB_OUTPUT"
+
+      - name: Run bug analysis and fix generation
+        if: steps.collect.outputs.has_logs == 'true'
+        run: |
+          set -euo pipefail
+          scripts/pipeline/bug_analyzer_agent.sh pipeline_inputs pipeline_outputs/bug_analyzer_agent
+          scripts/pipeline/fix_engineer_agent.sh pipeline_outputs/bug_analyzer_agent pipeline_outputs/fix_engineer_agent
+
+          source pipeline_outputs/fix_engineer_agent/status.env
+          echo "changes_detected=${changes_detected:-false}" >> "$GITHUB_ENV"
+
+      - name: Apply patch
+        if: steps.collect.outputs.has_logs == 'true' && env.changes_detected == 'true'
+        run: |
+          set -euo pipefail
+          if [ -s pipeline_outputs/fix_engineer_agent/autofix.patch ]; then
+            git apply --index pipeline_outputs/fix_engineer_agent/autofix.patch || git apply pipeline_outputs/fix_engineer_agent/autofix.patch
+          fi
+
+      - name: Setup R dependencies for local validation
+        if: steps.collect.outputs.has_logs == 'true' && env.changes_detected == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libglpk40 libglpk-dev
+      - if: steps.collect.outputs.has_logs == 'true' && env.changes_detected == 'true'
+        uses: r-lib/actions/setup-r@v2
+      - if: steps.collect.outputs.has_logs == 'true' && env.changes_detected == 'true'
+        uses: r-lib/actions/setup-pandoc@v2
+      - if: steps.collect.outputs.has_logs == 'true' && env.changes_detected == 'true'
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::rcmdcheck
+            any::pkgdown
+            any::knitr
+            any::rmarkdown
+            any::Seurat
+            any::SeuratObject
+            any::ggridges
+      - name: Run local validation before push
+        if: steps.collect.outputs.has_logs == 'true' && env.changes_detected == 'true'
+        run: |
+          set -euo pipefail
+          R CMD INSTALL --no-build-vignettes .
+          scripts/pipeline/test_runner_agent.sh pipeline_outputs/test_runner_agent
+          source pipeline_outputs/test_runner_agent/validation.env
+          echo "overall=${overall}" >> "$GITHUB_ENV"
+
+      - name: Commit and push repair commit
+        if: steps.collect.outputs.has_logs == 'true' && env.changes_detected == 'true' && env.overall == 'passed'
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          last_subject="$(git log -1 --pretty=%s || true)"
+          attempt="$(echo "$last_subject" | sed -n 's/.*\[auto-repair-\([0-9][0-9]*\)\].*/\1/p')"
+          if [ -z "$attempt" ]; then
+            attempt=0
+          fi
+          if [ "$attempt" -ge 2 ]; then
+            echo "Auto-repair max attempts reached; skip push."
+            exit 0
+          fi
+          next_attempt=$((attempt + 1))
+
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No staged changes; skip push."
+            exit 0
+          fi
+
+          git commit -m "chore(ci): auto-repair failed checks [auto-repair-${next_attempt}]"
+          git push origin "HEAD:${BRANCH_NAME}"
+
+      - name: Comment on PR with repair summary
+        if: steps.collect.outputs.has_logs == 'true' && env.changes_detected == 'true' && env.overall == 'passed'
+        run: |
+          set -euo pipefail
+          pr_number="$(gh pr list --repo "$REPO" --head "$BRANCH_NAME" --json number --jq '.[0].number' 2>/dev/null || true)"
+          if [ -n "$pr_number" ]; then
+            gh pr comment "$pr_number" --repo "$REPO" --body "Auto-repair has pushed a follow-up commit for failed checks on branch \\`${BRANCH_NAME}\\`. Please re-check the latest CI results."
+          fi

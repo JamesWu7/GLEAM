@@ -29,6 +29,7 @@ jobs:
       - uses: r-lib/actions/setup-pandoc@v2
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
+          needs: website
           extra-packages: |
             any::pkgdown
             any::knitr
@@ -45,6 +46,7 @@ jobs:
           name: pkgdown-site
           path: docs
       - uses: actions/upload-pages-artifact@v3
+        if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'master')
         with:
           path: docs
 

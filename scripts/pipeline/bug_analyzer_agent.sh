@@ -7,15 +7,13 @@ mkdir -p "$OUT_DIR"
 
 ci_log="$IN_DIR/ci_explorer_agent/check.log"
 pkgdown_log="$IN_DIR/pkgdown_explorer_agent/pkgdown.log"
-explorer_md="$IN_DIR/explorer_agent/findings.md"
-reviewer_md="$IN_DIR/reviewer_agent/findings.md"
+github_runs_json="$IN_DIR/github_failed_runs.json"
 
 combined_tmp="$OUT_DIR/combined.log"
 {
   [[ -f "$ci_log" ]] && cat "$ci_log"
   [[ -f "$pkgdown_log" ]] && cat "$pkgdown_log"
-  [[ -f "$explorer_md" ]] && cat "$explorer_md"
-  [[ -f "$reviewer_md" ]] && cat "$reviewer_md"
+  [[ -f "$github_runs_json" ]] && cat "$github_runs_json"
 } > "$combined_tmp"
 
 error_type="UNKNOWN"
@@ -48,6 +46,11 @@ elif rg -n "vignette builder 'knitr' not found" "$combined_tmp" >/dev/null 2>&1;
   file_location=".github/workflows/R-CMD-check.yaml"
   root_cause="Vignette build deps are missing in CI environment."
   fix_strategy="Install knitr/rmarkdown in check workflow before check-r-package step."
+elif rg -n "R CMD check found WARNINGs|R CMD check found ERRORs|\\* checking .* \\.\\.\\. (WARNING|ERROR)|Execution halted|\\[ FAIL [0-9]+ \\| WARN" "$combined_tmp" >/dev/null 2>&1; then
+  error_type="CHECK_FAILURE_GENERIC"
+  file_location="R/, tests/, man/, .github/workflows/R-CMD-check.yaml"
+  root_cause="General R CMD check failure based on CI logs."
+  fix_strategy="Inspect last failing lines from check.log, patch minimally, rerun check and pkgdown."
 fi
 
 {

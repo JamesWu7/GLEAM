@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ main, master ]
 
+permissions:
+  contents: read
+
 jobs:
   r-cmd-check:
     name: R-CMD-check
@@ -21,11 +24,6 @@ jobs:
             any::knitr
             any::rmarkdown
           needs: check
-      - name: Ensure vignette builders are installed
-        run: |
-          if (!requireNamespace("knitr", quietly = TRUE)) install.packages("knitr")
-          if (!requireNamespace("rmarkdown", quietly = TRUE)) install.packages("rmarkdown")
-        shell: Rscript {0}
       - uses: r-lib/actions/check-r-package@v2
         env:
           _R_CHECK_FORCE_SUGGESTS_: false

@@ -1,8 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+required_figs=(
+  "assets/figures/embedding_signature_feature.png"
+  "assets/figures/spatial_slice_signature.png"
+  "assets/figures/signature_dotbar_compare.png"
+)
+
 Rscript -e 'pkgdown::clean_site(force = TRUE)'
-Rscript -e 'source("scripts/generate_homepage_figures.R")'
+if ! Rscript -e 'source("scripts/generate_homepage_figures.R")'; then
+  echo "[GLEAM] WARNING: homepage figure generation failed; falling back to existing assets." >&2
+fi
+
+for f in "${required_figs[@]}"; do
+  if [[ ! -f "${f}" ]]; then
+    echo "[GLEAM] ERROR: required figure missing after generation fallback: ${f}" >&2
+    exit 1
+  fi
+done
+
 Rscript -e 'pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)'
 
 mkdir -p docs/assets

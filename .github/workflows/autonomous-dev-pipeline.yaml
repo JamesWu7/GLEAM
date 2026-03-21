@@ -15,28 +15,6 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  explorer_agent:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run explorer agent
-        run: scripts/pipeline/explorer_agent.sh pipeline_outputs/explorer_agent
-      - uses: actions/upload-artifact@v4
-        with:
-          name: explorer_agent
-          path: pipeline_outputs/explorer_agent
-
-  reviewer_agent:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run reviewer agent
-        run: scripts/pipeline/reviewer_agent.sh pipeline_outputs/reviewer_agent
-      - uses: actions/upload-artifact@v4
-        with:
-          name: reviewer_agent
-          path: pipeline_outputs/reviewer_agent
-
   ci_explorer_agent:
     runs-on: ubuntu-latest
     steps:
@@ -86,7 +64,7 @@ jobs:
 
   bug_analyzer_agent:
     runs-on: ubuntu-latest
-    needs: [explorer_agent, reviewer_agent, ci_explorer_agent, pkgdown_explorer_agent]
+    needs: [ci_explorer_agent, pkgdown_explorer_agent]
     if: always()
     steps:
       - uses: actions/checkout@v4
@@ -237,8 +215,9 @@ jobs:
           echo "has_changes=${has_changes}" >> "$GITHUB_OUTPUT"
           echo "title=${title}" >> "$GITHUB_OUTPUT"
           echo "commit_msg=${commit_msg}" >> "$GITHUB_OUTPUT"
-      - name: Create Draft PR (human review required)
-        if: steps.patch.outputs.has_changes == 'true'
+      - id: cpr
+        name: Auto push changes to GitHub + open PR
+        if: steps.patch.outputs.has_changes == 'true' && needs.test_runner_agent.outputs.overall == 'passed' && needs.final_reviewer_agent.outputs.readiness == 'ready_for_human_review'
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -247,14 +226,21 @@ jobs:
           title: ${{ steps.patch.outputs.title }}
           body-path: pipeline_inputs/pr_writer_agent/pr_body.md
           commit-message: ${{ steps.patch.outputs.commit_msg }}
-          draft: true
+          draft: false
           labels: |
             automated
-            needs-human-review
+            resident-mode
       - name: Supervisor summary
         run: |
-          echo "### Autonomous pipeline summary" >> "$GITHUB_STEP_SUMMARY"
-          echo "- changes_detected: ${{ steps.patch.outputs.has_changes }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- validation_overall: ${{ needs.test_runner_agent.outputs.overall }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- readiness: ${{ needs.final_reviewer_agent.outputs.readiness }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- PR creation only; no direct push to main." >> "$GITHUB_STEP_SUMMARY"
+          pr_url="${{ steps.cpr.outputs.pull-request-url }}"
+          if [ -z "$pr_url" ]; then
+            pr_url="(not created)"
+          fi
+          {
+            echo "### Autonomous resident pipeline summary"
+            echo "- changes_detected: ${{ steps.patch.outputs.has_changes }}"
+            echo "- validation_overall: ${{ needs.test_runner_agent.outputs.overall }}"
+            echo "- readiness: ${{ needs.final_reviewer_agent.outputs.readiness }}"
+            echo "- pr_url: ${pr_url}"
+            echo "- auto-repair policy: failed R-CMD-check/pkgdown on codex/* branches are picked up by auto-repair workflow."
+          } >> "$GITHUB_STEP_SUMMARY"
