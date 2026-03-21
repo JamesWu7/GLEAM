@@ -28,6 +28,7 @@ jobs:
             any::rcmdcheck
             any::knitr
             any::rmarkdown
+            monocle3=?ignore
       - name: Run CI explorer agent
         run: scripts/pipeline/ci_explorer_agent.sh pipeline_outputs/ci_explorer_agent
       - uses: actions/upload-artifact@v4
@@ -55,6 +56,7 @@ jobs:
             any::Seurat
             any::SeuratObject
             any::ggridges
+            monocle3=?ignore
       - name: Install package
         run: R CMD INSTALL --no-build-vignettes .
       - name: Run pkgdown explorer agent
@@ -140,6 +142,7 @@ jobs:
             any::Seurat
             any::SeuratObject
             any::ggridges
+            monocle3=?ignore
       - name: Install package
         run: R CMD INSTALL --no-build-vignettes .
       - id: validation

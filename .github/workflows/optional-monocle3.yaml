@@ -11,7 +11,7 @@ jobs:
       - uses: r-lib/actions/setup-r@v2
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::BiocManager, any::testthat, any::remotes, any::devtools
+          extra-packages: any::BiocManager, any::testthat, any::remotes, any::devtools, monocle3=?ignore
           dependencies: '"hard"'
       - name: Install monocle3 (optional backend)
         run: |

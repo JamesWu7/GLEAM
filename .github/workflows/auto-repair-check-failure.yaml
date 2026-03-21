@@ -132,6 +132,7 @@ jobs:
             any::Seurat
             any::SeuratObject
             any::ggridges
+            monocle3=?ignore
       - name: Run local validation before push
         if: steps.collect.outputs.has_logs == 'true' && env.changes_detected == 'true'
         run: |

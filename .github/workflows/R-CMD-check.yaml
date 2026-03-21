@@ -24,6 +24,7 @@ jobs:
             any::rcmdcheck
             any::knitr
             any::rmarkdown
+            monocle3=?ignore
           needs: check
       - uses: r-lib/actions/check-r-package@v2
         env:

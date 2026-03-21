@@ -38,6 +38,7 @@ jobs:
             any::Seurat
             any::SeuratObject
             any::ggridges
+            monocle3=?ignore
       - name: Install GLEAM package for pkgdown reference/examples
         run: R CMD INSTALL --no-build-vignettes .
       - name: Build and validate pkgdown site
