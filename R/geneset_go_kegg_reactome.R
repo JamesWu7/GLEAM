@@ -25,3 +25,21 @@ get_geneset_reactome <- function(species = "Homo sapiens") {
     subcollection = "CP:REACTOME"
   )
 }
+
+#' @keywords internal
+get_geneset_wikipathways <- function(species = "Homo sapiens") {
+  get_geneset_msigdb(
+    species = species,
+    collection = "C2",
+    subcollection = "CP:WIKIPATHWAYS"
+  )
+}
+
+#' @keywords internal
+get_geneset_biocarta <- function(species = "Homo sapiens") {
+  get_geneset_msigdb(
+    species = species,
+    collection = "C2",
+    subcollection = "CP:BIOCARTA"
+  )
+}

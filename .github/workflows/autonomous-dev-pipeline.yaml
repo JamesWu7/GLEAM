@@ -1,0 +1,260 @@
+name: autonomous-dev-pipeline
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '15 2 * * *'
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+concurrency:
+  group: autonomous-dev-pipeline
+  cancel-in-progress: false
+
+jobs:
+  explorer_agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run explorer agent
+        run: scripts/pipeline/explorer_agent.sh pipeline_outputs/explorer_agent
+      - uses: actions/upload-artifact@v4
+        with:
+          name: explorer_agent
+          path: pipeline_outputs/explorer_agent
+
+  reviewer_agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run reviewer agent
+        run: scripts/pipeline/reviewer_agent.sh pipeline_outputs/reviewer_agent
+      - uses: actions/upload-artifact@v4
+        with:
+          name: reviewer_agent
+          path: pipeline_outputs/reviewer_agent
+
+  ci_explorer_agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+      - uses: r-lib/actions/setup-pandoc@v2
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::rcmdcheck
+            any::knitr
+            any::rmarkdown
+      - name: Run CI explorer agent
+        run: scripts/pipeline/ci_explorer_agent.sh pipeline_outputs/ci_explorer_agent
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ci_explorer_agent
+          path: pipeline_outputs/ci_explorer_agent
+
+  pkgdown_explorer_agent:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install system libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libglpk40 libglpk-dev
+      - uses: r-lib/actions/setup-r@v2
+      - uses: r-lib/actions/setup-pandoc@v2
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::pkgdown
+            any::knitr
+            any::rmarkdown
+            any::Seurat
+            any::SeuratObject
+            any::ggridges
+      - name: Install package
+        run: R CMD INSTALL --no-build-vignettes .
+      - name: Run pkgdown explorer agent
+        run: scripts/pipeline/pkgdown_explorer_agent.sh pipeline_outputs/pkgdown_explorer_agent
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pkgdown_explorer_agent
+          path: pipeline_outputs/pkgdown_explorer_agent
+
+  bug_analyzer_agent:
+    runs-on: ubuntu-latest
+    needs: [explorer_agent, reviewer_agent, ci_explorer_agent, pkgdown_explorer_agent]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          path: pipeline_inputs
+      - name: Run bug analyzer agent
+        run: scripts/pipeline/bug_analyzer_agent.sh pipeline_inputs pipeline_outputs/bug_analyzer_agent
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bug_analyzer_agent
+          path: pipeline_outputs/bug_analyzer_agent
+
+  fix_engineer_agent:
+    runs-on: ubuntu-latest
+    needs: [bug_analyzer_agent]
+    if: always()
+    outputs:
+      changes_detected: ${{ steps.fix.outputs.changes_detected }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: bug_analyzer_agent
+          path: pipeline_inputs/bug_analyzer_agent
+      - id: fix
+        name: Run fix engineer agent
+        run: |
+          scripts/pipeline/fix_engineer_agent.sh pipeline_inputs/bug_analyzer_agent pipeline_outputs/fix_engineer_agent
+          source pipeline_outputs/fix_engineer_agent/status.env
+          echo "changes_detected=${changes_detected:-false}" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fix_engineer_agent
+          path: pipeline_outputs/fix_engineer_agent
+
+  test_runner_agent:
+    runs-on: ubuntu-latest
+    needs: [fix_engineer_agent]
+    if: always()
+    outputs:
+      overall: ${{ steps.validation.outputs.overall }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: fix_engineer_agent
+          path: pipeline_inputs/fix_engineer_agent
+      - name: Apply autofix patch
+        run: |
+          if [ -s pipeline_inputs/fix_engineer_agent/autofix.patch ]; then
+            git apply --index pipeline_inputs/fix_engineer_agent/autofix.patch || git apply pipeline_inputs/fix_engineer_agent/autofix.patch
+          fi
+      - name: Install system libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libglpk40 libglpk-dev
+      - uses: r-lib/actions/setup-r@v2
+      - uses: r-lib/actions/setup-pandoc@v2
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: |
+            any::rcmdcheck
+            any::pkgdown
+            any::knitr
+            any::rmarkdown
+            any::Seurat
+            any::SeuratObject
+            any::ggridges
+      - name: Install package
+        run: R CMD INSTALL --no-build-vignettes .
+      - id: validation
+        name: Run test runner agent
+        run: |
+          scripts/pipeline/test_runner_agent.sh pipeline_outputs/test_runner_agent
+          source pipeline_outputs/test_runner_agent/validation.env
+          echo "overall=${overall}" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: test_runner_agent
+          path: pipeline_outputs/test_runner_agent
+
+  final_reviewer_agent:
+    runs-on: ubuntu-latest
+    needs: [bug_analyzer_agent, fix_engineer_agent, test_runner_agent]
+    if: always()
+    outputs:
+      readiness: ${{ steps.review.outputs.readiness }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          path: pipeline_inputs
+      - id: review
+        name: Run final reviewer agent
+        run: |
+          scripts/pipeline/final_reviewer_agent.sh pipeline_inputs pipeline_outputs/final_reviewer_agent
+          source pipeline_outputs/final_reviewer_agent/review.env
+          echo "readiness=${readiness}" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: final_reviewer_agent
+          path: pipeline_outputs/final_reviewer_agent
+
+  pr_writer_agent:
+    runs-on: ubuntu-latest
+    needs: [final_reviewer_agent]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          path: pipeline_inputs
+      - name: Run PR writer agent
+        run: scripts/pipeline/pr_writer_agent.sh pipeline_inputs pipeline_outputs/pr_writer_agent
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pr_writer_agent
+          path: pipeline_outputs/pr_writer_agent
+
+  supervisor_agent:
+    runs-on: ubuntu-latest
+    needs: [fix_engineer_agent, test_runner_agent, final_reviewer_agent, pr_writer_agent]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          path: pipeline_inputs
+      - id: patch
+        name: Apply patch and load PR metadata
+        run: |
+          has_changes=false
+          if [ -s pipeline_inputs/fix_engineer_agent/autofix.patch ]; then
+            git apply --index pipeline_inputs/fix_engineer_agent/autofix.patch || git apply pipeline_inputs/fix_engineer_agent/autofix.patch
+            has_changes=true
+          fi
+          title="$(tr -d '\n' < pipeline_inputs/pr_writer_agent/pr_title.txt 2>/dev/null || echo 'chore(ci): autonomous maintenance pipeline updates')"
+          commit_msg="$(tr -d '\n' < pipeline_inputs/pr_writer_agent/commit_message.txt 2>/dev/null || echo 'chore(ci): apply autonomous pipeline fixes')"
+          echo "has_changes=${has_changes}" >> "$GITHUB_OUTPUT"
+          echo "title=${title}" >> "$GITHUB_OUTPUT"
+          echo "commit_msg=${commit_msg}" >> "$GITHUB_OUTPUT"
+      - name: Create Draft PR (human review required)
+        if: steps.patch.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: codex/auto-dev-pipeline-${{ github.run_id }}
+          delete-branch: true
+          title: ${{ steps.patch.outputs.title }}
+          body-path: pipeline_inputs/pr_writer_agent/pr_body.md
+          commit-message: ${{ steps.patch.outputs.commit_msg }}
+          draft: true
+          labels: |
+            automated
+            needs-human-review
+      - name: Supervisor summary
+        run: |
+          echo "### Autonomous pipeline summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "- changes_detected: ${{ steps.patch.outputs.has_changes }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- validation_overall: ${{ needs.test_runner_agent.outputs.overall }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- readiness: ${{ needs.final_reviewer_agent.outputs.readiness }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- PR creation only; no direct push to main." >> "$GITHUB_STEP_SUMMARY"

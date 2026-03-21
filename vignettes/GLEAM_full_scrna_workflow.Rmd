@@ -144,9 +144,24 @@ sc$meta$group <- factor(as.character(sc$meta$group), levels = group_levels)
 dim(sc$score)
 ```
 
-## 6) Differential analysis
+## 6) Gene-set databases (expanded)
 
-```{r step6-diff, eval=seurat_ok}
+```{r step6-geneset-db}
+list_geneset_sources()
+
+if (requireNamespace("msigdbr", quietly = TRUE)) {
+  gs_wp <- get_geneset(source = "wikipathways", geneset = "wikipathways", species = "human")
+  gs_bc <- get_geneset(source = "biocarta", geneset = "biocarta", species = "human")
+  c(
+    wikipathways = length(gs_wp),
+    biocarta = length(gs_bc)
+  )
+}
+```
+
+## 7) Differential analysis
+
+```{r step7-diff, eval=seurat_ok}
 res_pb <- test_signature(
   sc,
   group = "group",
@@ -161,9 +176,9 @@ head(res_pb$table)
 top_sig
 ```
 
-## 7) GLEAM embedding score plot (Seurat-based)
+## 8) GLEAM embedding score plot (Seurat-based)
 
-```{r step7-embedding-score, eval=seurat_ok}
+```{r step8-embedding-score, eval=seurat_ok}
 plot_embedding_score(
   sc,
   signature = top_sig,
@@ -174,9 +189,9 @@ plot_embedding_score(
 )
 ```
 
-## 8) Dot-bar plot
+## 9) Dot-bar plot
 
-```{r step8-dotbar, eval=seurat_ok, fig.width=12.2, fig.height=7.2, out.width="100%"}
+```{r step9-dotbar, eval=seurat_ok, fig.width=12.2, fig.height=7.2, out.width="100%"}
 plot_dot_bar(
   sc,
   by = c("group", "celltype"),
@@ -185,9 +200,9 @@ plot_dot_bar(
 )
 ```
 
-## 9) Violin plot
+## 10) Violin plot
 
-```{r step9-violin, eval=seurat_ok, fig.width=10.4, fig.height=6.2}
+```{r step10-violin, eval=seurat_ok, fig.width=10.4, fig.height=6.2}
 plot_violin(
   sc,
   signature = top_sig,
@@ -198,9 +213,9 @@ plot_violin(
 ) + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 28, hjust = 1))
 ```
 
-## 10) Split violin plot
+## 11) Split violin plot
 
-```{r step10-split-violin, eval=seurat_ok, fig.width=10.8, fig.height=6.4}
+```{r step11-split-violin, eval=seurat_ok, fig.width=10.8, fig.height=6.4}
 plot_split_violin(
   sc,
   signature = top_sig,
@@ -211,9 +226,9 @@ plot_split_violin(
 ) + ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 28, hjust = 1))
 ```
 
-## 11) Ridge plot
+## 12) Ridge plot
 
-```{r step11-ridge, eval=seurat_ok && requireNamespace("ggridges", quietly = TRUE), fig.width=10.8, fig.height=6.4}
+```{r step12-ridge, eval=seurat_ok && requireNamespace("ggridges", quietly = TRUE), fig.width=10.8, fig.height=6.4}
 plot_ridge(
   sc,
   signature = top_sig,
@@ -223,9 +238,9 @@ plot_ridge(
 )
 ```
 
-## 12) Trajectory-style plots
+## 13) Trajectory-style plots
 
-```{r step12-trajectory-setup, eval=seurat_ok}
+```{r step13-trajectory-setup, eval=seurat_ok}
 seu$pseudotime <- rank(Embeddings(seu, "pca")[, 1], ties.method = "average") / ncol(seu)
 seu$lineage <- as.character(seu$celltype)
 
@@ -246,7 +261,7 @@ lineage_levels <- unique(as.character(sc2$meta$lineage))
 pal_lineage <- setNames(get_palette("brewer_dark2", n = length(lineage_levels), continuous = FALSE), lineage_levels)
 ```
 
-```{r step12-pseudotime, eval=seurat_ok}
+```{r step13-pseudotime, eval=seurat_ok}
 plot_pseudotime_score(
   sc2,
   signature = top_sig,
@@ -256,7 +271,7 @@ plot_pseudotime_score(
 )
 ```
 
-```{r step12-trajmap, eval=seurat_ok}
+```{r step13-trajmap, eval=seurat_ok}
 plot_trajectory_score(
   sc2,
   signature = top_sig,

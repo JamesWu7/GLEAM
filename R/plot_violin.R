@@ -49,11 +49,8 @@ plot_violin <- function(
 
   g_keep <- g[keep]
   g_chr <- as.character(g_keep)
-  g_levels <- if (is.factor(g_keep)) levels(base::droplevels(g_keep)) else unique(g_chr)
-  if (!is.character(palette) && !is.null(names(palette)) && any(nzchar(names(palette)))) {
-    pal_levels <- names(palette)[nzchar(names(palette))]
-    g_levels <- c(pal_levels[pal_levels %in% g_chr], setdiff(g_levels, pal_levels))
-  }
+  g_levels <- resolve_discrete_levels(g_keep, palette = palette)
+  pal_values <- resolve_discrete_palette_values(g_levels, palette = palette)
   df <- data.frame(
     group = factor(g_chr, levels = g_levels, ordered = TRUE),
     score = y[keep],
@@ -64,7 +61,7 @@ plot_violin <- function(
   p <- ggplot2::ggplot(df, ggplot2::aes(x = .data$group, y = .data$score, fill = .data$group)) +
     ggplot2::geom_violin(trim = trim, alpha = alpha, color = NA) +
     ggplot2::geom_boxplot(width = 0.12, outlier.shape = NA, fill = "white", alpha = 0.8, linewidth = 0.3) +
-    scale_gleam_fill(palette = palette, continuous = FALSE) +
+    ggplot2::scale_fill_manual(values = pal_values, drop = FALSE) +
     ggplot2::labs(x = "Group", y = "Signature score", title = paste("Signature score:", signature)) +
     do.call(gleam_theme, tp)
 

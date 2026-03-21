@@ -41,18 +41,20 @@ gleam_theme <- function(
   strip_text_color = "#1F2937",
   text_color = "#111827"
 ) {
-  ggplot2::theme_bw(base_size = base_size, base_family = font_family) +
+  ggplot2::theme_minimal(base_size = base_size, base_family = font_family) +
     ggplot2::theme(
       text = ggplot2::element_text(color = text_color, face = font_face, family = font_family),
       plot.title = ggplot2::element_text(size = title_size, color = title_color, face = "bold", family = font_family),
       plot.subtitle = ggplot2::element_text(size = subtitle_size, color = subtitle_color, family = font_family),
       axis.title = ggplot2::element_text(size = axis_title_size, color = axis_title_color, face = "bold", family = font_family),
       axis.text = ggplot2::element_text(size = axis_text_size, color = axis_text_color, family = font_family),
-      axis.text.x = ggplot2::element_text(angle = 30, hjust = 1),
+      axis.text.x = ggplot2::element_text(angle = 22, hjust = 1),
       legend.title = ggplot2::element_text(size = legend_title_size, color = legend_title_color, face = "bold", family = font_family),
       legend.text = ggplot2::element_text(size = legend_text_size, color = legend_text_color, family = font_family),
       strip.text = ggplot2::element_text(size = strip_text_size, color = strip_text_color, face = "bold", family = font_family),
-      panel.grid.minor = ggplot2::element_blank()
+      panel.grid.minor = ggplot2::element_blank(),
+      panel.grid.major.x = ggplot2::element_line(color = "#E5E7EB", linewidth = 0.25),
+      panel.grid.major.y = ggplot2::element_line(color = "#E5E7EB", linewidth = 0.25)
     )
 }
 
