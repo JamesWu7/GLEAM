@@ -2,6 +2,7 @@ test_that("geneset source listing works", {
   src <- list_geneset_sources()
   expect_true(is.data.frame(src))
   expect_true(all(c("source", "requires_package") %in% colnames(src)))
+  expect_true(all(c("wikipathways", "biocarta") %in% src$source))
 })
 
 test_that("builtin geneset and search works", {

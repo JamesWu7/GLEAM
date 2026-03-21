@@ -136,13 +136,11 @@ plot_dot_bar <- function(score, by, threshold = 0, signature = NULL, color_palet
   bar_df <- bar_df[order(bar_df$celltype_plot), , drop = FALSE]
   bar_df$direction <- factor(ifelse(bar_df$delta >= 0, "increase", "decrease"), levels = c("decrease", "increase"))
   ct_levels <- levels(bar_df$celltype_plot)
-  # Bar panel uses reversed color order so top-to-bottom visual order aligns with violin-style comparison.
-  ct_cols_all <- rev(get_palette("gleam_discrete", n = length(base_levels), continuous = FALSE))
-  names(ct_cols_all) <- base_levels
-  ct_cols <- ct_cols_all[ct_levels]
+  # Keep cell-type colors consistent with violin/ridge and reverse in bar panel for top-to-bottom visual alignment.
+  ct_cols <- resolve_discrete_palette_values(ct_levels, palette = "gleam_discrete", reverse = TRUE)
 
   bar <- ggplot2::ggplot(bar_df, ggplot2::aes(x = .data$delta, y = .data$celltype_plot)) +
-    ggplot2::geom_col(ggplot2::aes(fill = .data$celltype_plot), width = 0.82, color = NA, alpha = 0.92) +
+    ggplot2::geom_col(ggplot2::aes(fill = .data$celltype_plot), width = 0.84, color = NA, alpha = 0.94) +
     ggplot2::geom_path(ggplot2::aes(group = 1), linewidth = 0.55, color = "#111827", alpha = 0.9) +
     ggplot2::geom_point(size = 1.8, color = "#111827") +
     ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "grey35", linewidth = 0.35) +
@@ -158,7 +156,8 @@ plot_dot_bar <- function(score, by, threshold = 0, signature = NULL, color_palet
       legend.position = "none",
       axis.title.y = ggplot2::element_blank(),
       axis.text.y = ggplot2::element_blank(),
-      axis.ticks.y = ggplot2::element_blank()
+      axis.ticks.y = ggplot2::element_blank(),
+      panel.grid.major.y = ggplot2::element_blank()
     )
 
   main_title <- paste0("Dot-bar signature comparison: ", sig_use)
@@ -168,6 +167,6 @@ plot_dot_bar <- function(score, by, threshold = 0, signature = NULL, color_palet
     return(dot + ggplot2::labs(title = main_title))
   }
 
-  (dot + bar + patchwork::plot_layout(guides = "collect", widths = c(0.85, 5.15))) +
+  (dot + bar + patchwork::plot_layout(guides = "collect", widths = c(0.72, 5.28))) +
     patchwork::plot_annotation(title = main_title)
 }
