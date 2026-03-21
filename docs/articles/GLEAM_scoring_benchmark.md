@@ -71,11 +71,11 @@ runtime_df <- data.frame(
 runtime_df <- runtime_df[order(runtime_df$elapsed_sec), , drop = FALSE]
 runtime_df
 #>        method elapsed_sec
-#> 3      zscore       0.006
-#> 4 robust_mean       0.016
+#> 3      zscore       0.007
+#> 4 robust_mean       0.015
 #> 1        rank       0.020
 #> 5    ensemble       0.054
-#> 2        mean       0.214
+#> 2        mean       0.208
 
 ggplot(runtime_df, aes(x = reorder(method, elapsed_sec), y = elapsed_sec, fill = method)) +
   geom_col(width = 0.72, show.legend = FALSE) +
