@@ -123,6 +123,7 @@ jobs:
       - if: steps.collect.outputs.has_logs == 'true' && env.changes_detected == 'true'
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
+          dependencies: '"hard"'
           extra-packages: |
             any::rcmdcheck
             any::pkgdown
