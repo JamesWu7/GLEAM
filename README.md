@@ -26,6 +26,8 @@ devtools::install_github("JamesWu7/GLEAM")
 
 **Navigation:** [Documentation](https://jameswu7.github.io/GLEAM/) | [Reference](https://jameswu7.github.io/GLEAM/reference/) | [Tutorials](https://jameswu7.github.io/GLEAM/articles/) | [Citation](https://jameswu7.github.io/GLEAM/articles/GLEAM_citation.html)
 
+**Automation:** [Autonomous Development Pipeline](https://github.com/JamesWu7/GLEAM/blob/main/docs/AUTONOMOUS_PIPELINE.md)
+
 ## Workflow highlights
 
 Figures below are generated from `scripts/GLEAM_homepage_showcase.Rmd` via `scripts/generate_homepage_figures.R`.

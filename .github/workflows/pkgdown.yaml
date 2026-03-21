@@ -4,19 +4,23 @@ on:
   workflow_dispatch:
   push:
     branches: [ main, master ]
-    paths-ignore:
-      - "docs/**"
+  pull_request:
+    branches: [ main, master ]
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pkgdown
+  cancel-in-progress: true
 
 jobs:
-  pkgdown:
+  build-site:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - name: Install system libraries
         run: |
           sudo apt-get update
@@ -26,41 +30,31 @@ jobs:
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: |
+            any::pkgdown
+            any::knitr
+            any::rmarkdown
             any::Seurat
             any::SeuratObject
             any::ggridges
-          needs: website
-          dependencies: '"hard"'
       - name: Install GLEAM package for pkgdown reference/examples
         run: R CMD INSTALL --no-build-vignettes .
-      - name: Clean stale site output
-        run: pkgdown::clean_site(force = TRUE)
-        shell: Rscript {0}
-      - name: Generate homepage figures from package workflows
-        run: source("scripts/generate_homepage_figures.R")
-        shell: Rscript {0}
-      - name: Build site
-        run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
-        shell: Rscript {0}
-      - name: Sync static homepage assets into built site
-        run: |
-          mkdir -p docs/assets
-          cp -R assets/. docs/assets/
-          mkdir -p docs/man/figures
-          cp -R man/figures/. docs/man/figures/
-      - name: Validate tutorial entry pages for branch-based Pages
-        run: |
-          test -f docs/index.html
-          test -f docs/articles/index.html
-          test -f docs/articles/GLEAM_full_scrna_workflow.html
-          test -f docs/articles/GLEAM_full_spatial_workflow.html
-          test -f docs/articles/GLEAM_citation.html
-          test -f docs/reference/index.html
-          test -f docs/.nojekyll
-      - name: Commit docs to main
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add docs
-          git diff --cached --quiet || git commit -m "docs: update pkgdown site"
-          git push origin HEAD:${GITHUB_REF_NAME}
+      - name: Build and validate pkgdown site
+        run: scripts/pipeline/pkgdown_build_and_validate.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pkgdown-site
+          path: docs
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+
+  deploy-pages:
+    needs: build-site
+    if: github.event_name == 'push' && (github.ref_name == 'main' || github.ref_name == 'master')
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/deploy-pages@v4
+        id: deployment
