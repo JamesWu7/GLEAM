@@ -25,6 +25,7 @@ devtools::install_github("JamesWu7/GLEAM")
 ```
 
 **Navigation:** [Documentation](https://jameswu7.github.io/GLEAM/) | [Reference](https://jameswu7.github.io/GLEAM/reference/) | [Tutorials](https://jameswu7.github.io/GLEAM/articles/) | [Citation](https://jameswu7.github.io/GLEAM/articles/GLEAM_citation.html)
+**Subagents:** [中文分工清单](https://github.com/JamesWu7/GLEAM/blob/main/scripts/subagents/README.md) | [机器可读YAML](https://github.com/JamesWu7/GLEAM/blob/main/scripts/subagents/subagents_zh.yaml)
 
 ## Workflow highlights
 
@@ -85,8 +86,8 @@ if (is.na(top_pw) || !nzchar(top_pw)) top_pw <- rownames(sc$score)[1]
 cell_levels <- names(sort(table(as.character(sc$meta[[celltype_col]])), decreasing = TRUE))
 pal_cell <- setNames(get_palette("gleam_discrete", n = length(cell_levels), continuous = FALSE), cell_levels)
 
-p1 <- plot_embedding_score(sc, pathway = top_pw, object = seu, reduction = "umap")
-p2 <- plot_violin(sc, pathway = top_pw, group = celltype_col, palette = pal_cell, point_size = 0)
+p1 <- plot_embedding_score(sc, signature = top_pw, object = seu, reduction = "umap")
+p2 <- plot_violin(sc, signature = top_pw, group = celltype_col, palette = pal_cell, point_size = 0)
 
 if (requireNamespace("patchwork", quietly = TRUE)) {
   p1 + p2 + patchwork::plot_layout(ncol = 2)
@@ -144,7 +145,7 @@ sp <- score_signature(
 )
 
 top_sig <- rownames(sp$score)[1]
-p1 <- plot_spatial_score(sp, pathway = top_sig, object = st)
+p1 <- plot_spatial_score(sp, signature = top_sig, object = st)
 p2 <- plot_dot(sp, by = region_col)
 
 if (requireNamespace("patchwork", quietly = TRUE)) {

@@ -1,0 +1,126 @@
+version: 1
+pipeline_name: GLEAM_自治开发流水线
+policy:
+  no_direct_push_main: true
+  require_human_review_before_merge: true
+  single_code_writer: 修复工程代理
+
+subagents:
+  - id: supervisor_agent
+    中文名称: 总控代理
+    英文名称: Supervisor Agent
+    阶段: 全流程
+    主要职责: 负责任务编排、阶段衔接、分支与PR动作（不直接合并）。
+    输入: 所有阶段产物
+    输出: 分支提交、Draft PR、流程摘要
+    可并行: false
+    可写代码: false
+
+  - id: explorer_agent
+    中文名称: 代码探索代理
+    英文名称: Explorer Agent
+    阶段: 分析
+    主要职责: 扫描代码结构与高风险调用，输出潜在问题清单。
+    输入: 仓库代码
+    输出: 结构分析报告、潜在问题列表
+    可并行: true
+    可写代码: false
+
+  - id: reviewer_agent
+    中文名称: 规范评审代理
+    英文名称: Reviewer Agent
+    阶段: 分析
+    主要职责: 检查API与文档一致性、命名规范、遗留兼容痕迹。
+    输入: R脚本、Rd文档、README
+    输出: 规范一致性报告
+    可并行: true
+    可写代码: false
+
+  - id: ci_explorer_agent
+    中文名称: CI日志探索代理
+    英文名称: CI Explorer Agent
+    阶段: 分析
+    主要职责: 执行并解析R CMD build/check日志，提取失败关键信息。
+    输入: 仓库代码、CI执行日志
+    输出: CI失败摘要、错误片段
+    可并行: true
+    可写代码: false
+
+  - id: pkgdown_explorer_agent
+    中文名称: 文档构建探索代理
+    英文名称: pkgdown Explorer Agent
+    阶段: 分析
+    主要职责: 执行pkgdown构建并检查教程/参考页可访问性。
+    输入: 仓库代码、pkgdown日志
+    输出: pkgdown状态报告、缺页清单
+    可并行: true
+    可写代码: false
+
+  - id: bug_analyzer_agent
+    中文名称: 根因分析代理
+    英文名称: Bug Analyzer Agent
+    阶段: 根因定位
+    主要职责: 汇总分析阶段产物并产出结构化根因结论。
+    输入: explorer/reviewer/ci/pkgdown 报告
+    输出: error_type、file_location、root_cause、fix_strategy
+    可并行: false
+    可写代码: false
+
+  - id: fix_engineer_agent
+    中文名称: 修复工程代理
+    英文名称: Fix Engineer Agent
+    阶段: 修复
+    主要职责: 仅做最小修改并保持API边界稳定。
+    输入: 根因分析结论
+    输出: 代码补丁、变更清单
+    可并行: false
+    可写代码: true
+
+  - id: test_runner_agent
+    中文名称: 测试验证代理
+    英文名称: Test Runner Agent
+    阶段: 验证
+    主要职责: 运行check/tests/pkgdown并生成可审计验证结果。
+    输入: 修复补丁、仓库代码
+    输出: 验证状态、日志工件
+    可并行: false
+    可写代码: false
+
+  - id: pr_writer_agent
+    中文名称: PR文案代理
+    英文名称: PR Writer Agent
+    阶段: PR生成
+    主要职责: 自动生成PR标题、提交信息与说明模板。
+    输入: 根因结论、验证结果、变更清单
+    输出: PR标题、commit message、PR正文
+    可并行: false
+    可写代码: false
+
+  - id: final_reviewer_agent
+    中文名称: 最终复核代理
+    英文名称: Final Reviewer Agent
+    阶段: 复核
+    主要职责: 做回归风险评估并给出可审查结论。
+    输入: 修复补丁、验证日志
+    输出: readiness结论（ready_for_human_review / needs_changes）
+    可并行: false
+    可写代码: false
+
+phase_map:
+  phase_1_analysis_parallel:
+    - explorer_agent
+    - reviewer_agent
+    - ci_explorer_agent
+    - pkgdown_explorer_agent
+  phase_2_root_cause:
+    - bug_analyzer_agent
+  phase_3_fix:
+    - fix_engineer_agent
+  phase_4_validation:
+    - test_runner_agent
+  phase_5_review:
+    - final_reviewer_agent
+  phase_6_pr_content:
+    - pr_writer_agent
+  phase_7_supervision:
+    - supervisor_agent

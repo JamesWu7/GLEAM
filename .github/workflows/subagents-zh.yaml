@@ -1,0 +1,134 @@
+name: Subagents 中文校验
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "scripts/subagents/subagents_zh.yaml"
+
+permissions:
+  contents: read
+
+jobs:
+  manifest_validation:
+    name: 子代理清单校验
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.validate.outputs.version }}
+      pipeline_name: ${{ steps.validate.outputs.pipeline_name }}
+      subagents_count: ${{ steps.validate.outputs.subagents_count }}
+      phase_count: ${{ steps.validate.outputs.phase_count }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Python 依赖
+        run: python -m pip install --upgrade pip pyyaml
+
+      - name: 解析 YAML 并检查必填字段
+        id: validate
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+          import yaml
+
+          config_path = Path("scripts/subagents/subagents_zh.yaml")
+          data = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+
+          if not isinstance(data, dict):
+              raise SystemExit("YAML 顶层必须是映射对象。")
+
+          required_fields = ["version", "pipeline_name", "subagents", "phase_map"]
+          missing = [k for k in required_fields if k not in data]
+          if missing:
+              raise SystemExit(f"缺少必填字段: {', '.join(missing)}")
+
+          if not isinstance(data["subagents"], list):
+              raise SystemExit("字段 subagents 必须是列表。")
+          if not isinstance(data["phase_map"], dict):
+              raise SystemExit("字段 phase_map 必须是映射。")
+
+          output_file = Path(os.environ["GITHUB_OUTPUT"])
+          with output_file.open("a", encoding="utf-8") as fh:
+              fh.write(f"version={data['version']}\n")
+              fh.write(f"pipeline_name={data['pipeline_name']}\n")
+              fh.write(f"subagents_count={len(data['subagents'])}\n")
+              fh.write(f"phase_count={len(data['phase_map'])}\n")
+
+          print("YAML 可解析，必填字段检查通过。")
+          PY
+
+  structure_check:
+    name: 结构检查
+    runs-on: ubuntu-latest
+    needs: manifest_validation
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Python 依赖
+        run: python -m pip install --upgrade pip pyyaml
+
+      - name: 检查子代理结构与 phase_map 引用
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+
+          data = yaml.safe_load(Path("scripts/subagents/subagents_zh.yaml").read_text(encoding="utf-8"))
+          subagents = data["subagents"]
+          phase_map = data["phase_map"]
+
+          if not subagents:
+              raise SystemExit("subagents 不能为空。")
+          if not phase_map:
+              raise SystemExit("phase_map 不能为空。")
+
+          ids = []
+          for idx, item in enumerate(subagents, start=1):
+              if not isinstance(item, dict):
+                  raise SystemExit(f"subagents 第 {idx} 项必须是映射对象。")
+              agent_id = item.get("id")
+              if not agent_id:
+                  raise SystemExit(f"subagents 第 {idx} 项缺少 id。")
+              ids.append(agent_id)
+
+          duplicate_ids = sorted({x for x in ids if ids.count(x) > 1})
+          if duplicate_ids:
+              raise SystemExit(f"存在重复 subagent id: {', '.join(duplicate_ids)}")
+
+          id_set = set(ids)
+          referenced = set()
+          for phase_name, agent_list in phase_map.items():
+              if not isinstance(agent_list, list):
+                  raise SystemExit(f"{phase_name} 的值必须是列表。")
+              for agent_id in agent_list:
+                  referenced.add(agent_id)
+                  if agent_id not in id_set:
+                      raise SystemExit(f"{phase_name} 引用了未定义的 subagent id: {agent_id}")
+
+          unreferenced = sorted(id_set - referenced)
+          print(f"subagents 总数: {len(ids)}")
+          print(f"phase_map 阶段数: {len(phase_map)}")
+          if unreferenced:
+              print("未被 phase_map 引用的 subagent id: " + ", ".join(unreferenced))
+          else:
+              print("所有 subagent 均被 phase_map 引用。")
+          PY
+
+  summary:
+    name: 摘要输出
+    runs-on: ubuntu-latest
+    needs: [manifest_validation, structure_check]
+    steps:
+      - name: 输出校验结果摘要
+        run: |
+          {
+            echo "## 子代理清单校验摘要"
+            echo ""
+            echo "- 必填字段检查: 通过"
+            echo "- version: \`${{ needs.manifest_validation.outputs.version }}\`"
+            echo "- pipeline_name: \`${{ needs.manifest_validation.outputs.pipeline_name }}\`"
+            echo "- subagents 数量: \`${{ needs.manifest_validation.outputs.subagents_count }}\`"
+            echo "- phase_map 阶段数量: \`${{ needs.manifest_validation.outputs.phase_count }}\`"
+            echo "- 结构检查: 通过"
+          } >> "$GITHUB_STEP_SUMMARY"
