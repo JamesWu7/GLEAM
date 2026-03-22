@@ -34,8 +34,48 @@ seurat_ok <- requireNamespace("Seurat", quietly = TRUE) && requireNamespace("Seu
 library(Seurat)
 
 ifnb_path <- system.file("extdata", "full_examples", "ifnb_seurat.rds", package = "GLEAM")
-if (ifnb_path == "") ifnb_path <- file.path("inst", "extdata", "full_examples", "ifnb_seurat.rds")
-seu <- readRDS(ifnb_path)
+src_ifnb_path <- if (!is.null(pkg_root)) file.path(pkg_root, "inst", "extdata", "full_examples", "ifnb_seurat.rds") else ""
+
+if (nzchar(ifnb_path) && file.exists(ifnb_path)) {
+  seu <- readRDS(ifnb_path)
+} else if (nzchar(src_ifnb_path) && file.exists(src_ifnb_path)) {
+  seu <- readRDS(src_ifnb_path)
+} else {
+  data("pbmc_medium_matrix", package = "GLEAM")
+  data("pbmc_medium_meta", package = "GLEAM")
+
+  md <- as.data.frame(pbmc_medium_meta, stringsAsFactors = FALSE)
+  if ("cell_id" %in% colnames(md)) rownames(md) <- as.character(md$cell_id)
+
+  cells_avail <- intersect(colnames(pbmc_medium_matrix), rownames(md))
+  seu <- Seurat::CreateSeuratObject(
+    counts = pbmc_medium_matrix[, cells_avail, drop = FALSE],
+    meta.data = md[cells_avail, , drop = FALSE],
+    assay = "RNA"
+  )
+
+  if (!"orig.ident" %in% colnames(seu@meta.data) && "sample" %in% colnames(seu@meta.data)) {
+    seu$orig.ident <- as.character(seu$sample)
+  }
+  if (!"seurat_annotations" %in% colnames(seu@meta.data) && "celltype" %in% colnames(seu@meta.data)) {
+    seu$seurat_annotations <- as.character(seu$celltype)
+  }
+
+  if ("condition" %in% colnames(seu@meta.data)) {
+    stim <- tolower(as.character(seu$condition))
+  } else if ("group" %in% colnames(seu@meta.data)) {
+    stim <- tolower(as.character(seu$group))
+  } else {
+    stim <- rep("ctrl", ncol(seu))
+  }
+  stim[stim %in% c("control", "ctrl", "unstim", "nonstim", "baseline")] <- "ctrl"
+  stim[stim %in% c("treated", "treat", "stimulated", "stim")] <- "stim"
+  seu$stim <- stim
+}
+
+if (!"orig.ident" %in% colnames(seu@meta.data)) seu$orig.ident <- "sample1"
+if (!"seurat_annotations" %in% colnames(seu@meta.data)) seu$seurat_annotations <- "Unknown"
+if (!"stim" %in% colnames(seu@meta.data)) seu$stim <- rep("ctrl", ncol(seu))
 
 # Keep both CTRL/STIM groups in tutorial subset so group contrasts are always available.
 if ("stim" %in% colnames(seu@meta.data)) {

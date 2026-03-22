@@ -35,11 +35,59 @@ library(Seurat)
 
 a1_path <- system.file("extdata", "full_examples", "stxBrain_anterior1_seurat.rds", package = "GLEAM")
 p1_path <- system.file("extdata", "full_examples", "stxBrain_posterior1_seurat.rds", package = "GLEAM")
-if (a1_path == "") a1_path <- file.path("inst", "extdata", "full_examples", "stxBrain_anterior1_seurat.rds")
-if (p1_path == "") p1_path <- file.path("inst", "extdata", "full_examples", "stxBrain_posterior1_seurat.rds")
+src_a1_path <- if (!is.null(pkg_root)) file.path(pkg_root, "inst", "extdata", "full_examples", "stxBrain_anterior1_seurat.rds") else ""
+src_p1_path <- if (!is.null(pkg_root)) file.path(pkg_root, "inst", "extdata", "full_examples", "stxBrain_posterior1_seurat.rds") else ""
 
-sp_a1 <- readRDS(a1_path)
-sp_p1 <- readRDS(p1_path)
+has_installed_full <- nzchar(a1_path) && nzchar(p1_path) && file.exists(a1_path) && file.exists(p1_path)
+has_source_full <- nzchar(src_a1_path) && nzchar(src_p1_path) && file.exists(src_a1_path) && file.exists(src_p1_path)
+
+if (has_installed_full || has_source_full) {
+  if (!has_installed_full && has_source_full) {
+    a1_path <- src_a1_path
+    p1_path <- src_p1_path
+  }
+  sp_a1 <- readRDS(a1_path)
+  sp_p1 <- readRDS(p1_path)
+} else {
+  data("spatial_medium_expr", package = "GLEAM")
+  data("spatial_medium_meta", package = "GLEAM")
+
+  md <- as.data.frame(spatial_medium_meta, stringsAsFactors = FALSE)
+  if ("cell_id" %in% colnames(md)) rownames(md) <- as.character(md$cell_id)
+  common_cells <- intersect(colnames(spatial_medium_expr), rownames(md))
+  md <- md[common_cells, , drop = FALSE]
+  expr <- spatial_medium_expr[, common_cells, drop = FALSE]
+
+  if (!"orig.ident" %in% colnames(md) && "sample" %in% colnames(md)) {
+    md$orig.ident <- as.character(md$sample)
+  }
+
+  sample_levels <- unique(as.character(md$sample))
+  if (length(sample_levels) < 2L) {
+    md$sample <- rep(c("anterior", "posterior"), length.out = nrow(md))
+    sample_levels <- unique(as.character(md$sample))
+  }
+
+  cells_a1 <- rownames(md)[as.character(md$sample) == sample_levels[1]]
+  cells_p1 <- rownames(md)[as.character(md$sample) == sample_levels[2]]
+  if (length(cells_a1) < 50L || length(cells_p1) < 50L) {
+    n_half <- floor(length(common_cells) / 2L)
+    cells_a1 <- common_cells[seq_len(n_half)]
+    cells_p1 <- common_cells[(n_half + 1L):length(common_cells)]
+  }
+
+  sp_a1 <- Seurat::CreateSeuratObject(
+    counts = expr[, cells_a1, drop = FALSE],
+    meta.data = md[cells_a1, , drop = FALSE],
+    assay = "Spatial"
+  )
+  sp_p1 <- Seurat::CreateSeuratObject(
+    counts = expr[, cells_p1, drop = FALSE],
+    meta.data = md[cells_p1, , drop = FALSE],
+    assay = "Spatial"
+  )
+}
+
 sp_a1 <- tryCatch(SeuratObject::UpdateSeuratObject(sp_a1), error = function(e) sp_a1)
 sp_p1 <- tryCatch(SeuratObject::UpdateSeuratObject(sp_p1), error = function(e) sp_p1)
 
@@ -59,8 +107,18 @@ cat("posterior images:", paste(imgs_p1, collapse = ", "), "\n")
 coords_a1_check <- tryCatch(GLEAM:::extract_spatial_coords(object = sp_a1), error = function(e) e)
 coords_p1_check <- tryCatch(GLEAM:::extract_spatial_coords(object = sp_p1), error = function(e) e)
 
-if (inherits(coords_a1_check, "error")) stop("anterior coordinate extraction failed: ", conditionMessage(coords_a1_check))
-if (inherits(coords_p1_check, "error")) stop("posterior coordinate extraction failed: ", conditionMessage(coords_p1_check))
+if (inherits(coords_a1_check, "error")) {
+  coords_a1_check <- tryCatch(
+    GLEAM:::extract_spatial_coords(meta = as.data.frame(sp_a1[[]], stringsAsFactors = FALSE), seurat = FALSE),
+    error = function(e) stop("anterior coordinate extraction failed: ", conditionMessage(coords_a1_check), " | metadata fallback: ", conditionMessage(e))
+  )
+}
+if (inherits(coords_p1_check, "error")) {
+  coords_p1_check <- tryCatch(
+    GLEAM:::extract_spatial_coords(meta = as.data.frame(sp_p1[[]], stringsAsFactors = FALSE), seurat = FALSE),
+    error = function(e) stop("posterior coordinate extraction failed: ", conditionMessage(coords_p1_check), " | metadata fallback: ", conditionMessage(e))
+  )
+}
 
 cat("anterior coords:", nrow(coords_a1_check), "spots\n")
 cat("posterior coords:", nrow(coords_p1_check), "spots\n")
